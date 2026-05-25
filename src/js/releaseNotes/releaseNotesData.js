@@ -41,6 +41,22 @@ export const KIND_META = {
 
 export const RELEASES = [
     {
+        version: '0.1.1',
+        date: 'May 25, 2026',
+        codename: 'Proxy Pass',
+        summary:
+            'Wire the real /score/similoo backend behind same-origin Vercel proxies so the UI talks to live RES data instead of always falling back to the EGRID-seeded mock. Two new Node serverless functions — api/similoo.ts and api/parcel.ts — attach the RES API token server-side and forward to /score/similoo and /res_api/parcel_data respectively (mirroring the scoore /api/overpass pattern). The client API surface no longer ships any token. Suite convention is the custom `token:` header on /score/* and /res_api/*; the previous Authorization: Bearer attempt would have hit 401 on both routes and always degraded to mock.',
+        highlight: true,
+        items: [
+            {
+                kind: 'fixed',
+                icon: 'shield-check',
+                text: 'New api/similoo.ts and api/parcel.ts Vercel proxies that send the RES API token via the suite-standard `token:` header (matching scoore/api/overpass). src/js/api/similoo.js and src/js/comparison/parcelLookup.js now POST same-origin to /api/similoo and /api/parcel — no client-side token, no Bearer header mismatch, no CORS surface.',
+                prs: [],
+            },
+        ],
+    },
+    {
         version: '0.1.0',
         date: 'May 25, 2026',
         codename: 'First Compare',
