@@ -1,11 +1,11 @@
-import { getAccessToken } from '../auth/index.js';
-
 // Resolve a parcel EGRID from a Cesium click world-position.
 //
 // The Swiss TLM3D and OSM Building tilesets don't expose EGRID on the
 // picked feature. The canonical resolver lives on the shared RES API at
 // POST /res_api/parcel_data — given lat/lng it returns the GeoJSON parcel
-// feature whose `properties.egrid` we extract.
+// feature whose `properties.egrid` we extract. We hit it through the
+// same-origin /api/parcel Vercel proxy so the client doesn't carry the
+// RES API token.
 //
 // Falls back to a deterministic synthetic EGRID built from the click
 // coordinates (or the feature ID, if available) when the network is down
@@ -13,20 +13,16 @@ import { getAccessToken } from '../auth/index.js';
 // EGRID still drives a real-shape mock response from fetchSimilooComparables
 // so the demo flow keeps working before the backend goes live.
 
-const RES_BASE = (import.meta.env.VITE_RES_API_BASE_URL || 'https://res.zeroo.ch').replace(/\/$/, '');
-const PARCEL_ENDPOINT = `${RES_BASE}/res_api/parcel_data`;
+const PARCEL_ENDPOINT = '/api/parcel';
 
 export async function resolveEgridFromWorldPos(clickWorldPosition, fallbackFeature) {
     const ll = worldPositionToLatLng(clickWorldPosition);
     if (!ll) return synthesisedEgrid(fallbackFeature);
 
     try {
-        const headers = { 'Content-Type': 'application/json' };
-        const token = await safeGetToken();
-        if (token) headers.Authorization = `Bearer ${token}`;
         const res = await fetch(PARCEL_ENDPOINT, {
             method: 'POST',
-            headers,
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ lat: ll.lat, lng: ll.lng }),
         });
         if (!res.ok) {
@@ -39,14 +35,6 @@ export async function resolveEgridFromWorldPos(clickWorldPosition, fallbackFeatu
     } catch (err) {
         console.warn('parcel_data lookup failed; using synthetic EGRID:', err?.message);
         return synthesisedEgrid(fallbackFeature, ll);
-    }
-}
-
-async function safeGetToken() {
-    try {
-        return await getAccessToken();
-    } catch {
-        return null;
     }
 }
 

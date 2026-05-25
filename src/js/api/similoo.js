@@ -1,4 +1,3 @@
-import { getAccessToken } from '../auth/index.js';
 
 // similoo's "comparable buildings" endpoint client.
 //
@@ -17,8 +16,9 @@ import { getAccessToken } from '../auth/index.js';
 //                  building_volume_m3, footprint_m2, height_m, floors,
 //                  construction_year, ratioV, similarity_score, lat, lng }
 
-const RES_BASE = (import.meta.env.VITE_RES_API_BASE_URL || 'https://res.zeroo.ch').replace(/\/$/, '');
-const ENDPOINT = `${RES_BASE}/score/similoo`;
+// Same-origin Vercel proxy. The proxy (api/similoo.ts) attaches the RES
+// API token server-side so the client doesn't have to handle suite auth.
+const ENDPOINT = '/api/similoo';
 
 export async function fetchSimilooComparables(egrid, opts = {}) {
     if (!egrid) {
@@ -28,13 +28,9 @@ export async function fetchSimilooComparables(egrid, opts = {}) {
     const limit = Number.isFinite(opts.limit) ? opts.limit : 12;
 
     try {
-        const token = await safeGetToken();
-        const headers = { 'Content-Type': 'application/json' };
-        if (token) headers.Authorization = `Bearer ${token}`;
-
         const res = await fetch(ENDPOINT, {
             method: 'POST',
-            headers,
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ egrid, years, limit }),
         });
 
@@ -54,14 +50,6 @@ export async function fetchSimilooComparables(egrid, opts = {}) {
         // because they come back as 4xx (non-404) and re-throw above.
         console.warn('similoo backend unreachable, using mock data:', err?.message);
         return mockSimilooResponse(egrid, { years, limit });
-    }
-}
-
-async function safeGetToken() {
-    try {
-        return await getAccessToken();
-    } catch {
-        return null;
     }
 }
 
