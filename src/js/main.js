@@ -12,6 +12,8 @@ import {
 import { createBuildingInfoPanel } from './info/buildingInfoPanel.js';
 import { onPresetChange, getActivePreset } from './viewer/buildings.js';
 import { applyTranslations, bindLocaleSelect, t } from './i18n.js';
+import { createComparisonSidebar } from './comparison/sidebar.js';
+import { resolveEgridFromWorldPos } from './comparison/parcelLookup.js';
 import './cesiumConfig.js';
 
 // Apply translations as soon as the static DOM is parsed — before window.onload
@@ -67,41 +69,69 @@ window.onload = async function() {
     }
 };
 
-// Wires the building picker, metrics module, and info panel into one flow:
+// Wires the building picker, metrics module, and the comparison sidebar
+// into one flow. similoo's headline surface is "comparable buildings",
+// not a single-building info dump, so the comparison sidebar takes the
+// right-edge slot — it already shows the target parcel's metrics in its
+// top section, which subsumes the bip's quickstats. The hood-style info
+// panel is kept instantiated (but stays hidden) so we can still cache
+// computed metrics per feature for the future "details" sub-view.
+//
 //   * Hover/click on the map drives the picker.
-//   * Click → compute metrics → show panel → shift right-side controls.
-//   * Deselect → hide panel → unshift controls.
-//   * Date change in Setup → invalidate solar cache → recompute if open.
+//   * Click → compute metrics (cache) → resolve EGRID → show comparison
+//            sidebar → shift right-side controls.
+//   * Deselect → hide sidebar → unshift controls.
+//   * Date change in Setup → invalidate metrics cache.
 //   * Google preset active → disable picker (mesh has no useful props).
-//   * Escape key → close panel.
+//   * Escape key → close sidebar.
 function setupBuildingInfoFlow(viewer) {
     let currentFeature = null;
     let currentClickPos = null;
+    let resolveSeq = 0;
 
-    const panel = createBuildingInfoPanel({
+    // Kept around so the metrics cache stays warm — see comment above.
+    const panel = createBuildingInfoPanel({ onClose: () => {} });
+    panel.hide();
+
+    const comparison = createComparisonSidebar({
+        viewer,
         onClose: () => {
-            // X button uses the same teardown path as Escape / outside click.
             currentFeature = null;
             currentClickPos = null;
-            document.body.classList.remove('right-controls-shifted');
+            resolveSeq++;
+            document.body.classList.remove('cmp-shifted');
             picker.clearSelection();
+            hideAddressHeader();
         },
     });
 
     const picker = setupBuildingPicker(viewer, {
-        onSelect: (feature, clickWorldPosition) => {
+        onSelect: async (feature, clickWorldPosition) => {
             currentFeature = feature;
             currentClickPos = clickWorldPosition;
-            const metrics = computeBuildingMetrics(feature, viewer, clickWorldPosition);
-            panel.show(metrics);
-            document.body.classList.add('right-controls-shifted');
+            // Pre-warm the per-feature metrics cache so a future "details"
+            // sub-view inside the comparison sidebar can read it sync.
+            computeBuildingMetrics(feature, viewer, clickWorldPosition);
+            document.body.classList.add('cmp-shifted');
             hideAddressHeader();
+
+            // Resolve EGRID then drive the comparison sidebar. Tagged with
+            // a seq so a rapid second pick wins the race.
+            const seq = ++resolveSeq;
+            try {
+                const { egrid } = await resolveEgridFromWorldPos(clickWorldPosition, feature);
+                if (seq !== resolveSeq) return;
+                if (egrid) comparison.show(egrid);
+            } catch (err) {
+                console.warn('EGRID resolve failed:', err);
+            }
         },
         onDeselect: () => {
             currentFeature = null;
             currentClickPos = null;
-            panel.hide();
-            document.body.classList.remove('right-controls-shifted');
+            resolveSeq++;
+            comparison.hide();
+            document.body.classList.remove('cmp-shifted');
             hideAddressHeader();
         },
     });
@@ -113,24 +143,24 @@ function setupBuildingInfoFlow(viewer) {
     });
 
     // When the user changes the Setup date, re-run solar exposure for the
-    // currently-open building (if any) and re-render only the panel.
+    // currently-open feature (if any) so the metrics cache stays fresh.
     const dateInput = document.getElementById('dateInput');
     if (dateInput) {
         dateInput.addEventListener('change', () => {
             if (!currentFeature || !currentClickPos) return;
             invalidateBuildingMetrics(currentFeature);
-            const fresh = computeBuildingMetrics(currentFeature, viewer, currentClickPos);
-            panel.show(fresh);
+            computeBuildingMetrics(currentFeature, viewer, currentClickPos);
         });
     }
 
-    // Escape closes the panel (mirrors the close button).
+    // Escape closes the sidebar.
     window.addEventListener('keydown', (e) => {
         if (e.key === 'Escape' && currentFeature) {
             currentFeature = null;
             currentClickPos = null;
-            panel.hide();
-            document.body.classList.remove('right-controls-shifted');
+            resolveSeq++;
+            comparison.hide();
+            document.body.classList.remove('cmp-shifted');
             picker.clearSelection();
         }
     });
