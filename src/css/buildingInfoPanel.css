@@ -1,0 +1,277 @@
+/* Building info panel — dark glassy slide-in matching Groove's panel
+   language. Mounted as a separate stylesheet so the feature is
+   self-contained and the .bip-* prefix keeps it scoped. */
+
+.bip {
+    position: fixed;
+    top: 60px;            /* below the .navbar */
+    right: 0;
+    bottom: 0;
+    width: 380px;
+    z-index: 50;          /* under modals (3000+), above map controls (5) */
+    background: var(--hood-panel-bg);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border-left: 1px solid var(--hood-panel-border);
+    color: var(--hood-panel-text);
+    font-family: var(--hood-font);
+    transform: translateX(24px);
+    opacity: 0;
+    transition: transform 200ms ease, opacity 200ms ease;
+    pointer-events: none;
+    overflow-y: auto;
+    box-shadow: var(--hood-panel-shadow);
+}
+.bip[data-state="visible"] {
+    transform: translateX(0);
+    opacity: 1;
+    pointer-events: auto;
+}
+
+/* ---------- header ---------- */
+.bip-header {
+    position: relative;
+    padding: 20px 24px 16px;
+    border-bottom: 1px solid var(--hood-panel-border);
+}
+.bip-eyebrow {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--hood-panel-muted);
+    margin-bottom: 6px;
+}
+.bip-eyebrow .bip-source {
+    color: var(--hood-panel-source);
+    font-weight: 600;
+}
+.bip-divider { color: var(--hood-panel-divider); }
+.bip-id { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, monospace; }
+.bip-title {
+    color: var(--hood-panel-title);
+    font-size: 18px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    margin: 0;
+}
+.bip-close {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    width: 28px;
+    height: 28px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    background: var(--hood-panel-row-bg);
+    color: var(--hood-panel-muted);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 150ms ease, color 150ms ease;
+}
+.bip-close:hover {
+    background: var(--hood-panel-row-bg-hover);
+    color: var(--hood-panel-title);
+}
+.bip-close i { width: 16px; height: 16px; }
+
+/* ---------- sections ---------- */
+.bip-section {
+    padding: 16px 24px;
+    border-bottom: 1px solid var(--hood-panel-row-bg);
+}
+.bip-section:last-child { border-bottom: none; }
+.bip-section-title {
+    margin: 0 0 12px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--hood-panel-muted);
+}
+.bip-section-meta {
+    color: var(--hood-panel-faint);
+    margin-left: 6px;
+    font-weight: 500;
+    letter-spacing: 0;
+    text-transform: none;
+}
+
+/* ---------- quick-stat tiles ---------- */
+.bip-quickstats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    padding-top: 20px;
+    padding-bottom: 20px;
+}
+.bip-tile {
+    background: var(--hood-panel-row-bg);
+    border: 1px solid var(--hood-panel-border);
+    border-radius: 10px;
+    padding: 12px 10px;
+    text-align: center;
+}
+.bip-tile-value {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--hood-panel-title);
+    letter-spacing: -0.01em;
+    line-height: 1.1;
+}
+.bip-tile-unit {
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--hood-panel-muted);
+    margin-left: 2px;
+}
+.bip-tile-label {
+    margin-top: 4px;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--hood-panel-muted);
+}
+.bip-tile-est {
+    margin-top: 2px;
+    font-size: 9px;
+    color: #F59E0B;
+    opacity: 0.8;
+}
+
+/* ---------- 3D profile bars ---------- */
+.bip-bar-row {
+    display: grid;
+    grid-template-columns: 80px 1fr 80px;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+    font-size: 12px;
+    color: var(--hood-panel-text);
+}
+.bip-bar-row:last-child { margin-bottom: 0; }
+.bip-bar {
+    height: 6px;
+    background: var(--hood-panel-border);
+    border-radius: 3px;
+    overflow: hidden;
+}
+.bip-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #DC2626, #F59E0B);
+    border-radius: 3px;
+}
+.bip-bar-badge {
+    justify-self: end;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--hood-panel-muted);
+    background: var(--hood-panel-row-bg);
+    border: 1px solid var(--hood-panel-border);
+    border-radius: 999px;
+    padding: 2px 8px;
+}
+.bip-roof-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px dashed var(--hood-panel-border);
+    font-size: 12px;
+    color: var(--hood-panel-text);
+}
+.bip-roof-row i { width: 16px; height: 16px; color: #F59E0B; }
+.bip-roof-value { font-weight: 600; color: var(--hood-panel-title); text-transform: capitalize; }
+
+/* ---------- solar exposure ---------- */
+.bip-solar-sparkline {
+    display: block;
+    width: 100%;
+    height: 60px;
+}
+.bip-solar-sparkline rect { fill: #F59E0B; opacity: 0.9; }
+.bip-solar-sparkline rect.is-night { fill: var(--hood-panel-border); }
+.bip-solar-sparkline rect.is-shaded { fill: rgba(245, 158, 11, 0.18); }
+.bip-solar-axis {
+    display: flex;
+    justify-content: space-between;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, monospace;
+    font-size: 10px;
+    color: var(--hood-panel-faint);
+    margin-top: 4px;
+}
+.bip-solar-summary {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 12px;
+    font-size: 13px;
+    color: var(--hood-panel-text);
+}
+.bip-solar-summary i { width: 14px; height: 14px; color: #F59E0B; }
+.bip-solar-summary strong { color: var(--hood-panel-title); font-weight: 600; }
+
+/* ---------- properties ---------- */
+.bip-props-toggle {
+    width: 100%;
+    background: transparent;
+    border: none;
+    color: var(--hood-panel-text);
+    font-family: inherit;
+    font-size: 12px;
+    text-align: left;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 0;
+}
+.bip-props-toggle i { width: 14px; height: 14px; transition: transform 150ms ease; }
+.bip-props-toggle[aria-expanded="true"] i { transform: rotate(90deg); }
+.bip-props-list {
+    margin: 8px 0 0;
+    display: grid;
+    grid-template-columns: minmax(120px, max-content) 1fr;
+    gap: 4px 12px;
+    font-size: 11px;
+    color: var(--hood-panel-muted);
+}
+.bip-props-list dt {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, monospace;
+    color: var(--hood-panel-muted);
+}
+.bip-props-list dd {
+    margin: 0;
+    color: var(--hood-panel-text);
+    word-break: break-word;
+}
+
+/* ---------- right-side control shift ---------- */
+.basemap-selector,
+.cesium-viewer-cesiumNavigationContainer,
+.cesium-viewer-toolbar {
+    transition: transform 200ms ease;
+}
+body.right-controls-shifted .basemap-selector,
+body.right-controls-shifted .cesium-viewer-cesiumNavigationContainer,
+body.right-controls-shifted .cesium-viewer-toolbar {
+    transform: translateX(-380px);
+}
+
+/* ---------- mobile ---------- */
+@media (max-width: 640px) {
+    .bip { width: 100%; top: 60px; }
+    body.right-controls-shifted .basemap-selector,
+    body.right-controls-shifted .cesium-viewer-cesiumNavigationContainer,
+    body.right-controls-shifted .cesium-viewer-toolbar {
+        transform: translateX(0);
+        opacity: 0;
+        pointer-events: none;
+    }
+}

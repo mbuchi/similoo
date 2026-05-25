@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 180" width="180" height="180">
+  <title>Swissnovo Toolbox</title>
+  <rect width="180" height="180" rx="40" fill="#0f172a"/>
+  <g transform="translate(90 90)">
+    <circle cx="-26" cy="0" r="26" fill="none" stroke="#dc2626" stroke-width="16"/>
+    <circle cx="26"  cy="0" r="26" fill="none" stroke="#dc2626" stroke-width="16"/>
+  </g>
+</svg>

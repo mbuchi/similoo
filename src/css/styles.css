@@ -1,0 +1,995 @@
+/* ============================================================
+   hood — design tokens (single source of truth)
+   project_RES left-menu aesthetic (white panels, #e5e7eb borders,
+   12px cards, subtle shadow, #2563eb primary / pill tabs) blended
+   with hood's identity: Varela Round font + red #DC2626 brand.
+   Loaded first, so every other stylesheet inherits these.
+   ============================================================ */
+:root {
+    /* Brand + accent colors */
+    --hood-red: #DC2626;
+    --hood-red-dark: #B91C1C;
+    --hood-red-darker: #9B1C1C;
+    --hood-red-soft: #FEF2F2;
+    --hood-red-border: #FECACA;
+    --hood-blue: #2563eb;
+    --hood-blue-dark: #1d4ed8;
+    --hood-blue-ring: rgba(37, 99, 235, 0.12);
+
+    /* Neutrals */
+    --hood-ink: #111827;
+    --hood-text: #374151;
+    --hood-muted: #6b7280;
+    --hood-faint: #9ca3af;
+    --hood-border: #e5e7eb;
+    --hood-border-strong: #d1d5db;
+    --hood-surface: #ffffff;
+    --hood-surface-2: #f9fafb;
+    --hood-surface-3: #f3f4f6;
+
+    /* Status */
+    --hood-success: #16a34a;
+
+    /* Chrome surfaces that aren't pure --hood-surface: the navbar and the
+       building info panel are slightly translucent and have semantic
+       borders/dividers separate from the page-level neutral border. Pull
+       them through tokens so they flip cleanly under [data-theme="dark"]. */
+    --hood-chrome-bg: rgba(255, 255, 255, 0.98);
+    --hood-chrome-border: var(--hood-border);
+
+    /* Building info panel ("pop window") tokens. Defaults are a white-on-
+       light-ink panel that matches the light theme; the dark theme block
+       below remaps them to the original dark glassy values from v0.3.18. */
+    --hood-panel-bg: rgba(255, 255, 255, 0.96);
+    --hood-panel-text: var(--hood-ink);
+    --hood-panel-title: var(--hood-ink);
+    --hood-panel-muted: var(--hood-muted);
+    --hood-panel-faint: var(--hood-faint);
+    --hood-panel-eyebrow: var(--hood-muted);
+    --hood-panel-source: #B45309;
+    --hood-panel-border: rgba(15, 23, 42, 0.08);
+    --hood-panel-divider: rgba(15, 23, 42, 0.06);
+    --hood-panel-row-bg: rgba(15, 23, 42, 0.04);
+    --hood-panel-row-bg-hover: rgba(15, 23, 42, 0.08);
+    --hood-panel-shadow: -16px 0 32px rgba(15, 23, 42, 0.12);
+
+    /* Radii (8 / 12 / 16 scale) */
+    --hood-radius-sm: 8px;
+    --hood-radius-md: 12px;
+    --hood-radius-lg: 16px;
+    --hood-radius-pill: 999px;
+
+    /* Shadows */
+    --hood-card-shadow: 0 2px 8px rgba(15, 23, 42, 0.05);
+    --hood-shadow-md: 0 4px 12px rgba(15, 23, 42, 0.1);
+    --hood-shadow-lg: 0 20px 25px -5px rgba(15, 23, 42, 0.15), 0 10px 10px -5px rgba(15, 23, 42, 0.08);
+    --hood-shadow-modal: 0 25px 50px -12px rgba(15, 23, 42, 0.25);
+
+    /* Spacing scale */
+    --hood-space-1: 4px;
+    --hood-space-2: 8px;
+    --hood-space-3: 12px;
+    --hood-space-4: 16px;
+    --hood-space-5: 20px;
+
+    /* Transition */
+    --hood-transition: 0.15s ease-in-out;
+
+    /* Typography */
+    --hood-font: 'Varela Round', sans-serif;
+
+    /* Layout metrics */
+    --navbar-h: 60px;
+    --rail-w: 56px;
+    --panel-w: 280px;
+}
+
+/* ============================================================
+   Dark theme — toggled by controls/themeToggle.js via
+   `<html data-theme="dark">`. The inline pre-paint script in
+   index.html sets the attribute before any stylesheet runs so
+   dark-mode visitors don't see a white flash on load.
+   ============================================================ */
+[data-theme="dark"] {
+    /* Neutrals — slate-ish ramp tuned against #DC2626 brand red */
+    --hood-ink: #f1f5f9;
+    --hood-text: #cbd5e1;
+    --hood-muted: #94a3b8;
+    --hood-faint: #64748b;
+    --hood-border: rgba(255, 255, 255, 0.08);
+    --hood-border-strong: rgba(255, 255, 255, 0.16);
+    --hood-surface: #0b0f1a;
+    --hood-surface-2: #11172a;
+    --hood-surface-3: #1a2138;
+
+    /* Brand variants need a touch more saturation against dark surfaces */
+    --hood-red-soft: rgba(220, 38, 38, 0.14);
+    --hood-red-border: rgba(220, 38, 38, 0.32);
+    --hood-blue-ring: rgba(96, 165, 250, 0.22);
+
+    /* Shadows: against a dark page, near-black shadows disappear; lean
+       on slight darker-than-bg + a subtle outer glow for depth. */
+    --hood-card-shadow: 0 2px 8px rgba(0, 0, 0, 0.45);
+    --hood-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.5);
+    --hood-shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.6),
+                      0 10px 10px -5px rgba(0, 0, 0, 0.45);
+    --hood-shadow-modal: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+
+    /* Chrome */
+    --hood-chrome-bg: rgba(11, 15, 26, 0.96);
+    --hood-chrome-border: rgba(255, 255, 255, 0.08);
+
+    /* Building info panel — restore the original glassy-dark look */
+    --hood-panel-bg: rgba(11, 15, 26, 0.95);
+    --hood-panel-text: #e5e7eb;
+    --hood-panel-title: #ffffff;
+    --hood-panel-muted: #94a3b8;
+    --hood-panel-faint: #64748b;
+    --hood-panel-eyebrow: #94a3b8;
+    --hood-panel-source: #f59e0b;
+    --hood-panel-border: rgba(255, 255, 255, 0.06);
+    --hood-panel-divider: rgba(255, 255, 255, 0.04);
+    --hood-panel-row-bg: rgba(255, 255, 255, 0.04);
+    --hood-panel-row-bg-hover: rgba(255, 255, 255, 0.08);
+    --hood-panel-shadow: -20px 0 40px rgba(0, 0, 0, 0.5);
+}
+
+* {
+    box-sizing: border-box;
+}
+
+/* Shared skeleton-loader system — a calm, slow "blink" pulse used in    */
+/* place of spinners while content areas load.                          */
+@keyframes swn-skeleton-blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+}
+
+.skeleton {
+    background: rgba(15, 23, 42, 0.09);
+    border-radius: var(--hood-radius-sm);
+    animation: swn-skeleton-blink 1.8s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .skeleton {
+        animation-duration: 3s;
+    }
+}
+
+html, body, #cesiumContainer {
+    width: 100%;
+    height: 100vh;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    background: var(--hood-surface);
+}
+
+.navbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 1000;
+    width: 100%;
+    background: var(--hood-chrome-bg);
+    padding: 0 1rem;
+    border-bottom: 1px solid var(--hood-chrome-border);
+    box-shadow: var(--hood-card-shadow);
+    color: var(--hood-ink);
+    display: flex;
+    flex-direction: column;
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
+}
+
+.navbar-desktop {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 60px;
+    width: 100%;
+}
+
+.navbar-brand {
+    display: flex;
+    align-items: center;
+}
+
+.mobile-menu-button {
+    display: none;
+    background: none;
+    border: none;
+    padding: 0.5rem;
+    margin-left: auto;
+    cursor: pointer;
+    font-size: 1.5rem;
+}
+
+.navbar-controls {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0;
+}
+
+.logo {
+    font-family: var(--hood-font);
+    font-size: 2.58rem;
+    font-weight: 400;
+    line-height: 1;
+    text-decoration: none;
+}
+
+.caption {
+    display: none;
+}
+
+.logo-subtitle {
+    font-family: var(--hood-font);
+    font-size: 0.85rem;
+    color: var(--hood-faint);
+    margin-left: 0.5rem;
+    align-self: flex-end;
+    margin-bottom: 6px;
+    white-space: nowrap;
+    letter-spacing: 0.02em;
+}
+
+.logo-first {
+    color: var(--hood-ink);
+}
+
+.logo-second {
+    color: var(--hood-red);
+}
+
+.record-button-container {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    justify-content: flex-start;
+}
+
+.record-icon {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    order: 2;
+    background-color: var(--hood-red);
+    border-radius: 2px;
+    transition: background-color var(--hood-transition);
+}
+
+.record-icon.recording {
+    background-color: var(--hood-red-darker);
+}
+
+#title {
+    position: absolute;
+    top: 2em;
+    left: 2em;
+    font-size: larger;
+    z-index: 1000;
+    color: white;
+    font-family: sans, arial;
+    text-shadow: 2px 2px white;
+}
+
+/* Help link styles */
+.help-link {
+    color: var(--hood-red);
+    font-family: var(--hood-font);
+    font-size: 0.9375rem;
+    text-decoration: none;
+    padding: 0.5rem 1rem;
+    border: 1px solid var(--hood-red);
+    border-radius: var(--hood-radius-sm);
+    transition: all var(--hood-transition);
+    display: inline-flex;
+    align-items: center;
+    white-space: nowrap;
+}
+
+.help-link:hover {
+    background: var(--hood-red);
+    color: #fff;
+}
+
+.perspective-button {
+    color: var(--hood-red);
+    font-family: var(--hood-font);
+    font-size: 0.9375rem;
+    background: none;
+    border: 1px solid var(--hood-red);
+    border-radius: var(--hood-radius-sm);
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    transition: all var(--hood-transition);
+    width: 100%;
+    text-align: left;
+    margin: 0;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.perspective-button:hover {
+    background: var(--hood-red);
+    color: #fff;
+}
+
+.perspective-dropdown {
+    position: relative;
+    display: inline-block;
+    margin: 0;
+    flex: 1;
+}
+
+.perspective-options {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    background: var(--hood-surface);
+    border: 1px solid var(--hood-border);
+    border-radius: var(--hood-radius-md);
+    box-shadow: var(--hood-card-shadow);
+    z-index: 1000;
+    width: 100%;
+    margin-top: 0.25rem;
+}
+
+.perspective-option {
+    display: block;
+    width: 100%;
+    text-align: left;
+    padding: 0.5rem 1rem;
+    border: none;
+    background: none;
+    color: var(--hood-text);
+    font-family: var(--hood-font);
+    font-size: 0.9375rem;
+    cursor: pointer;
+    transition: all var(--hood-transition);
+    white-space: nowrap;
+}
+
+.perspective-option:hover,
+.views-option:hover {
+    background: var(--hood-surface-3);
+    color: var(--hood-red);
+}
+
+.views-option {
+    display: block;
+    width: 100%;
+    text-align: left;
+    padding: 0.5rem 1rem;
+    border: none;
+    background: none;
+    color: var(--hood-text);
+    font-family: var(--hood-font);
+    font-size: 0.9375rem;
+    cursor: pointer;
+    transition: all var(--hood-transition);
+    white-space: nowrap;
+}
+
+/* Shepherd customization */
+.shepherd-button {
+    background: var(--hood-red);
+    border: 2px solid var(--hood-red);
+    border-radius: var(--hood-radius-sm);
+    color: #fff;
+    cursor: pointer;
+    margin-right: 0.5rem;
+    padding: 0.5rem 1.5rem;
+    font-family: var(--hood-font);
+    transition: all var(--hood-transition);
+}
+
+.shepherd-button:not(:disabled):hover {
+    background: transparent;
+    color: var(--hood-red);
+}
+
+.shepherd-cancel-icon {
+    color: var(--hood-red);
+    opacity: 0.8;
+    transition: opacity var(--hood-transition);
+}
+
+.shepherd-cancel-icon:hover {
+    opacity: 1;
+}
+
+.shepherd-has-title .shepherd-content .shepherd-header {
+    background: var(--hood-ink);
+    padding: 1.25rem;
+    border-radius: var(--hood-radius-md) var(--hood-radius-md) 0 0;
+}
+
+.shepherd-title {
+    color: #fff;
+    font-family: var(--hood-font);
+    font-size: 1.25rem;
+}
+
+.shepherd-text {
+    padding: 1.5rem;
+    font-family: var(--hood-font);
+    line-height: 1.6;
+    color: var(--hood-text);
+}
+
+.tour-content {
+    font-family: var(--hood-font);
+}
+
+.tour-content p {
+    margin-bottom: 1rem;
+    line-height: 1.6;
+}
+
+.tour-content ul {
+    margin: 0.5rem 0 1rem 1.5rem;
+    list-style-type: disc;
+}
+
+.tour-content li {
+    margin-bottom: 0.5rem;
+    line-height: 1.4;
+}
+
+.shepherd-content {
+    border-radius: var(--hood-radius-md);
+    overflow: hidden;
+    box-shadow: var(--hood-shadow-lg);
+}
+
+.shepherd-element {
+    max-width: 400px;
+}
+
+.shepherd-footer {
+    padding: 0.75rem 1.5rem;
+    border-top: 1px solid var(--hood-border);
+}
+
+/* Responsive styles */
+@media (max-width: 768px) {
+    .navbar {
+        padding: 0 0.5rem;
+    }
+    
+    .mobile-menu-button {
+        display: block;
+    }
+
+    .navbar-desktop {
+        height: 50px;
+    }
+
+    .navbar-controls {
+        display: none;
+        flex-direction: column;
+        padding: 0.5rem;
+        gap: 0;
+        background: rgba(255, 255, 255, 0.95);
+        border-top: 1px solid rgba(0, 0, 0, 0.1);
+        position: absolute;
+        top: 50px;
+        left: 0;
+        right: 0;
+        z-index: 1000;
+    }
+
+    .navbar-controls.active {
+        display: flex;
+    }
+
+    .perspective-dropdown {
+        width: 100%;
+        margin: 0 0 2px 0;
+    }
+
+    .settings-dropdown {
+        width: 100%;
+        margin: 0 0 2px 0;
+    }
+
+    .perspective-button,
+    .help-link,
+    button.perspective-button {
+        width: 100%;
+        margin: 0;
+        text-align: left !important;
+        font-size: 0.9375rem;
+        padding: 0.75rem 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background: var(--hood-surface);
+        box-sizing: border-box;
+        border-radius: 0;
+        border: none;
+        border-bottom: 1px solid var(--hood-border);
+    }
+
+    .perspective-options,
+    .settings-options {
+        position: absolute;
+        width: 100%;
+        border: none;
+        box-shadow: none;
+        background: var(--hood-surface-2);
+        margin: 0;
+        padding: 0;
+        top: 100%;
+        left: 0;
+        z-index: 1;
+    }
+
+    .perspective-option,
+    .views-option,
+    .settings-option {
+        padding: 0.75rem 1rem;
+        font-size: 0.9375rem;
+        background: var(--hood-surface-2);
+        border-bottom: 1px solid var(--hood-border);
+    }
+
+    .perspective-button:hover,
+    .help-link:hover,
+    button.perspective-button:hover {
+        background: var(--hood-surface-2);
+        color: var(--hood-red);
+        border-color: var(--hood-border);
+    }
+}
+
+@media (max-width: 480px) {
+    .navbar {
+        min-height: 50px;
+    }
+
+    #cesiumContainer {
+        padding-top: 60px;
+    }
+
+    .logo {
+        font-size: 2rem;
+    }
+
+    .help-link {
+        font-size: 0.875rem;
+        padding: 0.2rem 0.5rem;
+        width: 100%;
+    }
+}
+
+@media (min-width: 769px) {
+    .navbar-controls {
+        flex-direction: row;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0;
+    }
+
+    .perspective-dropdown {
+        width: auto;
+        margin: 0;
+    }
+
+    .perspective-button,
+    .help-link {
+        width: auto;
+        margin: 0;
+    }
+
+    .perspective-options {
+        position: absolute;
+        min-width: 200px;
+        width: auto;
+        top: 100%;
+        left: 0;
+    }
+}
+
+#cesiumContainer {
+    padding-top: 70px;
+}
+
+/* ---------- Cesium navigation compass widget ---------- */
+/* The viewerCesiumNavigationMixin injects its own base CSS; these overrides
+   position the compass + zoom ring tastefully below the fixed navbar and
+   keep it clear of the Cesium timeline/fullscreen controls. */
+.cesium-widget-cesiumNavigationContainer {
+    z-index: 500; /* above the canvas, below the navbar (1000) and sidebar (999) */
+}
+
+.cesium-widget-cesiumNavigationContainer .compass {
+    top: 86px;
+    right: 18px;
+    /* Subtle card-style backing so the compass reads cleanly against the
+       map without clashing with the fixed navbar above it. */
+    filter: drop-shadow(0 2px 8px rgba(15, 23, 42, 0.18));
+}
+
+.cesium-widget-cesiumNavigationContainer .navigation-controls {
+    top: 190px;
+    right: 47px;
+    filter: drop-shadow(0 2px 6px rgba(15, 23, 42, 0.15));
+}
+
+.camera-monitor {
+    position: fixed;
+    bottom: 20px;
+    left: calc(var(--rail-w) + 20px);
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid var(--hood-border);
+    padding: 10px;
+    border-radius: var(--hood-radius-sm);
+    font-family: monospace;
+    font-size: 12px;
+    z-index: 1000;
+    box-shadow: var(--hood-card-shadow);
+    max-width: 300px;
+    white-space: pre-wrap;
+}
+
+@media (max-width: 768px) {
+    .camera-monitor {
+        left: 20px;
+    }
+}
+
+.cesium-geocoder-input {
+    width: 390px !important;
+    touch-action: manipulation;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+    font-size: 16px !important;
+}
+
+/* Prevent iOS zoom on input focus */
+@media screen and (-webkit-min-device-pixel-ratio: 0) { 
+    select,
+    textarea,
+    input {
+        font-size: 16px;
+    }
+    
+    .cesium-geocoder-input {
+        font-size: 18px !important;
+        width: 370px !important;
+    }
+}
+
+.address-header {
+    position: fixed;
+    top: 80px;
+    left: calc(50% + (var(--rail-w) / 2));
+    transform: translateX(-50%);
+    background: rgba(255, 255, 255, 0.96);
+    border: 1px solid var(--hood-border);
+    padding: 10px 20px;
+    border-radius: var(--hood-radius-md);
+    font-size: 22px;
+    font-weight: bold;
+    color: var(--hood-ink);
+    z-index: 1000;
+    box-shadow: var(--hood-card-shadow);
+    font-family: var(--hood-font);
+}
+
+@media (max-width: 768px) {
+    .address-header {
+        left: 50%;
+        font-size: 18px;
+        padding: 8px 16px;
+        max-width: calc(100vw - 32px);
+        text-align: center;
+    }
+}
+
+.settings-dropdown {
+    display: none;
+}
+
+.settings-modal {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 2000;
+}
+
+.settings-modal-content {
+    width: 100%;
+    max-width: 400px;
+    background: var(--hood-surface);
+    border-radius: var(--hood-radius-md);
+    overflow: hidden;
+    box-shadow: var(--hood-shadow-lg);
+}
+
+.settings-modal-header {
+    background: var(--hood-ink);
+    padding: 0.75rem;
+}
+
+.settings-modal-title {
+    font-size: 1.25rem;
+    color: #fff;
+    font-family: var(--hood-font);
+    margin: 0;
+}
+
+.settings-modal-close {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 0.5rem;
+    color: var(--hood-red);
+    opacity: 0.8;
+    transition: opacity var(--hood-transition);
+    position: absolute;
+    right: 0.5rem;
+    top: 0.5rem;
+}
+
+.settings-modal-close:hover {
+    opacity: 1;
+}
+
+.settings-modal-body {
+    padding: 0.75rem;
+    font-family: var(--hood-font);
+    color: var(--hood-text);
+}
+
+.settings-section {
+    margin-bottom: 0.75rem;
+}
+
+.settings-section:last-child {
+    margin-bottom: 0;
+}
+
+.settings-section-title {
+    font-size: 0.8125rem;
+    font-weight: 700;
+    color: var(--hood-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin: 0 0 0.625rem 0;
+}
+
+.settings-modal-footer {
+    padding: 0.5rem 0.75rem;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.settings-option {
+    display: flex;
+    align-items: center;
+    padding: 0.375rem 0;
+    color: var(--hood-text);
+    font-family: var(--hood-font);
+    font-size: 0.9375rem;
+    cursor: pointer;
+    margin-bottom: 0.125rem;
+    user-select: none;
+    transition: color var(--hood-transition);
+}
+
+.settings-option:last-child {
+    margin-bottom: 0;
+}
+
+.settings-option:hover {
+    color: var(--hood-ink);
+}
+
+.settings-checkbox {
+    margin-right: 0.5rem;
+    width: 1.25rem;
+    height: 1.25rem;
+    border: 2px solid var(--hood-red);
+    transition: all var(--hood-transition);
+    cursor: pointer;
+    position: relative;
+    appearance: none;
+    background: var(--hood-surface);
+    border-radius: 6px;
+    flex-shrink: 0;
+}
+
+.settings-checkbox:checked {
+    border-color: var(--hood-red);
+    background-color: var(--hood-red);
+}
+
+.settings-checkbox:checked::after {
+    content: '✓';
+    position: absolute;
+    color: white;
+    font-size: 0.875rem;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+}
+
+/* Disabled-toggle states: grey out the row, swap the cursor, and let the
+   inline subtitle (added by settingsMenu.disableToggle) stack below the
+   label text so the missing-env reason is visible without hovering. */
+.settings-option.is-disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+    flex-wrap: wrap;
+}
+
+.settings-option.is-disabled .settings-checkbox {
+    cursor: not-allowed;
+}
+
+.settings-option-hint {
+    flex-basis: 100%;
+    margin-left: 1.75rem;
+    margin-top: 0.125rem;
+    font-size: 0.75rem;
+    color: var(--hood-text);
+    opacity: 0.8;
+    font-style: italic;
+}
+
+.settings-date {
+    margin-bottom: 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.settings-range {
+    margin-top: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    color: var(--hood-text);
+    font-family: var(--hood-font);
+    font-size: 0.9375rem;
+}
+
+.settings-input-narrow {
+    width: 4rem;
+    text-align: right;
+}
+
+.settings-input {
+    padding: 0.4375rem 0.5rem;
+    border: 1px solid var(--hood-border);
+    border-radius: var(--hood-radius-sm);
+    font-family: var(--hood-font);
+    font-size: 0.9375rem;
+    color: var(--hood-text);
+    background: var(--hood-surface);
+    transition: border-color var(--hood-transition), box-shadow var(--hood-transition);
+}
+
+.settings-input:focus {
+    outline: none;
+    border-color: var(--hood-blue);
+    box-shadow: 0 0 0 3px var(--hood-blue-ring);
+}
+
+/* Basemap selector — top-right dropdown that replaces Cesium's
+   default BaseLayerPicker. Matches the suite-standard layered look
+   (white surface, rounded corners, soft shadow, Layers icon). */
+.basemap-selector {
+    position: absolute;
+    top: 72px;
+    right: 12px;
+    z-index: 5;
+    font-family: var(--hood-font);
+}
+.basemap-selector-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    height: 36px;
+    padding: 0 12px;
+    border-radius: var(--hood-radius-md);
+    border: 1px solid var(--hood-border);
+    background: var(--hood-surface);
+    color: var(--hood-text);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    box-shadow: var(--hood-card-shadow);
+    transition: color var(--hood-transition), border-color var(--hood-transition), background-color var(--hood-transition);
+}
+.basemap-selector-button:hover {
+    color: var(--hood-red);
+    border-color: var(--hood-red-border);
+}
+.basemap-selector-button i {
+    width: 16px;
+    height: 16px;
+}
+.basemap-selector-chevron {
+    transition: transform var(--hood-transition);
+    color: var(--hood-muted);
+}
+.basemap-selector.is-open .basemap-selector-chevron {
+    transform: rotate(180deg);
+}
+.basemap-selector-menu {
+    position: absolute;
+    top: calc(100% + 6px);
+    right: 0;
+    min-width: 180px;
+    background: var(--hood-surface);
+    border: 1px solid var(--hood-border);
+    border-radius: var(--hood-radius-md);
+    box-shadow: var(--hood-shadow-md);
+    overflow: hidden;
+    padding: 4px;
+}
+.basemap-selector-option {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    padding: 8px 10px;
+    border: none;
+    background: transparent;
+    border-radius: var(--hood-radius-sm);
+    color: var(--hood-text);
+    font-family: var(--hood-font);
+    font-size: 13px;
+    text-align: left;
+    cursor: pointer;
+    transition: background-color var(--hood-transition), color var(--hood-transition);
+}
+.basemap-selector-option:hover {
+    background: var(--hood-surface-3);
+}
+.basemap-selector-option[aria-selected="true"] {
+    background: var(--hood-red-soft);
+    color: var(--hood-red-dark);
+    font-weight: 600;
+}
+.basemap-selector-option i {
+    width: 16px;
+    height: 16px;
+}
+.basemap-selector-check {
+    margin-left: auto;
+    display: none;
+}
+.basemap-selector-option[aria-selected="true"] .basemap-selector-check {
+    display: inline-block;
+}
+@media (max-width: 640px) {
+    .basemap-selector {
+        top: 8px;
+        right: 8px;
+    }
+    .basemap-selector-button {
+        padding: 0 10px;
+        font-size: 12px;
+        height: 32px;
+    }
+}
