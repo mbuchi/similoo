@@ -6,6 +6,10 @@ import {
     PARCEL_SOURCE_LAYER,
     BUILDING_SOURCE,
     BUILDING_SOURCE_LAYER,
+    PARCEL_LAYER,
+    BUILDING_LAYER,
+    BUILDING_OPACITY_DEFAULT,
+    BUILDING_OPACITY_DIMMED,
 } from './viewer/viewerConfig.js';
 import { applyTranslations, bindLocaleSelect, t } from './i18n.js';
 import { createComparisonSidebar } from './comparison/sidebar.js';
@@ -52,83 +56,162 @@ window.onload = async function () {
     }
 };
 
-// Wires the parcel click → EGRID → comparison sidebar flow on top of the
-// MapLibre map. similoo's headline surface is "comparable buildings", so
-// the comparison sidebar takes the right-edge slot and the map's job is
+// Wires the parcel/building click → EGRID → comparison sidebar flow on top
+// of the MapLibre map. similoo's headline surface is "comparable buildings",
+// so the comparison sidebar takes the right-edge slot and the map's job is
 // to feed it a parcel and host the target/comparable highlight.
 //
-//   * Hover on a parcel → soft amber overlay (feature-state hover=true).
-//   * Click on a parcel  → resolve EGRID via /api/parcel → show sidebar →
-//                          paint target parcel red.
-//   * Close sidebar      → clear all paint states.
-//   * Escape key         → close sidebar.
+//   * Hover on a parcel   → soft amber overlay (parcel hover=true).
+//   * Hover on a building → blue tint on that footprint (building hover=true).
+//   * Click on a parcel   → resolve EGRID via /api/parcel, show sidebar,
+//                           paint target parcel red, dim buildings so the
+//                           red ground patch shows through the 3D shells.
+//   * Click on a building → also paint that building red, and resolve the
+//                           parcel underneath (queryRenderedFeatures hits
+//                           the parcel even when a building covers it
+//                           because MapLibre projects to the ground plane
+//                           for fill layers).
+//   * Close sidebar       → clear paint states, restore building opacity.
+//   * Escape key          → close sidebar.
 function setupComparisonFlow(map) {
-    let currentTargetId = null;
+    let currentTargetParcelId = null;
+    let currentTargetBuildingId = null;
     let currentComparableIds = [];
-    let hoverId = null;
+    let hoverParcelId = null;
+    let hoverBuildingId = null;
     let resolveSeq = 0;
 
     const comparison = createComparisonSidebar({
         map,
         onClose: () => {
-            clearTarget();
-            clearComparables();
+            clearSelection();
             document.body.classList.remove('cmp-shifted');
             resolveSeq++;
         },
         onFlyTo: null,
     });
 
-    // Pointer affordance + hover feature-state for parcels.
-    map.on('mousemove', 'parcels-fill', (e) => {
+    // --- Parcel hover (soft amber overlay on the ground) ---
+    map.on('mousemove', PARCEL_LAYER, (e) => {
         map.getCanvas().style.cursor = 'pointer';
         const f = e.features?.[0];
         if (!f || f.id == null) return;
-        if (hoverId !== null && hoverId !== f.id) {
+        if (hoverParcelId !== null && hoverParcelId !== f.id) {
             map.setFeatureState(
-                { source: PARCEL_SOURCE, sourceLayer: PARCEL_SOURCE_LAYER, id: hoverId },
+                { source: PARCEL_SOURCE, sourceLayer: PARCEL_SOURCE_LAYER, id: hoverParcelId },
                 { hover: false },
             );
         }
-        hoverId = f.id;
+        hoverParcelId = f.id;
         map.setFeatureState(
-            { source: PARCEL_SOURCE, sourceLayer: PARCEL_SOURCE_LAYER, id: hoverId },
+            { source: PARCEL_SOURCE, sourceLayer: PARCEL_SOURCE_LAYER, id: hoverParcelId },
             { hover: true },
         );
     });
 
-    map.on('mouseleave', 'parcels-fill', () => {
+    map.on('mouseleave', PARCEL_LAYER, () => {
         map.getCanvas().style.cursor = '';
-        if (hoverId !== null) {
+        if (hoverParcelId !== null) {
             map.setFeatureState(
-                { source: PARCEL_SOURCE, sourceLayer: PARCEL_SOURCE_LAYER, id: hoverId },
+                { source: PARCEL_SOURCE, sourceLayer: PARCEL_SOURCE_LAYER, id: hoverParcelId },
                 { hover: false },
             );
-            hoverId = null;
+            hoverParcelId = null;
         }
     });
 
-    map.on('click', 'parcels-fill', async (e) => {
+    // --- Building hover (blue tint on the extruded footprint) ---
+    map.on('mousemove', BUILDING_LAYER, (e) => {
+        map.getCanvas().style.cursor = 'pointer';
         const f = e.features?.[0];
-        if (!f) return;
-
-        clearTarget();
-        clearComparables();
-        // f.id can be null for a parcel that lacks parcel_id in the tile;
-        // the EGRID resolve below uses lat/lng so the comparison flow still
-        // works — we just skip the red highlight for that parcel.
-        if (f.id != null) {
-            currentTargetId = f.id;
+        if (!f || f.id == null) return;
+        if (hoverBuildingId !== null && hoverBuildingId !== f.id) {
             map.setFeatureState(
-                { source: PARCEL_SOURCE, sourceLayer: PARCEL_SOURCE_LAYER, id: currentTargetId },
+                { source: BUILDING_SOURCE, sourceLayer: BUILDING_SOURCE_LAYER, id: hoverBuildingId },
+                { hover: false },
+            );
+        }
+        hoverBuildingId = f.id;
+        map.setFeatureState(
+            { source: BUILDING_SOURCE, sourceLayer: BUILDING_SOURCE_LAYER, id: hoverBuildingId },
+            { hover: true },
+        );
+    });
+
+    map.on('mouseleave', BUILDING_LAYER, () => {
+        // Cursor reset is handled by parcel mouseleave too; only one will
+        // win depending on layer order, and that's fine.
+        if (hoverBuildingId !== null) {
+            map.setFeatureState(
+                { source: BUILDING_SOURCE, sourceLayer: BUILDING_SOURCE_LAYER, id: hoverBuildingId },
+                { hover: false },
+            );
+            hoverBuildingId = null;
+        }
+    });
+
+    // --- Click on parcel layer ---
+    // Both parcel and building click handlers route through selectAt(),
+    // which figures out the rest (other layer's feature, EGRID resolve,
+    // building dimming). Registering on each layer rather than the map
+    // means we don't fire for clicks on the empty positron underlay.
+    map.on('click', PARCEL_LAYER, (e) => {
+        selectAt(e.lngLat, e.point, e.features?.[0] || null, null);
+    });
+
+    map.on('click', BUILDING_LAYER, (e) => {
+        // Look up the parcel beneath the clicked building via the screen
+        // point. parcels-fill is a 2D ground layer, so its hitbox is the
+        // parcel directly beneath the cursor.
+        const parcelHits = map.queryRenderedFeatures(e.point, { layers: [PARCEL_LAYER] });
+        selectAt(e.lngLat, e.point, parcelHits[0] || null, e.features?.[0] || null);
+    });
+
+    async function selectAt(lngLat, point, parcelFeature, buildingFeature) {
+        // If neither hit, nothing to do (shouldn't happen — both handlers
+        // require a feature — but defensive).
+        if (!parcelFeature && !buildingFeature) return;
+
+        // If clicking via the parcel layer with no building feature, try
+        // to find one anyway so the building on the selected parcel lights
+        // up too. The user explicitly asked for "also highlight the
+        // building" on click.
+        if (!buildingFeature && point) {
+            const hits = map.queryRenderedFeatures(point, { layers: [BUILDING_LAYER] });
+            buildingFeature = hits[0] || null;
+        }
+
+        clearSelection();
+        document.body.classList.add('cmp-shifted');
+
+        // Paint target parcel red (if we have a stable id for it).
+        if (parcelFeature && parcelFeature.id != null) {
+            currentTargetParcelId = parcelFeature.id;
+            map.setFeatureState(
+                { source: PARCEL_SOURCE, sourceLayer: PARCEL_SOURCE_LAYER, id: currentTargetParcelId },
                 { target: true },
             );
         }
-        document.body.classList.add('cmp-shifted');
+
+        // Paint target building red.
+        if (buildingFeature && buildingFeature.id != null) {
+            currentTargetBuildingId = buildingFeature.id;
+            map.setFeatureState(
+                { source: BUILDING_SOURCE, sourceLayer: BUILDING_SOURCE_LAYER, id: currentTargetBuildingId },
+                { target: true },
+            );
+        }
+
+        // Drop building opacity so the red parcel below punches through the
+        // 3D shells. MapLibre v5's fill-extrusion-opacity isn't data-driven,
+        // so we flip the whole layer. The target building's red color still
+        // reads — just slightly more translucent — and unrelated buildings
+        // become ghosted out of the way.
+        map.setPaintProperty(BUILDING_LAYER, 'fill-extrusion-opacity', BUILDING_OPACITY_DIMMED);
 
         const seq = ++resolveSeq;
         try {
-            const { egrid } = await resolveEgridFromLngLat(e.lngLat, f);
+            const { egrid } = await resolveEgridFromLngLat(lngLat, parcelFeature);
             if (seq !== resolveSeq) return;
             if (egrid) {
                 comparison.show(egrid);
@@ -136,19 +219,23 @@ function setupComparisonFlow(map) {
         } catch (err) {
             console.warn('EGRID resolve failed:', err);
         }
-    });
-
-    function clearTarget() {
-        if (currentTargetId !== null) {
-            map.setFeatureState(
-                { source: PARCEL_SOURCE, sourceLayer: PARCEL_SOURCE_LAYER, id: currentTargetId },
-                { target: false },
-            );
-            currentTargetId = null;
-        }
     }
 
-    function clearComparables() {
+    function clearSelection() {
+        if (currentTargetParcelId !== null) {
+            map.setFeatureState(
+                { source: PARCEL_SOURCE, sourceLayer: PARCEL_SOURCE_LAYER, id: currentTargetParcelId },
+                { target: false },
+            );
+            currentTargetParcelId = null;
+        }
+        if (currentTargetBuildingId !== null) {
+            map.setFeatureState(
+                { source: BUILDING_SOURCE, sourceLayer: BUILDING_SOURCE_LAYER, id: currentTargetBuildingId },
+                { target: false },
+            );
+            currentTargetBuildingId = null;
+        }
         for (const id of currentComparableIds) {
             map.setFeatureState(
                 { source: PARCEL_SOURCE, sourceLayer: PARCEL_SOURCE_LAYER, id },
@@ -156,14 +243,14 @@ function setupComparisonFlow(map) {
             );
         }
         currentComparableIds = [];
+        map.setPaintProperty(BUILDING_LAYER, 'fill-extrusion-opacity', BUILDING_OPACITY_DEFAULT);
     }
 
     // Escape closes the sidebar.
     window.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape' && currentTargetId !== null) {
+        if (e.key === 'Escape' && (currentTargetParcelId !== null || currentTargetBuildingId !== null)) {
             comparison.hide();
-            clearTarget();
-            clearComparables();
+            clearSelection();
             document.body.classList.remove('cmp-shifted');
             resolveSeq++;
         }
