@@ -41,6 +41,21 @@ export const KIND_META = {
 
 export const RELEASES = [
     {
+        version: '0.2.1',
+        date: 'May 26, 2026',
+        codename: 'Quiet Check-In',
+        summary:
+            'Release-notes button now uses the circle-check icon (matches the rest of the suite).',
+        items: [
+            {
+                kind: 'improved',
+                icon: 'package',
+                text: 'Bumped @swissnovo/shared to v0.32.0 — release-notes button icon switched from Tag to CheckCircle.',
+                prs: [],
+            },
+        ],
+    },
+    {
         version: '0.2.0',
         date: 'May 26, 2026',
         codename: 'Featherweight',
