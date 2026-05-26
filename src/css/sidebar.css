@@ -148,7 +148,7 @@
     border: 1px solid transparent;
     background: var(--hood-surface-3);
     color: var(--hood-text);
-    font-family: inherit;
+    font-family: var(--hood-font);
     font-size: 0.78rem;
     font-weight: 600;
     letter-spacing: 0.04em;
