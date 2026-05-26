@@ -1,25 +1,20 @@
-import { initializeViewer } from './viewer/viewerConfig.js';
-import { setupControls } from './controls.js';
-import { initializeTour } from './tour.js';
-import { initReleaseNotes } from './releaseNotes/releaseNotesPanel.js';
-import { setupAuth } from './auth/index.js';
-import { setupBuildingPicker } from './viewer/buildingPicker.js';
-import { hideAddressHeader } from './viewer/geocoder.js';
+import './i18n.js';
+
 import {
-    computeBuildingMetrics,
-    invalidateBuildingMetrics,
-} from './viewer/buildingMetrics.js';
-import { createBuildingInfoPanel } from './info/buildingInfoPanel.js';
-import { onPresetChange, getActivePreset } from './viewer/buildings.js';
+    initializeViewer,
+    PARCEL_SOURCE,
+    PARCEL_SOURCE_LAYER,
+    BUILDING_SOURCE,
+    BUILDING_SOURCE_LAYER,
+} from './viewer/viewerConfig.js';
 import { applyTranslations, bindLocaleSelect, t } from './i18n.js';
 import { createComparisonSidebar } from './comparison/sidebar.js';
-import { resolveEgridFromWorldPos } from './comparison/parcelLookup.js';
-import './cesiumConfig.js';
+import { resolveEgridFromLngLat } from './comparison/parcelLookup.js';
 
 // Apply translations as soon as the static DOM is parsed — before window.onload
-// fires — so users don't see a flash of English text while Cesium boots up.
-// The pre-paint script in index.html has already set <html lang>, this sweeps
-// every [data-i18n] / [data-i18n-attr] node in the navbar + dock + meta tags.
+// fires — so users don't see a flash of English text while the map boots.
+// The pre-paint script in index.html has already set <html lang>, this
+// sweeps every [data-i18n] / [data-i18n-attr] node in the navbar + meta tags.
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
         applyTranslations(document);
@@ -30,138 +25,165 @@ if (document.readyState === 'loading') {
     bindLocaleSelect('locale-select');
 }
 
-window.onload = async function() {
+window.onload = async function () {
     try {
-        const authPromise = setupAuth();
+        const map = await initializeViewer('mapContainer');
+        window.__similooMap = map; // exposed for browser-driven tests
 
-        if (typeof Cesium === 'undefined') {
-            throw new Error(t('error.cesium_missing'));
-        }
-
-        const viewer = await initializeViewer('cesiumContainer');
-        setupControls(viewer);
-        initializeTour();
-        initReleaseNotes();
-
-        setupBuildingInfoFlow(viewer);
+        setupComparisonFlow(map);
+        setupThemeToggle();
 
         if (window.lucide && typeof window.lucide.createIcons === 'function') {
             window.lucide.createIcons();
         }
-        authPromise.catch((err) => console.error('Auth setup failed:', err));
-
-        const errorMessage = document.querySelector('.error-message');
-        if (errorMessage) {
-            errorMessage.style.display = 'none';
-        }
     } catch (e) {
         console.error('Error initializing application:', e);
-        const container = document.getElementById('cesiumContainer');
+        const container = document.getElementById('mapContainer');
         if (container) {
             const errorDiv = document.createElement('div');
             errorDiv.className = 'error-message';
-            errorDiv.style.cssText = 'position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); ' +
-                                   'background: rgba(255, 0, 0, 0.1); color: #DC2626; padding: 1rem; ' +
-                                   'border: 1px solid #DC2626; border-radius: 4px; text-align: center;';
+            errorDiv.style.cssText =
+                'position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); ' +
+                'background: rgba(255, 0, 0, 0.1); color: #DC2626; padding: 1rem; ' +
+                'border: 1px solid #DC2626; border-radius: 4px; text-align: center;';
             errorDiv.textContent = t('error.viewer_load', { message: e.message });
             container.appendChild(errorDiv);
         }
     }
 };
 
-// Wires the building picker, metrics module, and the comparison sidebar
-// into one flow. similoo's headline surface is "comparable buildings",
-// not a single-building info dump, so the comparison sidebar takes the
-// right-edge slot — it already shows the target parcel's metrics in its
-// top section, which subsumes the bip's quickstats. The hood-style info
-// panel is kept instantiated (but stays hidden) so we can still cache
-// computed metrics per feature for the future "details" sub-view.
+// Wires the parcel click → EGRID → comparison sidebar flow on top of the
+// MapLibre map. similoo's headline surface is "comparable buildings", so
+// the comparison sidebar takes the right-edge slot and the map's job is
+// to feed it a parcel and host the target/comparable highlight.
 //
-//   * Hover/click on the map drives the picker.
-//   * Click → compute metrics (cache) → resolve EGRID → show comparison
-//            sidebar → shift right-side controls.
-//   * Deselect → hide sidebar → unshift controls.
-//   * Date change in Setup → invalidate metrics cache.
-//   * Google preset active → disable picker (mesh has no useful props).
-//   * Escape key → close sidebar.
-function setupBuildingInfoFlow(viewer) {
-    let currentFeature = null;
-    let currentClickPos = null;
+//   * Hover on a parcel → soft amber overlay (feature-state hover=true).
+//   * Click on a parcel  → resolve EGRID via /api/parcel → show sidebar →
+//                          paint target parcel red.
+//   * Close sidebar      → clear all paint states.
+//   * Escape key         → close sidebar.
+function setupComparisonFlow(map) {
+    let currentTargetId = null;
+    let currentComparableIds = [];
+    let hoverId = null;
     let resolveSeq = 0;
 
-    // Kept around so the metrics cache stays warm — see comment above.
-    const panel = createBuildingInfoPanel({ onClose: () => {} });
-    panel.hide();
-
     const comparison = createComparisonSidebar({
-        viewer,
+        map,
         onClose: () => {
-            currentFeature = null;
-            currentClickPos = null;
-            resolveSeq++;
+            clearTarget();
+            clearComparables();
             document.body.classList.remove('cmp-shifted');
-            picker.clearSelection();
-            hideAddressHeader();
+            resolveSeq++;
         },
+        onFlyTo: null,
     });
 
-    const picker = setupBuildingPicker(viewer, {
-        onSelect: async (feature, clickWorldPosition) => {
-            currentFeature = feature;
-            currentClickPos = clickWorldPosition;
-            // Pre-warm the per-feature metrics cache so a future "details"
-            // sub-view inside the comparison sidebar can read it sync.
-            computeBuildingMetrics(feature, viewer, clickWorldPosition);
-            document.body.classList.add('cmp-shifted');
-            hideAddressHeader();
+    // Pointer affordance + hover feature-state for parcels.
+    map.on('mousemove', 'parcels-fill', (e) => {
+        map.getCanvas().style.cursor = 'pointer';
+        const f = e.features?.[0];
+        if (!f) return;
+        if (hoverId !== null && hoverId !== f.id) {
+            map.setFeatureState(
+                { source: PARCEL_SOURCE, sourceLayer: PARCEL_SOURCE_LAYER, id: hoverId },
+                { hover: false },
+            );
+        }
+        hoverId = f.id;
+        map.setFeatureState(
+            { source: PARCEL_SOURCE, sourceLayer: PARCEL_SOURCE_LAYER, id: hoverId },
+            { hover: true },
+        );
+    });
 
-            // Resolve EGRID then drive the comparison sidebar. Tagged with
-            // a seq so a rapid second pick wins the race.
-            const seq = ++resolveSeq;
-            try {
-                const { egrid } = await resolveEgridFromWorldPos(clickWorldPosition, feature);
-                if (seq !== resolveSeq) return;
-                if (egrid) comparison.show(egrid);
-            } catch (err) {
-                console.warn('EGRID resolve failed:', err);
+    map.on('mouseleave', 'parcels-fill', () => {
+        map.getCanvas().style.cursor = '';
+        if (hoverId !== null) {
+            map.setFeatureState(
+                { source: PARCEL_SOURCE, sourceLayer: PARCEL_SOURCE_LAYER, id: hoverId },
+                { hover: false },
+            );
+            hoverId = null;
+        }
+    });
+
+    map.on('click', 'parcels-fill', async (e) => {
+        const f = e.features?.[0];
+        if (!f) return;
+
+        clearTarget();
+        clearComparables();
+        currentTargetId = f.id;
+        map.setFeatureState(
+            { source: PARCEL_SOURCE, sourceLayer: PARCEL_SOURCE_LAYER, id: currentTargetId },
+            { target: true },
+        );
+        document.body.classList.add('cmp-shifted');
+
+        const seq = ++resolveSeq;
+        try {
+            const { egrid } = await resolveEgridFromLngLat(e.lngLat, f);
+            if (seq !== resolveSeq) return;
+            if (egrid) {
+                comparison.show(egrid);
             }
-        },
-        onDeselect: () => {
-            currentFeature = null;
-            currentClickPos = null;
-            resolveSeq++;
-            comparison.hide();
-            document.body.classList.remove('cmp-shifted');
-            hideAddressHeader();
-        },
+        } catch (err) {
+            console.warn('EGRID resolve failed:', err);
+        }
     });
 
-    // Disable picking on the Google Photorealistic preset.
-    picker.setEnabled(getActivePreset(viewer) !== 'google');
-    onPresetChange((preset) => {
-        picker.setEnabled(preset !== 'google');
-    });
+    function clearTarget() {
+        if (currentTargetId !== null) {
+            map.setFeatureState(
+                { source: PARCEL_SOURCE, sourceLayer: PARCEL_SOURCE_LAYER, id: currentTargetId },
+                { target: false },
+            );
+            currentTargetId = null;
+        }
+    }
 
-    // When the user changes the Setup date, re-run solar exposure for the
-    // currently-open feature (if any) so the metrics cache stays fresh.
-    const dateInput = document.getElementById('dateInput');
-    if (dateInput) {
-        dateInput.addEventListener('change', () => {
-            if (!currentFeature || !currentClickPos) return;
-            invalidateBuildingMetrics(currentFeature);
-            computeBuildingMetrics(currentFeature, viewer, currentClickPos);
-        });
+    function clearComparables() {
+        for (const id of currentComparableIds) {
+            map.setFeatureState(
+                { source: PARCEL_SOURCE, sourceLayer: PARCEL_SOURCE_LAYER, id },
+                { comparable: false },
+            );
+        }
+        currentComparableIds = [];
     }
 
     // Escape closes the sidebar.
     window.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape' && currentFeature) {
-            currentFeature = null;
-            currentClickPos = null;
-            resolveSeq++;
+        if (e.key === 'Escape' && currentTargetId !== null) {
             comparison.hide();
+            clearTarget();
+            clearComparables();
             document.body.classList.remove('cmp-shifted');
-            picker.clearSelection();
+            resolveSeq++;
         }
     });
+}
+
+// Minimal dark-mode toggle (the rest of hood's themeToggle module isn't
+// pulled in because it depended on Cesium scene properties). Mirrors the
+// pre-paint bootstrap in index.html — same storage key, same possible
+// values — so a reload after toggling keeps the choice.
+function setupThemeToggle() {
+    const btn = document.getElementById('themeToggleButton');
+    if (!btn) return;
+    const root = document.documentElement;
+    const sync = () => {
+        const isDark = root.getAttribute('data-theme') === 'dark';
+        btn.setAttribute('aria-pressed', isDark ? 'true' : 'false');
+    };
+    btn.addEventListener('click', () => {
+        const next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+        root.setAttribute('data-theme', next);
+        try {
+            localStorage.setItem('similoo-theme', next);
+        } catch {}
+        sync();
+    });
+    sync();
 }

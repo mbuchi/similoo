@@ -1,0 +1,56 @@
+/* MapLibre-specific styles for similoo.
+ *
+ * Most of the layout (full-height container, padding-top for the fixed
+ * navbar) lives in styles.css — keyed off #mapContainer which used to be
+ * #cesiumContainer in the hood fork. This file only carries the bits
+ * that are MapLibre-specific: control chrome tweaks and the hover marker
+ * the comparison sidebar drops when a card is focused. */
+
+#mapContainer .maplibregl-ctrl-top-right {
+    /* Keep the nav/zoom controls clear of the fixed navbar. */
+    top: 80px;
+}
+
+#mapContainer .maplibregl-ctrl-attrib,
+#mapContainer .maplibregl-ctrl-attrib-button {
+    background: rgba(255, 255, 255, 0.78);
+    backdrop-filter: blur(4px);
+}
+
+/* Hover/focus pin dropped by comparison/sidebar.js when a comparable card
+ * is hovered. A simple circle-with-stem in similoo's red so the pin reads
+ * clearly against the Carto Positron underlay. */
+.cmp-pin {
+    width: 16px;
+    height: 22px;
+    pointer-events: none;
+    background:
+        radial-gradient(circle at 50% 6px, #DC2626 0 5px, transparent 6px),
+        linear-gradient(180deg, #DC2626 0%, #DC2626 50%, transparent 60%);
+    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.45));
+    transform: translateZ(0); /* compositing hint */
+}
+
+/* When the sidebar is open the map should make a little room on the
+ * right so the pin / target outline doesn't disappear under the panel.
+ * The comparison.css file already shifts #addressHeader; we mirror that
+ * here for the MapLibre canvas. */
+body.cmp-shifted #mapContainer {
+    /* The sidebar is 380px wide by default (see comparison.css), so we
+     * shave a matching gutter off the map. Switches gracefully on small
+     * viewports where the sidebar goes full-width. */
+    padding-right: 380px;
+    transition: padding-right 200ms ease;
+}
+
+@media (max-width: 720px) {
+    body.cmp-shifted #mapContainer {
+        padding-right: 0;
+    }
+}
+
+/* Dark-theme tweaks: invert the Positron underlay so it blends with the
+ * suite's dark chrome. Cheap, no extra tile request. */
+html[data-theme='dark'] #mapContainer .maplibregl-canvas {
+    filter: invert(0.92) hue-rotate(180deg) saturate(0.85);
+}

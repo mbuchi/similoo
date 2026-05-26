@@ -4,13 +4,13 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title data-i18n="meta.title">similoo - Comparable Buildings Explorer</title>
-    <meta name="description" content="Find buildings comparable to your parcel — same zoning, recent construction — visualised in 3D across Switzerland." data-i18n-attr="content:meta.description" />
+    <meta name="description" content="Find buildings comparable to your parcel — same zoning, recent construction — visualised across Switzerland." data-i18n-attr="content:meta.description" />
 
     <!-- Open Graph / Facebook / LinkedIn -->
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="similoo" />
     <meta property="og:title" content="similoo — comparable buildings explorer" data-i18n-attr="content:meta.og_title" />
-    <meta property="og:description" content="Find buildings comparable to your parcel — same zoning, recent construction — visualised in 3D across Switzerland." data-i18n-attr="content:meta.og_description" />
+    <meta property="og:description" content="Find buildings comparable to your parcel — same zoning, recent construction — visualised across Switzerland." data-i18n-attr="content:meta.og_description" />
     <meta property="og:url" content="https://swissnovo-similoo.vercel.app/" />
     <meta property="og:image" content="https://swissnovo-similoo.vercel.app/og-image.jpg" />
     <meta property="og:image:secure_url" content="https://swissnovo-similoo.vercel.app/og-image.jpg" />
@@ -37,8 +37,6 @@
     <script>
         // Inline pre-paint theme bootstrap. Runs before any stylesheet is
         // applied so users on dark mode don't see a white flash on load.
-        // Mirrors the JS persistence logic in controls/themeToggle.js — if
-        // you change one, change both.
         (function () {
             try {
                 var stored = localStorage.getItem('similoo-theme');
@@ -52,12 +50,8 @@
                 document.documentElement.setAttribute('data-theme', 'light');
             }
         })();
-        // Inline pre-paint locale bootstrap. Sets <html lang> from the
-        // persisted choice (or navigator) before the first paint so screen
-        // readers / browsers report the right language and the language
-        // attribute lines up with the translated DOM after main.js runs.
-        // Mirrors the JS persistence logic in src/js/i18n.js — if you
-        // change one, change both.
+        // Inline pre-paint locale bootstrap. Sets <html lang> from persisted
+        // choice (or navigator) before first paint.
         (function () {
             var supported = ['en', 'fr', 'de', 'it'];
             try {
@@ -76,23 +70,13 @@
             }
             document.documentElement.lang = 'en';
         })();
-        window.CESIUM_BASE_URL = 'https://cesium.com/downloads/cesiumjs/releases/1.105.1/Build/Cesium/';
     </script>
-    <script src="https://cesium.com/downloads/cesiumjs/releases/1.105.1/Build/Cesium/Cesium.js"></script>
-    <!-- Cesium navigation compass/zoom widget (registers Cesium.viewerCesiumNavigationMixin) -->
-    <script src="/viewerCesiumNavigationMixin.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Varela+Round&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/shepherd.js@11.1.1/dist/css/shepherd.css"/>
-    <script src="https://cdn.jsdelivr.net/npm/shepherd.js@11.1.1/dist/js/shepherd.min.js"></script>
-    <link href="https://cesium.com/downloads/cesiumjs/releases/1.105.1/Build/Cesium/Widgets/widgets.css" rel="stylesheet" />
     <script src="https://unpkg.com/lucide@latest"></script>
     <link rel="stylesheet" href="/src/css/styles.css">
     <link rel="stylesheet" href="/src/css/sidebar.css">
-    <link rel="stylesheet" href="/src/css/releaseNotes.css">
-    <link rel="stylesheet" href="/src/css/auth.css">
-    <link rel="stylesheet" href="/src/css/screenshots.css">
-    <link rel="stylesheet" href="/src/css/buildingInfoPanel.css">
     <link rel="stylesheet" href="/src/css/comparison.css">
+    <link rel="stylesheet" href="/src/css/map.css">
 </head>
 <body>
 <div class="navbar">
@@ -114,95 +98,6 @@
                data-i18n-attr="placeholder:nav.search_placeholder,aria-label:nav.search_aria" />
       </form>
       <div class="navbar-actions">
-        <div class="navbar-dropdown perspective-dropdown" id="viewsDropdown">
-            <button id="viewsButton" class="nav-action-button" title="Views" aria-label="Views" aria-haspopup="true" aria-expanded="false"
-                    data-i18n-attr="title:views.button,aria-label:views.button">
-                <i data-lucide="compass"></i>
-                <svg class="nav-action-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                    <polyline points="6 9 12 15 18 9"></polyline>
-                </svg>
-            </button>
-            <div class="perspective-options" role="menu">
-                <button class="views-option" data-heading="180" role="menuitem" data-i18n="views.from_north">View from North</button>
-                <button class="views-option" data-heading="270" role="menuitem" data-i18n="views.from_east">View from East</button>
-                <button class="views-option" data-heading="0" role="menuitem" data-i18n="views.from_south">View from South</button>
-                <button class="views-option" data-heading="90" role="menuitem" data-i18n="views.from_west">View from West</button>
-            </div>
-        </div>
-        <button id="dayButton" class="nav-action-button" title="24-hour sun cycle" aria-label="24-hour sun cycle"
-                data-i18n-attr="title:sun.button,aria-label:sun.button">
-            <i data-lucide="sun"></i>
-        </button>
-        <div class="navbar-dropdown" id="settingsDropdown">
-            <button id="settingsButton" class="nav-action-button" title="Setup" aria-label="Setup" aria-haspopup="true" aria-expanded="false"
-                    data-i18n-attr="title:settings.button,aria-label:settings.button">
-                <i data-lucide="sliders-horizontal"></i>
-            </button>
-            <div class="navbar-dropdown-menu" role="menu">
-                <div class="settings-section">
-                    <h3 class="settings-section-title" data-i18n="settings.display_section">Display</h3>
-                    <div class="settings-date">
-                        <label for="dateInput" data-i18n="settings.set_date">Set date:</label>
-                        <input type="date" id="dateInput" class="settings-input" value="2024-05-15">
-                    </div>
-                    <label class="settings-option">
-                        <input type="checkbox" id="hdrToggle" class="settings-checkbox" checked>
-                        <span data-i18n="settings.hdr_mode">HDR Mode</span>
-                    </label>
-                    <label class="settings-option">
-                        <input type="checkbox" id="shadowsToggle" class="settings-checkbox" checked>
-                        <span data-i18n="settings.show_shadows">Show shadows</span>
-                    </label>
-                    <label class="settings-option">
-                        <input type="checkbox" id="swissLayersToggle" class="settings-checkbox" checked>
-                        <span data-i18n="settings.swiss_layers">3D buildings swisstopo official + terrain</span>
-                    </label>
-                    <label class="settings-option">
-                        <input type="checkbox" id="osmLayersToggle" class="settings-checkbox">
-                        <span data-i18n="settings.osm_layers">3D OSM + Cesium terrain</span>
-                    </label>
-                    <label class="settings-option">
-                        <input type="checkbox" id="googleLayersToggle" class="settings-checkbox">
-                        <span data-i18n="settings.google_layers">Google Photorealistic 3D</span>
-                    </label>
-                    <div class="settings-range">
-                        <label for="buildingsMinZoomInput" data-i18n="settings.buildings_min_zoom">3D buildings from zoom</label>
-                        <input type="number" id="buildingsMinZoomInput" class="settings-input settings-input-narrow"
-                               min="5" max="22" step="1" value="15">
-                    </div>
-                </div>
-                <div class="settings-section">
-                    <h3 class="settings-section-title" data-i18n="settings.tools_section">Tools</h3>
-                    <label class="settings-option">
-                        <input type="checkbox" id="recordVideoToggle" class="settings-checkbox">
-                        <span data-i18n="settings.autosave_tours">Autosave tours</span>
-                    </label>
-                    <label class="settings-option">
-                        <input type="checkbox" id="cameraInfoToggle" class="settings-checkbox">
-                        <span data-i18n="settings.camera_info">Show camera info</span>
-                    </label>
-                    <label class="settings-option">
-                        <input type="checkbox" id="gpsToggle" class="settings-checkbox">
-                        <span data-i18n="settings.allow_gps">Allow GPS</span>
-                    </label>
-                </div>
-            </div>
-        </div>
-        <button id="saveScreenshotButton" class="screenshot-nav-button is-camera" title="Save Image" aria-label="Save Image"
-                data-i18n-attr="title:screenshot.save,aria-label:screenshot.save">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
-                <circle cx="12" cy="13" r="4"></circle>
-            </svg>
-        </button>
-        <button id="savedImagesButton" class="screenshot-nav-button is-gallery" title="My Exports" aria-label="My Exports"
-                data-i18n-attr="title:screenshot.my_exports,aria-label:screenshot.my_exports">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-                <circle cx="8.5" cy="8.5" r="1.5"></circle>
-                <polyline points="21 15 16 10 5 21"></polyline>
-            </svg>
-        </button>
         <button id="themeToggleButton" class="theme-toggle-button" title="Toggle dark mode" aria-label="Toggle dark mode" aria-pressed="false">
             <svg class="theme-toggle-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                 <circle cx="12" cy="12" r="4"></circle>
@@ -224,26 +119,8 @@
     </div>
 </div>
 
-<div class="floating-dock" role="toolbar" aria-label="Map actions" data-i18n-attr="aria-label:dock.toolbar_label">
-    <button id="exportButton" class="dock-button" title="Export view" aria-label="Export view"
-            data-i18n-attr="title:dock.export,aria-label:dock.export">
-        <i data-lucide="download"></i>
-    </button>
-    <button id="aroundButton" class="dock-button" title="360° orbit" aria-label="360° orbit"
-            data-i18n-attr="title:dock.around,aria-label:dock.around">
-        <i data-lucide="rotate-cw"></i>
-    </button>
-    <button id="recordButton" class="dock-button record-button-container" title="Record" aria-label="Record"
-            data-i18n-attr="title:dock.record,aria-label:dock.record">
-        <span class="record-icon"></span>
-    </button>
-    <button id="tourButton" class="dock-button" title="Help tour" aria-label="Help tour"
-            data-i18n-attr="title:dock.tour,aria-label:dock.tour">
-        <i data-lucide="help-circle"></i>
-    </button>
-</div>
 <div id="addressHeader" class="address-header" style="display: none;"></div>
-<div id="cesiumContainer"></div>
+<div id="mapContainer"></div>
 <script type="module" src="/src/js/main.js"></script>
 </body>
 </html>

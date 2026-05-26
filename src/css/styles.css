@@ -157,7 +157,7 @@
     }
 }
 
-html, body, #cesiumContainer {
+html, body, #mapContainer {
     width: 100%;
     height: 100vh;
     margin: 0;
@@ -555,7 +555,7 @@ html, body, #cesiumContainer {
         min-height: 50px;
     }
 
-    #cesiumContainer {
+    #mapContainer {
         padding-top: 60px;
     }
 
@@ -598,7 +598,7 @@ html, body, #cesiumContainer {
     }
 }
 
-#cesiumContainer {
+#mapContainer {
     padding-top: 70px;
 }
 
