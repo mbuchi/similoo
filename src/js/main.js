@@ -83,7 +83,7 @@ function setupComparisonFlow(map) {
     map.on('mousemove', 'parcels-fill', (e) => {
         map.getCanvas().style.cursor = 'pointer';
         const f = e.features?.[0];
-        if (!f) return;
+        if (!f || f.id == null) return;
         if (hoverId !== null && hoverId !== f.id) {
             map.setFeatureState(
                 { source: PARCEL_SOURCE, sourceLayer: PARCEL_SOURCE_LAYER, id: hoverId },
@@ -114,11 +114,16 @@ function setupComparisonFlow(map) {
 
         clearTarget();
         clearComparables();
-        currentTargetId = f.id;
-        map.setFeatureState(
-            { source: PARCEL_SOURCE, sourceLayer: PARCEL_SOURCE_LAYER, id: currentTargetId },
-            { target: true },
-        );
+        // f.id can be null for a parcel that lacks parcel_id in the tile;
+        // the EGRID resolve below uses lat/lng so the comparison flow still
+        // works — we just skip the red highlight for that parcel.
+        if (f.id != null) {
+            currentTargetId = f.id;
+            map.setFeatureState(
+                { source: PARCEL_SOURCE, sourceLayer: PARCEL_SOURCE_LAYER, id: currentTargetId },
+                { target: true },
+            );
+        }
         document.body.classList.add('cmp-shifted');
 
         const seq = ++resolveSeq;
