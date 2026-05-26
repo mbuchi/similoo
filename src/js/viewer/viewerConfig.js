@@ -147,10 +147,13 @@ function buildStyle() {
                 'source-layer': 'footprint_cityjson',
                 minzoom: 14,
                 paint: {
+                    // target wins over comparable wins over hover; the resting
+                    // slate color stays when nothing is interacting.
                     'fill-extrusion-color': [
                         'case',
                         ['boolean', ['feature-state', 'target'], false], '#DC2626',
                         ['boolean', ['feature-state', 'comparable'], false], '#F87171',
+                        ['boolean', ['feature-state', 'hover'], false], '#60A5FA',
                         '#cbd5e1',
                     ],
                     // 70p reads more honestly than rf_h_roof_max which
@@ -165,7 +168,13 @@ function buildStyle() {
                         0,
                     ],
                     'fill-extrusion-base': 0,
-                    'fill-extrusion-opacity': 0.85,
+                    // 0.85 is the resting opacity; main.js drops this to
+                    // BUILDING_OPACITY_DIMMED while a parcel is selected so
+                    // the red parcel highlight on the ground stays visible
+                    // through the 3D footprints. setPaintProperty is used
+                    // because fill-extrusion-opacity isn't data-driven in
+                    // MapLibre v5 — it has to flip globally for the layer.
+                    'fill-extrusion-opacity': BUILDING_OPACITY_DEFAULT,
                 },
             },
         ],
@@ -178,3 +187,12 @@ export const PARCEL_SOURCE = 'parcels';
 export const PARCEL_SOURCE_LAYER = 'parcel_2025_07';
 export const BUILDING_SOURCE = 'buildings';
 export const BUILDING_SOURCE_LAYER = 'footprint_cityjson';
+export const PARCEL_LAYER = 'parcels-fill';
+export const BUILDING_LAYER = 'buildings-extrusion';
+
+// Building opacity targets. Default is the resting 3D look; dimmed is what
+// the layer flips to while a parcel/building is selected so the red ground
+// highlight can punch through the extrusions. Tuned by eye — much lower
+// than 0.3 starts to feel like the buildings vanished.
+export const BUILDING_OPACITY_DEFAULT = 0.85;
+export const BUILDING_OPACITY_DIMMED = 0.35;
