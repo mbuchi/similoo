@@ -1,3 +1,4 @@
+import maplibregl from 'maplibre-gl';
 import { t, onLocaleChange } from '../i18n.js';
 import { fetchSimilooComparables } from '../api/similoo.js';
 
@@ -22,7 +23,7 @@ const DEBOUNCE_MS = 250;
 
 const SORT_KEYS = ['similarity', 'ratioV', 'size', 'year'];
 
-export function createComparisonSidebar({ viewer, onClose, onFlyTo } = {}) {
+export function createComparisonSidebar({ map, onClose, onFlyTo } = {}) {
     let aside = buildShell();
     document.body.appendChild(aside);
 
@@ -34,7 +35,7 @@ export function createComparisonSidebar({ viewer, onClose, onFlyTo } = {}) {
     let sizeTo = null;
     let sortBy = 'similarity';
     let fetchSeq = 0;
-    let highlightEntity = null;
+    let highlightMarker = null;
 
     const els = {
         closeBtn: aside.querySelector('.cmp-close'),
@@ -293,56 +294,44 @@ export function createComparisonSidebar({ viewer, onClose, onFlyTo } = {}) {
             onFlyTo(c);
             return;
         }
-        // Fallback: drive the Cesium camera ourselves.
-        if (viewer && !viewer.isDestroyed?.()) {
-            viewer.camera.flyTo({
-                destination: Cesium.Cartesian3.fromDegrees(c.lng, c.lat, 600),
-                orientation: {
-                    heading: Cesium.Math.toRadians(355.5),
-                    pitch: Cesium.Math.toRadians(-30),
-                    roll: 0,
-                },
-                duration: 1.2,
+        // Fallback: drive the MapLibre camera ourselves.
+        if (map) {
+            map.flyTo({
+                center: [c.lng, c.lat],
+                zoom: Math.max(map.getZoom(), 16.5),
+                pitch: 50,
+                bearing: -20,
+                speed: 1.2,
+                essential: true,
             });
         }
     }
 
     function highlightComparable(c) {
-        if (!viewer || viewer.isDestroyed?.()) return;
+        if (!map) return;
         if (!Number.isFinite(c?.lat) || !Number.isFinite(c?.lng)) return;
         clearHighlight();
-        // A simple billboard-like marker entity per hovered card. This avoids
-        // touching the 3D tile silhouette stages owned by buildingPicker —
-        // recoloring an arbitrary building requires either a feature handle
-        // (which we don't have for non-picked buildings on the Swiss tileset)
-        // or a custom style query, both of which are bigger surgery than the
-        // spec warrants for a first ship. A floating pin lands the user's
-        // eye on the right place and clears cleanly on mouseleave.
+        // A floating red pin (DOM marker) over the comparable's centroid.
+        // We don't have a stable per-comparable feature id in the rendered
+        // building layer so we can't toggle feature-state for the whole set;
+        // the marker is cheaper than juggling a filtered overlay layer and
+        // it disappears cleanly on mouseleave.
         try {
-            highlightEntity = viewer.entities.add({
-                position: Cesium.Cartesian3.fromDegrees(c.lng, c.lat, 80),
-                point: {
-                    pixelSize: 14,
-                    color: Cesium.Color.fromCssColorString('#DC2626').withAlpha(0.95),
-                    outlineColor: Cesium.Color.WHITE,
-                    outlineWidth: 2,
-                    disableDepthTestDistance: Number.POSITIVE_INFINITY,
-                },
-            });
-            viewer.scene.requestRender();
+            const el = document.createElement('div');
+            el.className = 'cmp-pin';
+            highlightMarker = new maplibregl.Marker({ element: el, anchor: 'bottom' })
+                .setLngLat([c.lng, c.lat])
+                .addTo(map);
         } catch (err) {
             console.warn('comparison highlight failed:', err);
         }
     }
 
     function clearHighlight() {
-        if (highlightEntity && viewer && !viewer.isDestroyed?.()) {
-            try {
-                viewer.entities.remove(highlightEntity);
-                viewer.scene.requestRender();
-            } catch {}
+        if (highlightMarker) {
+            try { highlightMarker.remove(); } catch {}
+            highlightMarker = null;
         }
-        highlightEntity = null;
     }
 
     function renderMeta() {

@@ -1,182 +1,179 @@
-import { createTerrainProvider, createImageryProvider } from './providers.js';
-import { setupCameraMonitor } from './cameraMonitor.js';
-import { getInitialMapState, updateUrlParams } from '../mapUrlState.js';
-import { setIdleMode } from './renderMode.js';
-import { setupBasemaps } from './basemap.js';
-import { setupBuildings } from './buildings.js';
+import maplibregl from 'maplibre-gl';
+import 'maplibre-gl/dist/maplibre-gl.css';
+
+// MapLibre viewer for similoo. Replaces the Cesium foundation inherited
+// from hood with a much lighter 2D-with-3D-extrusions setup:
+//
+//   * Parcel polygons come from the suite's shared Martin tileset hosted at
+//     res-mbtiles-x.gisjoe.com (same source room uses). Click → feature has
+//     bldg_constr_year / cz_local / parcel_area / ratio_v / bldg_id etc.
+//     EGRID isn't in the tile so we resolve it server-side via /api/parcel.
+//   * Building footprints come from res-mbtiles-footprint-x.gisjoe.com and
+//     are extruded with `fill-extrusion-height = rf_h_roof_70p - rf_h_ground`
+//     (same expression room uses; 70th-percentile roof reads more honestly
+//     than rf_h_roof_max which spikes on chimneys).
+//   * A Carto Positron raster underlay provides geographic context without
+//     pulling in Cesium-grade terrain/imagery.
+//
+// initializeViewer resolves to the MapLibre Map once `load` has fired so
+// caller code can synchronously add feature-state to layers.
+
+const PARCEL_TILES_URL = 'https://res-mbtiles-x.gisjoe.com/parcel_2025_07_z12_16';
+const BUILDING_TILES_URL = 'https://res-mbtiles-footprint-x.gisjoe.com/footprint_cityjson';
+
+const DEFAULT_CENTER = [8.54, 47.37]; // Zurich
+const DEFAULT_ZOOM = 14;
+const DEFAULT_PITCH = 45;
+const DEFAULT_BEARING = -20;
 
 export async function initializeViewer(containerId) {
-    const terrainProvider = await createTerrainProvider();
-    const imageryProvider = await createImageryProvider();
-    
-    const viewer = createViewer(containerId, terrainProvider, imageryProvider);
-    
-    await initializeViewerComponents(viewer);
-    
-    return viewer;
-}
-
-function createViewer(containerId, terrainProvider, imageryProvider) {
-    const viewer = new Cesium.Viewer(containerId, {
-        baseLayer: Cesium.ImageryLayer.fromProviderAsync(imageryProvider),
-        terrainProvider: terrainProvider,
-        // animation + timeline widgets are CSS-hidden in hood and we drive
-        // the clock from the day-tour button, so don't construct them.
-        animation: false,
-        // Cesium's default BaseLayerPicker renders a black thumbnail tile that
-        // clashes with the suite UI; hood has its own basemap selector mounted
-        // by controls/basemapSelector.js (Satellite / Hillshade).
-        baseLayerPicker: false,
-        fullscreenButton: true,
-        homeButton: false,
-        // Disable Cesium's default InfoBox + selection indicator. Clicking a
-        // 3D Tile feature would otherwise pop up Cesium's raw-property panel
-        // and the green selection box; hood has its own dark info panel
-        // (info/buildingInfoPanel.js) + red silhouette outline that replace
-        // both, so the defaults would just stack on top.
-        infoBox: false,
-        sceneModePicker: false,
-        selectionIndicator: false,
-        timeline: false,
-        geocoder: true,
-        navigationHelpButton: false,
-        vrButton: true,
-        clockViewModel: new Cesium.ClockViewModel(),
-        // The viewer boots in idle render mode (see renderMode.js). The
-        // around/day-tour buttons flip the clock back on when they need it.
-        shouldAnimate: false
+    const map = new maplibregl.Map({
+        container: containerId,
+        style: buildStyle(),
+        center: DEFAULT_CENTER,
+        zoom: DEFAULT_ZOOM,
+        pitch: DEFAULT_PITCH,
+        bearing: DEFAULT_BEARING,
+        hash: true,
+        attributionControl: { compact: true },
     });
 
-    setupNavigationWidget(viewer);
+    map.addControl(new maplibregl.NavigationControl({ visualizePitch: true }), 'top-right');
+    map.addControl(new maplibregl.ScaleControl({ unit: 'metric' }), 'bottom-left');
 
-    return viewer;
-}
-
-/**
- * Adds the circular compass + zoom-ring + distance-legend widget from the
- * viewerCesiumNavigationMixin plugin (loaded globally in index.html).
- * The compass replaces hood's old hand-rolled zoom/tilt buttons:
- *  - drag the outer ring to rotate (heading)
- *  - drag the inner gyroscope to orbit/tilt the camera
- *  - the +/- ring zooms in and out
- */
-function setupNavigationWidget(viewer) {
-    if (!Cesium.viewerCesiumNavigationMixin) {
-        console.warn('viewerCesiumNavigationMixin not loaded; skipping compass widget');
-        return;
-    }
-    viewer.extend(Cesium.viewerCesiumNavigationMixin, {
-        enableCompass: true,
-        enableZoomControls: true,
-        enableDistanceLegend: true
+    await new Promise((resolve, reject) => {
+        let settled = false;
+        map.once('load', () => {
+            if (!settled) {
+                settled = true;
+                resolve();
+            }
+        });
+        map.once('error', (e) => {
+            // Map can emit error before load on transient network blips;
+            // only reject if load hasn't fired yet.
+            if (!settled) {
+                settled = true;
+                reject(e?.error || new Error('MapLibre failed to load'));
+            }
+        });
     });
+
+    return map;
 }
 
-async function initializeViewerComponents(viewer) {
-    viewer.scene.highDynamicRange = true;
-    configureViewer(viewer);
-    configureShadows(viewer);
-    setInitialView(viewer);
-    setupCameraMonitor(viewer);
-    setupUrlSync(viewer);
-    
-    try {
-        await Promise.all([
-            loadTerrain(viewer),
-            setupBuildings(viewer),
-            setupBasemaps(viewer)
-        ]);
-        console.log('All assets loaded successfully');
-    } catch (error) {
-        console.error('Error during loading:', error);
-        throw error;
-    }
-
-    // Apply idle render-mode now that the tileset is in the scene — the
-    // tileset MSE setter needs the primitive to be present.
-    setIdleMode(viewer);
-}
-
-async function loadTerrain(viewer) {
-    await viewer.terrainProvider.readyPromise;
-    console.log('Terrain loaded successfully');
-}
-
-export function configureViewer(viewer) {
-    configureScene(viewer.scene);
-    configureCamera(viewer.scene.screenSpaceCameraController);
-    configureGlobe(viewer.scene.globe);
-    configureGeocoder(viewer._geocoder);
-}
-
-function configureScene(scene) {
-    scene.globe.depthTestAgainstTerrain = true;
-    scene.globe.baseColor = Cesium.Color.WHITE;
-    scene.backgroundColor = Cesium.Color.WHITE;
-}
-
-function configureCamera(controller) {
-    controller.enableLook = true;
-    controller.enableTranslate = true;
-    controller.enableCollisionDetection = true;
-    controller.enableZoom = true;
-    controller.zoomEventTypes = [Cesium.CameraEventType.WHEEL, Cesium.CameraEventType.PINCH];
-    controller.enableRotate = true;
-    controller.enableTilt = true;
-    
-    controller.minimumZoomDistance = 5.0;
-    controller.minimumCollisionTerrainHeight = 10.0;
-    controller.constrainedAxis = Cesium.Cartesian3.UNIT_Z;
-    controller._minimumCollisionTerrainHeight = 10.0;
-    controller.minimumTrackBallHeight = 10.0;
-}
-
-function configureGlobe(globe) {
-    globe.enableCollisionDetection = true;
-    globe.translucency.enabled = false;
-    globe.translucency.frontFaceAlpha = 1.0;
-    globe.translucency.backFaceAlpha = 1.0;
-}
-
-function configureGeocoder(geocoder) {
-    if (geocoder?.container) {
-        geocoder.container.style.left = '10px';
-        geocoder.container.style.right = 'auto';
-    }
-}
-
-export function configureShadows(viewer) {
-    viewer.shadows = true;
-    viewer.scene.globe.enableLighting = true;
-    viewer.scene.globe.castShadows = true;
-    viewer.scene.globe.receiveShadows = true;
-    viewer.shadowMap.enabled = true;
-    viewer.shadowMap.softShadows = true;
-    viewer.shadowMap.size = 2048;
-    viewer.shadowMap.darkness = 0.3;
-}
-
-export function setInitialView(viewer) {
-    const { center, zoom } = getInitialMapState();
-    const [lng, lat] = center;
-    viewer.camera.setView({
-        destination: Cesium.Cartesian3.fromDegrees(lng, lat, zoom),
-        orientation: {
-            pitch: Cesium.Math.toRadians(-20)
-        }
-    });
-}
-
-function setupUrlSync(viewer) {
-    const sync = () => {
-        const carto = viewer.camera.positionCartographic;
-        if (!carto) return;
-        updateUrlParams(
-            Cesium.Math.toDegrees(carto.latitude),
-            Cesium.Math.toDegrees(carto.longitude),
-            carto.height
-        );
+function buildStyle() {
+    return {
+        version: 8,
+        glyphs: 'https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf',
+        sources: {
+            positron: {
+                type: 'raster',
+                tiles: [
+                    'https://a.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png',
+                    'https://b.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png',
+                    'https://c.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png',
+                    'https://d.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png',
+                ],
+                tileSize: 256,
+                maxzoom: 19,
+                attribution: '© OpenStreetMap, © CARTO',
+            },
+            parcels: {
+                type: 'vector',
+                url: PARCEL_TILES_URL,
+                // bldg_id is the only identifier present in the tile schema
+                // that is stable per feature; the EGRID we surface in the
+                // sidebar is resolved server-side from lat/lng.
+                promoteId: 'bldg_id',
+            },
+            buildings: {
+                type: 'vector',
+                url: BUILDING_TILES_URL,
+                promoteId: 'res_building_id',
+            },
+        },
+        layers: [
+            { id: 'bg', type: 'background', paint: { 'background-color': '#f3f4f6' } },
+            {
+                id: 'positron',
+                type: 'raster',
+                source: 'positron',
+                paint: { 'raster-opacity': 0.85 },
+            },
+            {
+                id: 'parcels-outline',
+                type: 'line',
+                source: 'parcels',
+                'source-layer': 'parcel_2025_07',
+                minzoom: 13,
+                paint: {
+                    'line-color': '#9ca3af',
+                    'line-width': 0.6,
+                    'line-opacity': 0.5,
+                },
+            },
+            {
+                id: 'parcels-fill',
+                type: 'fill',
+                source: 'parcels',
+                'source-layer': 'parcel_2025_07',
+                paint: {
+                    // Transparent default so positron shows through; the click
+                    // handler swaps a parcel into `target` / `comparable`
+                    // feature-state to paint it red / pink. Hover gets a
+                    // soft amber overlay so users feel the click target.
+                    'fill-color': [
+                        'case',
+                        ['boolean', ['feature-state', 'target'], false], '#DC2626',
+                        ['boolean', ['feature-state', 'comparable'], false], '#F87171',
+                        ['boolean', ['feature-state', 'hover'], false], '#fbbf24',
+                        'rgba(0,0,0,0)',
+                    ],
+                    'fill-opacity': [
+                        'case',
+                        ['boolean', ['feature-state', 'target'], false], 0.45,
+                        ['boolean', ['feature-state', 'comparable'], false], 0.35,
+                        ['boolean', ['feature-state', 'hover'], false], 0.25,
+                        0,
+                    ],
+                },
+            },
+            {
+                id: 'buildings-extrusion',
+                type: 'fill-extrusion',
+                source: 'buildings',
+                'source-layer': 'footprint_cityjson',
+                minzoom: 14,
+                paint: {
+                    'fill-extrusion-color': [
+                        'case',
+                        ['boolean', ['feature-state', 'target'], false], '#DC2626',
+                        ['boolean', ['feature-state', 'comparable'], false], '#F87171',
+                        '#cbd5e1',
+                    ],
+                    // 70p reads more honestly than rf_h_roof_max which
+                    // includes chimney peaks; identical to the room app's
+                    // expression so the suite has one canonical answer.
+                    'fill-extrusion-height': [
+                        'max',
+                        ['-',
+                            ['coalesce', ['get', 'rf_h_roof_70p'], 0],
+                            ['coalesce', ['get', 'rf_h_ground'], 0],
+                        ],
+                        0,
+                    ],
+                    'fill-extrusion-base': 0,
+                    'fill-extrusion-opacity': 0.85,
+                },
+            },
+        ],
     };
-    viewer.camera.moveEnd.addEventListener(sync);
-    sync();
 }
+
+// Helpers exposed so main.js can apply / clear feature-state without
+// reaching into MapLibre layer names from outside.
+export const PARCEL_SOURCE = 'parcels';
+export const PARCEL_SOURCE_LAYER = 'parcel_2025_07';
+export const BUILDING_SOURCE = 'buildings';
+export const BUILDING_SOURCE_LAYER = 'footprint_cityjson';

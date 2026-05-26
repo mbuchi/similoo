@@ -41,6 +41,34 @@ export const KIND_META = {
 
 export const RELEASES = [
     {
+        version: '0.2.0',
+        date: 'May 26, 2026',
+        codename: 'Featherweight',
+        summary:
+            'Replace the Cesium 3D foundation inherited from hood with a much lighter MapLibre + fill-extrusion stack. Bundle drops ~75% vs the Cesium build (now ~1.1 MB JS / 304 KB gzipped, was ~3 MB+ gzipped). Vector parcels and 3D building footprints come from the suite\'s shared Martin tilesets (res-mbtiles-x.gisjoe.com / res-mbtiles-footprint-x.gisjoe.com — same sources room uses), so no new infra. Buildings extrude with rf_h_roof_70p − rf_h_ground for a realistic roof line. The comparison sidebar is unchanged on the outside but ports its highlight from Cesium entities to MapLibre Marker pins and feature-state. Carto Positron underlay provides geographic context.',
+        highlight: true,
+        items: [
+            {
+                kind: 'new',
+                icon: 'map',
+                text: 'MapLibre GL JS map replaces the Cesium viewer. Default view at Zürich zoom 14 pitch 45°; parcels paint on click, buildings extrude from the LOD 2.2 roof model.',
+                prs: [],
+            },
+            {
+                kind: 'improved',
+                icon: 'gauge',
+                text: 'Cold bundle dropped from ~3 MB gzipped (Cesium) to 304 KB gzipped (MapLibre + Three deferred) — ~10× faster first paint, no terrain tile cost.',
+                prs: [],
+            },
+            {
+                kind: 'improved',
+                icon: 'mouse-pointer',
+                text: 'Parcel click → /api/parcel resolves EGRID → comparison sidebar opens with target metrics, filters, and ranked comparables list. Mock fallback kicks in offline and in dev so the demo flow never breaks.',
+                prs: [],
+            },
+        ],
+    },
+    {
         version: '0.1.1',
         date: 'May 25, 2026',
         codename: 'Proxy Pass',
