@@ -82,10 +82,11 @@ function buildStyle() {
             parcels: {
                 type: 'vector',
                 url: PARCEL_TILES_URL,
-                // bldg_id is the only identifier present in the tile schema
-                // that is stable per feature; the EGRID we surface in the
-                // sidebar is resolved server-side from lat/lng.
-                promoteId: 'bldg_id',
+                // parcel_id is the per-parcel stable identifier; bldg_id is
+                // only populated for parcels that have a linked building, so
+                // hovering vacant/agricultural land made feature.id undefined
+                // and setFeatureState threw "feature id must be provided".
+                promoteId: 'parcel_id',
             },
             buildings: {
                 type: 'vector',
