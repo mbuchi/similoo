@@ -49,7 +49,7 @@
     font-weight: 600;
 }
 .bip-divider { color: var(--hood-panel-divider); }
-.bip-id { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, monospace; }
+.bip-id { font-family: var(--hood-mono); }
 .bip-title {
     color: var(--hood-panel-title);
     font-size: 18px;
@@ -201,7 +201,7 @@
 .bip-solar-axis {
     display: flex;
     justify-content: space-between;
-    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, monospace;
+    font-family: var(--hood-mono);
     font-size: 10px;
     color: var(--hood-panel-faint);
     margin-top: 4px;
@@ -243,7 +243,7 @@
     color: var(--hood-panel-muted);
 }
 .bip-props-list dt {
-    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, monospace;
+    font-family: var(--hood-mono);
     color: var(--hood-panel-muted);
 }
 .bip-props-list dd {
