@@ -2,7 +2,8 @@
    hood — design tokens (single source of truth)
    project_RES left-menu aesthetic (white panels, #e5e7eb borders,
    12px cards, subtle shadow, #2563eb primary / pill tabs) blended
-   with hood's identity: Varela Round font + red #DC2626 brand.
+   with the SwissNovo identity: Inter for UI + Varela Round wordmark
+   with red #DC2626 `oo`, JetBrains Mono for IDs and code.
    Loaded first, so every other stylesheet inherits these.
    ============================================================ */
 :root {
@@ -75,8 +76,19 @@
     /* Transition */
     --hood-transition: 0.15s ease-in-out;
 
-    /* Typography */
-    --hood-font: 'Varela Round', sans-serif;
+    /* Typography
+       --------------------------------------------------------------------
+       Suite branding keeps the Varela Round wordmark with the red `oo`,
+       but the UI itself reads as a modern tech-sans. We split the tokens:
+         * --hood-font     — UI body & controls (Inter; cv11 = single-storey g,
+                             ss01 = open digits, tnum = tabular for IDs/counts)
+         * --hood-display  — Varela Round, restricted to the brand wordmark
+         * --hood-mono     — JetBrains Mono, used for parcel/egrid IDs, code
+       Variable-friendly fallback chain stays system-aware in case Google
+       Fonts is blocked. */
+    --hood-font: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    --hood-display: 'Varela Round', system-ui, sans-serif;
+    --hood-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, 'Cascadia Code', Consolas, monospace;
 
     /* Layout metrics */
     --navbar-h: 60px;
@@ -136,6 +148,23 @@
 
 * {
     box-sizing: border-box;
+}
+
+/* Base UI typography — Inter with kerning/ligatures, single-storey 'g' (cv11),
+   open digits (ss01), and grayscale antialiasing for clean rendering on dark
+   surfaces. Tabular figures (tnum) keep numeric columns aligned in the
+   building-info panel and comparison lists. */
+html {
+    font-family: var(--hood-font);
+    font-feature-settings: 'kern' 1, 'liga' 1, 'calt' 1, 'cv11' 1, 'ss01' 1;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+}
+body {
+    font-family: var(--hood-font);
+    color: var(--hood-text);
+    line-height: 1.5;
 }
 
 /* Shared skeleton-loader system — a calm, slow "blink" pulse used in    */
@@ -214,10 +243,13 @@ html, body, #mapContainer {
 }
 
 .logo {
-    font-family: var(--hood-font);
+    /* The wordmark is the one place the suite-wide Varela Round identity
+       lives — body type around it is the modern Inter UI face. */
+    font-family: var(--hood-display);
     font-size: 2.58rem;
     font-weight: 400;
     line-height: 1;
+    letter-spacing: -0.01em;
     text-decoration: none;
 }
 
@@ -227,13 +259,15 @@ html, body, #mapContainer {
 
 .logo-subtitle {
     font-family: var(--hood-font);
-    font-size: 0.85rem;
+    font-size: 0.78rem;
+    font-weight: 500;
     color: var(--hood-faint);
     margin-left: 0.5rem;
     align-self: flex-end;
     margin-bottom: 6px;
     white-space: nowrap;
-    letter-spacing: 0.02em;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
 }
 
 .logo-first {
@@ -272,7 +306,7 @@ html, body, #mapContainer {
     font-size: larger;
     z-index: 1000;
     color: white;
-    font-family: sans, arial;
+    font-family: var(--hood-font);
     text-shadow: 2px 2px white;
 }
 
@@ -632,7 +666,7 @@ html, body, #mapContainer {
     border: 1px solid var(--hood-border);
     padding: 10px;
     border-radius: var(--hood-radius-sm);
-    font-family: monospace;
+    font-family: var(--hood-mono);
     font-size: 12px;
     z-index: 1000;
     box-shadow: var(--hood-card-shadow);

@@ -154,7 +154,7 @@
     white-space: nowrap;
 }
 .cmp-target-egrid {
-    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, monospace;
+    font-family: var(--hood-mono);
     font-size: 11px;
 }
 .cmp-target-grid {
@@ -324,7 +324,7 @@
     margin-bottom: 6px;
 }
 .cmp-card-egrid {
-    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, monospace;
+    font-family: var(--hood-mono);
     font-size: 11px;
     color: var(--hood-panel-muted);
     overflow: hidden;

@@ -162,7 +162,7 @@
     margin: 0.25rem 0 0;
 }
 .rn-subtitle .rn-version-pill {
-    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-family: var(--hood-mono);
     font-weight: 600;
     color: #DC2626;
 }
@@ -386,7 +386,7 @@
     gap: 0.5rem;
 }
 .rn-version-tag {
-    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-family: var(--hood-mono);
     font-size: 1rem;
     font-weight: 700;
     color: #111827;
@@ -506,7 +506,7 @@
     gap: 0.25rem;
     padding: 2px 6px;
     border-radius: 6px;
-    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-family: var(--hood-mono);
     font-size: 10px;
     background: #F3F4F6;
     color: #6B7280;
@@ -561,7 +561,7 @@
     color: #1F2937;
 }
 .rn-close-btn kbd {
-    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-family: var(--hood-mono);
     font-size: 10px;
 }
 @media (min-width: 640px) {
