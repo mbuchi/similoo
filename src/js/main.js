@@ -2,265 +2,302 @@ import './i18n.js';
 
 import {
     initializeViewer,
-    PARCEL_SOURCE,
-    PARCEL_SOURCE_LAYER,
     BUILDING_SOURCE,
     BUILDING_SOURCE_LAYER,
-    PARCEL_LAYER,
     BUILDING_LAYER,
-    BUILDING_OPACITY_DEFAULT,
-    BUILDING_OPACITY_DIMMED,
 } from './viewer/viewerConfig.js';
 import { applyTranslations, bindLocaleSelect, t } from './i18n.js';
 import { createComparisonSidebar } from './comparison/sidebar.js';
 import { resolveEgridFromLngLat } from './comparison/parcelLookup.js';
+import { bindLandingSearch } from './landing/addressSearch.js';
+import { createComparableMarkers } from './viewer/comparableMarkers.js';
+import { createBuildingDetailModal } from './detail/buildingDetailModal.js';
 
-// Apply translations as soon as the static DOM is parsed — before window.onload
-// fires — so users don't see a flash of English text while the map boots.
-// The pre-paint script in index.html has already set <html lang>, this
-// sweeps every [data-i18n] / [data-i18n-attr] node in the navbar + meta tags.
+// Apply translations as soon as the static DOM is parsed.
 if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => {
-        applyTranslations(document);
-        bindLocaleSelect('locale-select');
-    });
+    document.addEventListener('DOMContentLoaded', boot);
 } else {
+    boot();
+}
+
+function boot() {
     applyTranslations(document);
     bindLocaleSelect('locale-select');
-}
+    setupThemeToggle();
 
-window.onload = async function () {
-    try {
-        const map = await initializeViewer('mapContainer');
-        window.__similooMap = map; // exposed for browser-driven tests
+    const landingView = document.getElementById('landingView');
+    const comparisonView = document.getElementById('comparisonView');
+    const comparisonAddress = document.getElementById('comparisonAddress');
+    const backBtn = document.getElementById('backToSearch');
+    const input = document.getElementById('landingSearchInput');
+    const list = document.getElementById('landingResults');
 
-        setupComparisonFlow(map);
-        setupThemeToggle();
-
-        if (window.lucide && typeof window.lucide.createIcons === 'function') {
-            window.lucide.createIcons();
-        }
-    } catch (e) {
-        console.error('Error initializing application:', e);
-        const container = document.getElementById('mapContainer');
-        if (container) {
-            const errorDiv = document.createElement('div');
-            errorDiv.className = 'error-message';
-            errorDiv.style.cssText =
-                'position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); ' +
-                'background: rgba(255, 0, 0, 0.1); color: #DC2626; padding: 1rem; ' +
-                'border: 1px solid #DC2626; border-radius: 4px; text-align: center;';
-            errorDiv.textContent = t('error.viewer_load', { message: e.message });
-            container.appendChild(errorDiv);
-        }
-    }
-};
-
-// Wires the parcel/building click → EGRID → comparison sidebar flow on top
-// of the MapLibre map. similoo's headline surface is "comparable buildings",
-// so the comparison sidebar takes the right-edge slot and the map's job is
-// to feed it a parcel and host the target/comparable highlight.
-//
-//   * Hover on a parcel   → soft amber overlay (parcel hover=true).
-//   * Hover on a building → blue tint on that footprint (building hover=true).
-//   * Click on a parcel   → resolve EGRID via /api/parcel, show sidebar,
-//                           paint target parcel red, dim buildings so the
-//                           red ground patch shows through the 3D shells.
-//   * Click on a building → also paint that building red, and resolve the
-//                           parcel underneath (queryRenderedFeatures hits
-//                           the parcel even when a building covers it
-//                           because MapLibre projects to the ground plane
-//                           for fill layers).
-//   * Close sidebar       → clear paint states, restore building opacity.
-//   * Escape key          → close sidebar.
-function setupComparisonFlow(map) {
-    let currentTargetParcelId = null;
+    let map = null;
+    let sidebar = null;
+    let markers = null;
+    let detailModal = null;
     let currentTargetBuildingId = null;
-    let currentComparableIds = [];
-    let hoverParcelId = null;
-    let hoverBuildingId = null;
-    let resolveSeq = 0;
+    let pickSeq = 0;
 
-    const comparison = createComparisonSidebar({
-        map,
-        onClose: () => {
-            clearSelection();
-            document.body.classList.remove('cmp-shifted');
-            resolveSeq++;
-        },
-        onFlyTo: null,
-    });
-
-    // --- Parcel hover (soft amber overlay on the ground) ---
-    map.on('mousemove', PARCEL_LAYER, (e) => {
-        map.getCanvas().style.cursor = 'pointer';
-        const f = e.features?.[0];
-        if (!f || f.id == null) return;
-        if (hoverParcelId !== null && hoverParcelId !== f.id) {
-            map.setFeatureState(
-                { source: PARCEL_SOURCE, sourceLayer: PARCEL_SOURCE_LAYER, id: hoverParcelId },
-                { hover: false },
-            );
-        }
-        hoverParcelId = f.id;
-        map.setFeatureState(
-            { source: PARCEL_SOURCE, sourceLayer: PARCEL_SOURCE_LAYER, id: hoverParcelId },
-            { hover: true },
-        );
-    });
-
-    map.on('mouseleave', PARCEL_LAYER, () => {
-        map.getCanvas().style.cursor = '';
-        if (hoverParcelId !== null) {
-            map.setFeatureState(
-                { source: PARCEL_SOURCE, sourceLayer: PARCEL_SOURCE_LAYER, id: hoverParcelId },
-                { hover: false },
-            );
-            hoverParcelId = null;
-        }
-    });
-
-    // --- Building hover (blue tint on the extruded footprint) ---
-    map.on('mousemove', BUILDING_LAYER, (e) => {
-        map.getCanvas().style.cursor = 'pointer';
-        const f = e.features?.[0];
-        if (!f || f.id == null) return;
-        if (hoverBuildingId !== null && hoverBuildingId !== f.id) {
-            map.setFeatureState(
-                { source: BUILDING_SOURCE, sourceLayer: BUILDING_SOURCE_LAYER, id: hoverBuildingId },
-                { hover: false },
-            );
-        }
-        hoverBuildingId = f.id;
-        map.setFeatureState(
-            { source: BUILDING_SOURCE, sourceLayer: BUILDING_SOURCE_LAYER, id: hoverBuildingId },
-            { hover: true },
-        );
-    });
-
-    map.on('mouseleave', BUILDING_LAYER, () => {
-        // Cursor reset is handled by parcel mouseleave too; only one will
-        // win depending on layer order, and that's fine.
-        if (hoverBuildingId !== null) {
-            map.setFeatureState(
-                { source: BUILDING_SOURCE, sourceLayer: BUILDING_SOURCE_LAYER, id: hoverBuildingId },
-                { hover: false },
-            );
-            hoverBuildingId = null;
-        }
-    });
-
-    // --- Click on parcel layer ---
-    // Both parcel and building click handlers route through selectAt(),
-    // which figures out the rest (other layer's feature, EGRID resolve,
-    // building dimming). Registering on each layer rather than the map
-    // means we don't fire for clicks on the empty positron underlay.
-    map.on('click', PARCEL_LAYER, (e) => {
-        selectAt(e.lngLat, e.point, e.features?.[0] || null, null);
-    });
-
-    map.on('click', BUILDING_LAYER, (e) => {
-        // Look up the parcel beneath the clicked building via the screen
-        // point. parcels-fill is a 2D ground layer, so its hitbox is the
-        // parcel directly beneath the cursor.
-        const parcelHits = map.queryRenderedFeatures(e.point, { layers: [PARCEL_LAYER] });
-        selectAt(e.lngLat, e.point, parcelHits[0] || null, e.features?.[0] || null);
-    });
-
-    async function selectAt(lngLat, point, parcelFeature, buildingFeature) {
-        // If neither hit, nothing to do (shouldn't happen — both handlers
-        // require a feature — but defensive).
-        if (!parcelFeature && !buildingFeature) return;
-
-        // If clicking via the parcel layer with no building feature, try
-        // to find one anyway so the building on the selected parcel lights
-        // up too. The user explicitly asked for "also highlight the
-        // building" on click.
-        if (!buildingFeature && point) {
-            const hits = map.queryRenderedFeatures(point, { layers: [BUILDING_LAYER] });
-            buildingFeature = hits[0] || null;
-        }
-
-        clearSelection();
-        document.body.classList.add('cmp-shifted');
-
-        // Paint target parcel red (if we have a stable id for it).
-        if (parcelFeature && parcelFeature.id != null) {
-            currentTargetParcelId = parcelFeature.id;
-            map.setFeatureState(
-                { source: PARCEL_SOURCE, sourceLayer: PARCEL_SOURCE_LAYER, id: currentTargetParcelId },
-                { target: true },
-            );
-        }
-
-        // Paint target building red.
-        if (buildingFeature && buildingFeature.id != null) {
-            currentTargetBuildingId = buildingFeature.id;
-            map.setFeatureState(
-                { source: BUILDING_SOURCE, sourceLayer: BUILDING_SOURCE_LAYER, id: currentTargetBuildingId },
-                { target: true },
-            );
-        }
-
-        // Drop building opacity so the red parcel below punches through the
-        // 3D shells. MapLibre v5's fill-extrusion-opacity isn't data-driven,
-        // so we flip the whole layer. The target building's red color still
-        // reads — just slightly more translucent — and unrelated buildings
-        // become ghosted out of the way.
-        map.setPaintProperty(BUILDING_LAYER, 'fill-extrusion-opacity', BUILDING_OPACITY_DIMMED);
-
-        const seq = ++resolveSeq;
+    async function ensureMap() {
+        if (map) return map;
         try {
-            const { egrid } = await resolveEgridFromLngLat(lngLat, parcelFeature);
-            if (seq !== resolveSeq) return;
+            map = await initializeViewer('mapContainer');
+            window.__similooMap = map; // exposed for browser-driven tests
+        } catch (e) {
+            console.error('Error initializing viewer:', e);
+            throw e;
+        }
+        return map;
+    }
+
+    function ensureDetailModal() {
+        if (detailModal) return detailModal;
+        detailModal = createBuildingDetailModal();
+        return detailModal;
+    }
+
+    function openDetail(c) {
+        if (!c || !Number.isFinite(c.lat) || !Number.isFinite(c.lng)) return;
+        const modal = ensureDetailModal();
+        modal.show({
+            lat: c.lat,
+            lng: c.lng,
+            label: c.address || c.egrid || formatLatLng(c.lat, c.lng),
+            subtitle: composeSubtitle(c),
+        });
+    }
+
+    function composeSubtitle(c) {
+        const parts = [];
+        if (c.cz_local || c.cz_abbrev) parts.push(c.cz_local || c.cz_abbrev);
+        if (Number.isFinite(c.construction_year)) parts.push(String(c.construction_year));
+        if (Number.isFinite(c.ratioV)) parts.push(`ratioV ${c.ratioV.toFixed(2)}`);
+        return parts.join(' · ');
+    }
+
+    function ensureSidebar() {
+        if (sidebar) return sidebar;
+        sidebar = createComparisonSidebar({
+            map,
+            onClose: () => {
+                clearTargetHighlight();
+                markers?.clear();
+                document.body.classList.remove('cmp-shifted');
+            },
+            onSelectComparable: (c) => openDetail(c),
+            onHoverComparable: (c) => markers?.highlightId(c?.egrid || null),
+            onUnhoverComparable: () => markers?.highlightId(null),
+            onFlyTo: (c) => {
+                if (!map || !Number.isFinite(c.lat) || !Number.isFinite(c.lng)) return;
+                map.flyTo({
+                    center: [c.lng, c.lat],
+                    zoom: Math.max(map.getZoom(), 16.5),
+                    pitch: 50,
+                    bearing: -25,
+                    speed: 1.2,
+                    essential: true,
+                });
+            },
+            onDataLoaded: (data) => {
+                if (!markers) return;
+                markers.setComparables(data?.comparables || []);
+            },
+        });
+        return sidebar;
+    }
+
+    function ensureMarkers() {
+        if (markers) return markers;
+        markers = createComparableMarkers({
+            map,
+            onSelect: (c) => openDetail(c),
+            onHover: () => {},
+            onUnhover: () => {},
+        });
+        return markers;
+    }
+
+    async function showComparison(label) {
+        landingView.hidden = true;
+        comparisonView.hidden = false;
+        comparisonAddress.textContent = label;
+        await ensureMap();
+        ensureSidebar();
+        ensureMarkers();
+        if (window.lucide?.createIcons) window.lucide.createIcons();
+    }
+
+    function showLanding() {
+        comparisonView.hidden = true;
+        landingView.hidden = false;
+        clearTargetHighlight();
+        markers?.clear();
+        if (sidebar) {
+            sidebar.hide();
+            document.body.classList.remove('cmp-shifted');
+        }
+        if (input) {
+            input.value = '';
+            setTimeout(() => input.focus(), 50);
+        }
+        try {
+            const url = new URL(window.location.href);
+            url.searchParams.delete('lat');
+            url.searchParams.delete('lng');
+            url.searchParams.delete('label');
+            window.history.replaceState({}, '', url.toString());
+        } catch {}
+    }
+
+    backBtn?.addEventListener('click', showLanding);
+
+    // Paints the building feature at (lat, lng) as the "target". MapLibre
+    // can only setFeatureState on features that have a stable id, so we
+    // queryRenderedFeatures at the lat/lng's projected point and use the
+    // feature with the largest area among the hits (most reliable when
+    // the click point straddles two adjacent buildings).
+    function highlightTargetAt(lng, lat) {
+        if (!map) return null;
+        const point = map.project([lng, lat]);
+        // Probe a small box so we still hit the building even if the
+        // projected pixel falls on an edge.
+        const hits = map.queryRenderedFeatures(
+            [
+                [point.x - 4, point.y - 4],
+                [point.x + 4, point.y + 4],
+            ],
+            { layers: [BUILDING_LAYER] },
+        );
+        if (!hits.length) return null;
+        const target = hits[0];
+        if (target.id == null) return null;
+        clearTargetHighlight();
+        currentTargetBuildingId = target.id;
+        map.setFeatureState(
+            { source: BUILDING_SOURCE, sourceLayer: BUILDING_SOURCE_LAYER, id: currentTargetBuildingId },
+            { target: true },
+        );
+        document.body.classList.add('cmp-shifted');
+        return target;
+    }
+
+    function clearTargetHighlight() {
+        if (!map || currentTargetBuildingId == null) return;
+        map.setFeatureState(
+            { source: BUILDING_SOURCE, sourceLayer: BUILDING_SOURCE_LAYER, id: currentTargetBuildingId },
+            { target: false },
+        );
+        currentTargetBuildingId = null;
+    }
+
+    async function handlePick(result) {
+        if (!result || !Number.isFinite(result.lat) || !Number.isFinite(result.lng)) return;
+        const seq = ++pickSeq;
+
+        await showComparison(result.label || formatLatLng(result.lat, result.lng));
+        syncDeepLink(result);
+
+        // Fly first so the building tile renders for the queryRenderedFeatures
+        // probe below. We need ~zoom 16+ for the buildings vector tile.
+        await flyToWaitForIdle(result);
+        if (seq !== pickSeq) return;
+
+        // First-pass highlight from rendered tiles. We retry once after a
+        // short delay because the buildings tile sometimes finishes
+        // rendering a tick after `idle` fires.
+        let target = highlightTargetAt(result.lng, result.lat);
+        if (!target) {
+            await waitMs(250);
+            if (seq !== pickSeq) return;
+            target = highlightTargetAt(result.lng, result.lat);
+        }
+
+        // Resolve EGRID and kick off the sidebar in parallel with the
+        // map highlight — sidebar fetch is the slowest leg.
+        try {
+            const { egrid } = await resolveEgridFromLngLat(
+                { lng: result.lng, lat: result.lat },
+                target ? { properties: { parcel_id: target.id } } : null,
+            );
+            if (seq !== pickSeq) return;
             if (egrid) {
-                comparison.show(egrid);
+                document.body.classList.add('cmp-shifted');
+                sidebar.show(egrid);
             }
         } catch (err) {
-            console.warn('EGRID resolve failed:', err);
+            console.warn('comparison flow failed:', err?.message);
         }
     }
 
-    function clearSelection() {
-        if (currentTargetParcelId !== null) {
-            map.setFeatureState(
-                { source: PARCEL_SOURCE, sourceLayer: PARCEL_SOURCE_LAYER, id: currentTargetParcelId },
-                { target: false },
-            );
-            currentTargetParcelId = null;
-        }
-        if (currentTargetBuildingId !== null) {
-            map.setFeatureState(
-                { source: BUILDING_SOURCE, sourceLayer: BUILDING_SOURCE_LAYER, id: currentTargetBuildingId },
-                { target: false },
-            );
-            currentTargetBuildingId = null;
-        }
-        for (const id of currentComparableIds) {
-            map.setFeatureState(
-                { source: PARCEL_SOURCE, sourceLayer: PARCEL_SOURCE_LAYER, id },
-                { comparable: false },
-            );
-        }
-        currentComparableIds = [];
-        map.setPaintProperty(BUILDING_LAYER, 'fill-extrusion-opacity', BUILDING_OPACITY_DEFAULT);
+    function flyToWaitForIdle(result) {
+        return new Promise((resolve) => {
+            if (!map) return resolve();
+            map.flyTo({
+                center: [result.lng, result.lat],
+                zoom: Math.max(16.5, map.getZoom()),
+                pitch: 50,
+                bearing: -25,
+                speed: 1.4,
+                essential: true,
+            });
+            const onIdle = () => {
+                map.off('idle', onIdle);
+                resolve();
+            };
+            map.on('idle', onIdle);
+            // Safety net: don't hang forever if the tile server stalls.
+            setTimeout(() => {
+                map.off('idle', onIdle);
+                resolve();
+            }, 4500);
+        });
     }
 
-    // Escape closes the sidebar.
-    window.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape' && (currentTargetParcelId !== null || currentTargetBuildingId !== null)) {
-            comparison.hide();
-            clearSelection();
-            document.body.classList.remove('cmp-shifted');
-            resolveSeq++;
+    function waitMs(ms) {
+        return new Promise((r) => setTimeout(r, ms));
+    }
+
+    function syncDeepLink(result) {
+        try {
+            const url = new URL(window.location.href);
+            url.searchParams.set('lat', String(result.lat));
+            url.searchParams.set('lng', String(result.lng));
+            if (result.label) url.searchParams.set('label', result.label);
+            else url.searchParams.delete('label');
+            window.history.replaceState({}, '', url.toString());
+        } catch { /* no-op */ }
+    }
+
+    if (input && list) {
+        bindLandingSearch({ input, list, onPick: handlePick });
+        setTimeout(() => input.focus(), 80);
+    }
+
+    // Deep-link bootstrap: ?lat=&lng= skips the landing view and renders
+    // the comparison immediately. Useful for sharing and headless tests.
+    try {
+        const params = new URLSearchParams(window.location.search);
+        const rawLat = params.get('lat');
+        const rawLng = params.get('lng');
+        if (rawLat != null && rawLng != null) {
+            const lat = Number(rawLat);
+            const lng = Number(rawLng);
+            if (Number.isFinite(lat) && Number.isFinite(lng)) {
+                const label = params.get('label') || formatLatLng(lat, lng);
+                handlePick({ lat, lng, label });
+            }
         }
-    });
+    } catch (_) { /* no-op */ }
+
+    if (window.lucide?.createIcons) window.lucide.createIcons();
 }
 
-// Minimal dark-mode toggle (the rest of hood's themeToggle module isn't
-// pulled in because it depended on Cesium scene properties). Mirrors the
-// pre-paint bootstrap in index.html — same storage key, same possible
-// values — so a reload after toggling keeps the choice.
+function formatLatLng(lat, lng) {
+    return `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+}
+
+// Minimal dark-mode toggle — mirrors the pre-paint bootstrap in index.html.
 function setupThemeToggle() {
     const btn = document.getElementById('themeToggleButton');
     if (!btn) return;

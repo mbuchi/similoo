@@ -4,13 +4,13 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title data-i18n="meta.title">similoo - Comparable Buildings Explorer</title>
-    <meta name="description" content="Find buildings comparable to your parcel — same zoning, recent construction — visualised across Switzerland." data-i18n-attr="content:meta.description" />
+    <meta name="description" content="Type a Swiss address; similoo shows the building as an LOD 2.5 cube and ranks comparable buildings in the same zone — with a 3D LAS popup for detailed inspection." data-i18n-attr="content:meta.description" />
 
     <!-- Open Graph / Facebook / LinkedIn -->
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="similoo" />
     <meta property="og:title" content="similoo — comparable buildings explorer" data-i18n-attr="content:meta.og_title" />
-    <meta property="og:description" content="Find buildings comparable to your parcel — same zoning, recent construction — visualised across Switzerland." data-i18n-attr="content:meta.og_description" />
+    <meta property="og:description" content="Type a Swiss address; similoo shows the building as an LOD 2.5 cube and ranks comparable buildings in the same zone." data-i18n-attr="content:meta.og_description" />
     <meta property="og:url" content="https://similoo.vercel.app/" />
     <meta property="og:image" content="https://similoo.vercel.app/og-image.png" />
     <meta property="og:image:secure_url" content="https://similoo.vercel.app/og-image.png" />
@@ -78,9 +78,11 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Varela+Round&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
     <link rel="stylesheet" href="/src/css/styles.css">
+    <link rel="stylesheet" href="/src/css/landing.css">
     <link rel="stylesheet" href="/src/css/sidebar.css">
     <link rel="stylesheet" href="/src/css/comparison.css">
     <link rel="stylesheet" href="/src/css/map.css">
+    <link rel="stylesheet" href="/src/css/buildingDetailModal.css">
 </head>
 <body>
 <div class="navbar">
@@ -91,16 +93,6 @@
         </a>
         <span class="logo-subtitle" data-i18n="nav.logo_subtitle">Comparable Buildings</span>
       </div>
-      <form class="navbar-search" id="addressSearchForm" role="search">
-        <svg class="navbar-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <circle cx="11" cy="11" r="8"></circle>
-            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-        </svg>
-        <input type="search" id="addressSearchInput" class="navbar-search-input"
-               placeholder="Search a Swiss address…" autocomplete="off"
-               aria-label="Search address"
-               data-i18n-attr="placeholder:nav.search_placeholder,aria-label:nav.search_aria" />
-      </form>
       <div class="navbar-actions">
         <button id="themeToggleButton" class="theme-toggle-button" title="Toggle dark mode" aria-label="Toggle dark mode" aria-pressed="false">
             <svg class="theme-toggle-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -123,8 +115,37 @@
     </div>
 </div>
 
-<div id="addressHeader" class="address-header" style="display: none;"></div>
-<div id="mapContainer"></div>
+<!-- Landing: address search (shown first; hidden once an address is picked) -->
+<section id="landingView" class="landing-view">
+    <div class="landing-card">
+        <h1 class="landing-title" data-i18n="landing.title">Type a Swiss address.</h1>
+        <p class="landing-subtitle" data-i18n="landing.subtitle">similoo finds buildings comparable to the one at this address — same zone, recent construction — and shows them as LOD 2.5 cubes on the map plus a detailed 3D inspection on demand.</p>
+        <form class="landing-search" id="landingSearchForm" role="search" autocomplete="off">
+            <input type="search" id="landingSearchInput" class="landing-search-input"
+                   placeholder="e.g. Bahnhofstrasse 10, Zürich"
+                   aria-label="Search address"
+                   data-i18n-attr="placeholder:landing.search_placeholder,aria-label:landing.search_aria" />
+            <ul class="landing-results" id="landingResults" role="listbox" hidden></ul>
+            <p class="landing-hint" data-i18n="landing.hint">Pick a result to load the comparison.</p>
+        </form>
+    </div>
+</section>
+
+<!-- Comparison surface: split-screen map + sidebar (shown after address pick) -->
+<section id="comparisonView" class="comparison-view" hidden>
+    <div id="comparisonHeader" class="comparison-header">
+        <button id="backToSearch" class="comparison-back" type="button" aria-label="Back to search">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <line x1="19" y1="12" x2="5" y2="12"></line>
+                <polyline points="12 19 5 12 12 5"></polyline>
+            </svg>
+            <span data-i18n="comparison.back">Search again</span>
+        </button>
+        <div class="comparison-address" id="comparisonAddress"></div>
+    </div>
+    <div id="mapContainer" class="comparison-map"></div>
+</section>
+
 <script type="module" src="/src/js/main.js"></script>
 </body>
 </html>

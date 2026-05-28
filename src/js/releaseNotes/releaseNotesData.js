@@ -41,6 +41,52 @@ export const KIND_META = {
 
 export const RELEASES = [
     {
+        version: '0.4.0',
+        date: 'May 28, 2026',
+        codename: 'Address First',
+        summary:
+            'Full UX rewrite around the address-first comparable-buildings flow. The app now opens on a minimal centred address search (no map clicking — that produced too many false signals). Pick a result and the working surface appears: MapLibre LOD 2.5 cubes on the left (target building painted red, comparable buildings as pink mini-cube markers across Switzerland) and the comparison sidebar on the right with target metrics, filters, and a sortable card list. The base raster and parcel polygons are gone — only the building cubes remain, so the visual reads as a model rather than a map. Clicking a comparable card (or its cube marker on the map) opens a Three.js LAS popup that renders a 100 m slice around the building with a toggle between the raw coloured point cloud (LAS classification colours) and a solid-mesh representation (Roofer building model on a grey terrain extracted from the ground class).',
+        highlight: true,
+        items: [
+            {
+                kind: 'new',
+                icon: 'search',
+                text: 'Address-first landing screen replaces map-click as the only entry point — single centred input with Mapbox-backed autocomplete, restricted to Switzerland. The map is hidden until an address is picked.',
+                prs: [],
+            },
+            {
+                kind: 'new',
+                icon: 'boxes',
+                text: 'LOD 2.5 mode for the main map: the Carto Positron raster basemap and parcel polygon layer are removed; only the building extrusions remain. Target building paints red, comparables paint as pink mini-cube DOM markers anchored to each comparable\'s lat/lng so they stay visible at any zoom across Switzerland.',
+                prs: [],
+            },
+            {
+                kind: 'new',
+                icon: 'box',
+                text: 'Three.js LAS popup: clicking a comparable card or its on-map cube opens a modal that renders a 100 m LAS slice around the building. Toggle between Point cloud (raw coloured LiDAR) and Solid model (Roofer building mesh on a derived grey terrain) from the modal chrome. Powered by the Contoor 3D API behind a new `/api/three3d` Vercel proxy.',
+                prs: [],
+            },
+            {
+                kind: 'improved',
+                icon: 'eye-off',
+                text: 'Map click handlers (parcel/building selection) removed — selecting only via address search keeps the signal-collect feed clean of accidental clicks.',
+                prs: [],
+            },
+            {
+                kind: 'improved',
+                icon: 'arrow-left',
+                text: 'New "Search again" pill in the comparison header restores the landing screen and clears highlights without losing browser history.',
+                prs: [],
+            },
+            {
+                kind: 'improved',
+                icon: 'link',
+                text: 'Deep link via `?lat=&lng=` (+ optional `&label=`) skips the landing view and restores the comparison surface for the given coordinates — useful for sharing and headless tests.',
+                prs: [],
+            },
+        ],
+    },
+    {
         version: '0.3.0',
         date: 'May 27, 2026',
         codename: 'Inter Polish',
