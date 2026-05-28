@@ -23,7 +23,7 @@ const DEBOUNCE_MS = 250;
 
 const SORT_KEYS = ['similarity', 'ratioV', 'size', 'year'];
 
-export function createComparisonSidebar({ map, onClose, onFlyTo } = {}) {
+export function createComparisonSidebar({ map, onClose, onFlyTo, onSelectComparable, onHoverComparable, onUnhoverComparable, onDataLoaded } = {}) {
     let aside = buildShell();
     document.body.appendChild(aside);
 
@@ -115,6 +115,7 @@ export function createComparisonSidebar({ map, onClose, onFlyTo } = {}) {
             renderList();
             renderMeta();
             setStatus(data?.comparables?.length ? 'ready' : 'empty');
+            if (typeof onDataLoaded === 'function') onDataLoaded(data);
         } catch (err) {
             if (seq !== fetchSeq) return;
             console.error('similoo fetch failed:', err);
@@ -239,19 +240,42 @@ export function createComparisonSidebar({ map, onClose, onFlyTo } = {}) {
             const idx = Number(card.dataset.idx);
             const comparable = sortedView()[idx];
             if (!comparable) return;
+            // Click opens the building-detail popup. Fly-to is reserved
+            // for explicit "show on map" affordances; otherwise the
+            // primary action on a card is "inspect this building in 3D".
             card.addEventListener('click', () => {
-                flyToComparable(comparable);
+                if (typeof onSelectComparable === 'function') {
+                    onSelectComparable(comparable);
+                } else {
+                    flyToComparable(comparable);
+                }
             });
             card.addEventListener('keydown', (e) => {
                 if (e.key === 'Enter' || e.key === ' ') {
                     e.preventDefault();
-                    flyToComparable(comparable);
+                    if (typeof onSelectComparable === 'function') {
+                        onSelectComparable(comparable);
+                    } else {
+                        flyToComparable(comparable);
+                    }
                 }
             });
-            card.addEventListener('mouseenter', () => highlightComparable(comparable));
-            card.addEventListener('mouseleave', () => clearHighlight());
-            card.addEventListener('focus', () => highlightComparable(comparable));
-            card.addEventListener('blur', () => clearHighlight());
+            card.addEventListener('mouseenter', () => {
+                highlightComparable(comparable);
+                onHoverComparable?.(comparable);
+            });
+            card.addEventListener('mouseleave', () => {
+                clearHighlight();
+                onUnhoverComparable?.(comparable);
+            });
+            card.addEventListener('focus', () => {
+                highlightComparable(comparable);
+                onHoverComparable?.(comparable);
+            });
+            card.addEventListener('blur', () => {
+                clearHighlight();
+                onUnhoverComparable?.(comparable);
+            });
         });
     }
 
@@ -389,7 +413,11 @@ export function createComparisonSidebar({ map, onClose, onFlyTo } = {}) {
         aside = null;
     }
 
-    return { show, hide, destroy };
+    function getCurrentData() {
+        return currentData;
+    }
+
+    return { show, hide, destroy, getCurrentData };
 }
 
 // ---------- DOM shell -----------------------------------------------------

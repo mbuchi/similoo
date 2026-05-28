@@ -352,6 +352,23 @@ const translations = {
     'camera.heading': 'Heading',
     'camera.pitch': 'Pitch',
     'camera.roll': 'Roll',
+
+    // ---------- landing (address-first entry screen) ----------
+    'landing.title': 'Type a Swiss address.',
+    'landing.subtitle': 'similoo finds buildings comparable to the one at this address — same zone, recent construction — and shows them as LOD 2.5 cubes on the map plus a detailed 3D inspection on demand.',
+    'landing.search_placeholder': 'e.g. Bahnhofstrasse 10, Zürich',
+    'landing.search_aria': 'Search address',
+    'landing.hint': 'Pick a result to load the comparison.',
+
+    // ---------- comparison surface ----------
+    'comparison.back': 'Search again',
+
+    // ---------- building detail popup ----------
+    'detail.close': 'Close 3D detail',
+    'detail.mode_pointcloud': 'Point cloud',
+    'detail.mode_solid': 'Solid model',
+    'detail.loading': 'Loading 3D scene…',
+    'detail.error': 'Could not load 3D scene.',
   },
 
   fr: {
@@ -669,6 +686,20 @@ const translations = {
     'camera.heading': 'Cap',
     'camera.pitch': 'Inclinaison',
     'camera.roll': 'Roulis',
+
+    'landing.title': 'Saisissez une adresse suisse.',
+    'landing.subtitle': 'similoo trouve des bâtiments comparables à celui de cette adresse — même zone, construction récente — et les affiche en cubes LOD 2.5 sur la carte, avec une inspection 3D détaillée à la demande.',
+    'landing.search_placeholder': 'p. ex. Rue du Mont-Blanc 10, Genève',
+    'landing.search_aria': 'Rechercher une adresse',
+    'landing.hint': 'Choisissez un résultat pour charger la comparaison.',
+
+    'comparison.back': 'Nouvelle recherche',
+
+    'detail.close': 'Fermer la vue 3D détaillée',
+    'detail.mode_pointcloud': 'Nuage de points',
+    'detail.mode_solid': 'Modèle solide',
+    'detail.loading': 'Chargement de la scène 3D…',
+    'detail.error': 'Impossible de charger la scène 3D.',
   },
 
   de: {
@@ -986,6 +1017,20 @@ const translations = {
     'camera.heading': 'Kurs',
     'camera.pitch': 'Neigung',
     'camera.roll': 'Rollwinkel',
+
+    'landing.title': 'Geben Sie eine Schweizer Adresse ein.',
+    'landing.subtitle': 'similoo findet Gebäude, die mit dem an dieser Adresse vergleichbar sind — gleiche Zone, kürzlich gebaut — und zeigt sie als LOD-2.5-Würfel auf der Karte plus eine detaillierte 3D-Ansicht auf Wunsch.',
+    'landing.search_placeholder': 'z. B. Bahnhofstrasse 10, Zürich',
+    'landing.search_aria': 'Adresse suchen',
+    'landing.hint': 'Wählen Sie ein Ergebnis, um den Vergleich zu laden.',
+
+    'comparison.back': 'Neue Suche',
+
+    'detail.close': '3D-Detailansicht schliessen',
+    'detail.mode_pointcloud': 'Punktwolke',
+    'detail.mode_solid': 'Festkörpermodell',
+    'detail.loading': '3D-Szene wird geladen…',
+    'detail.error': '3D-Szene konnte nicht geladen werden.',
   },
 
   it: {
@@ -1302,6 +1347,20 @@ const translations = {
     'camera.heading': 'Direzione',
     'camera.pitch': 'Inclinazione',
     'camera.roll': 'Rollio',
+
+    'landing.title': 'Digita un indirizzo svizzero.',
+    'landing.subtitle': 'similoo trova edifici comparabili a quello di questo indirizzo — stessa zona, costruzione recente — e li mostra come cubi LOD 2.5 sulla mappa più un\'ispezione 3D dettagliata su richiesta.',
+    'landing.search_placeholder': 'es. Via Nassa 10, Lugano',
+    'landing.search_aria': 'Cerca indirizzo',
+    'landing.hint': 'Seleziona un risultato per caricare il confronto.',
+
+    'comparison.back': 'Nuova ricerca',
+
+    'detail.close': 'Chiudi vista 3D dettagliata',
+    'detail.mode_pointcloud': 'Nuvola di punti',
+    'detail.mode_solid': 'Modello solido',
+    'detail.loading': 'Caricamento scena 3D…',
+    'detail.error': 'Impossibile caricare la scena 3D.',
   },
 };
 
