@@ -5,6 +5,8 @@ import {
     BUILDING_SOURCE,
     BUILDING_SOURCE_LAYER,
     BUILDING_LAYER,
+    PARCEL_FILL_LAYER,
+    applyZoneHighlight,
 } from './viewer/viewerConfig.js';
 import { applyTranslations, bindLocaleSelect, t } from './i18n.js';
 import { createComparisonSidebar } from './comparison/sidebar.js';
@@ -37,6 +39,7 @@ function boot() {
     let markers = null;
     let detailModal = null;
     let currentTargetBuildingId = null;
+    let currentTargetParcelId = null;
     let pickSeq = 0;
 
     async function ensureMap() {
@@ -82,6 +85,7 @@ function boot() {
             map,
             onClose: () => {
                 clearTargetHighlight();
+                clearZoneHighlight();
                 markers?.clear();
                 document.body.classList.remove('cmp-shifted');
             },
@@ -100,8 +104,16 @@ function boot() {
                 });
             },
             onDataLoaded: (data) => {
-                if (!markers) return;
-                markers.setComparables(data?.comparables || []);
+                // Comparable mini-cubes on the map.
+                markers?.setComparables(data?.comparables || []);
+                // Paint the parcel layer by zoning. `cz_local` comes from
+                // the /score/similoo response; `currentTargetParcelId` was
+                // picked up from the parcel vector tile at handlePick time.
+                const czLocal = data?.target?.cz_local || null;
+                applyZoneHighlight(map, {
+                    targetParcelId: currentTargetParcelId,
+                    czLocal,
+                });
             },
         });
         return sidebar;
@@ -132,6 +144,7 @@ function boot() {
         comparisonView.hidden = true;
         landingView.hidden = false;
         clearTargetHighlight();
+        clearZoneHighlight();
         markers?.clear();
         if (sidebar) {
             sidebar.hide();
@@ -191,6 +204,28 @@ function boot() {
         currentTargetBuildingId = null;
     }
 
+    // Pull the parcel feature under (lng,lat) from the parcel vector tile.
+    // Used to know which parcel_id should be painted red in the zone view;
+    // also doubles as the resolved parcel for the EGRID lookup fallback.
+    function pickParcelAt(lng, lat) {
+        if (!map || !map.getLayer(PARCEL_FILL_LAYER)) return null;
+        const point = map.project([lng, lat]);
+        const hits = map.queryRenderedFeatures(
+            [
+                [point.x - 4, point.y - 4],
+                [point.x + 4, point.y + 4],
+            ],
+            { layers: [PARCEL_FILL_LAYER] },
+        );
+        if (!hits.length) return null;
+        return hits[0];
+    }
+
+    function clearZoneHighlight() {
+        currentTargetParcelId = null;
+        applyZoneHighlight(map, { targetParcelId: null, czLocal: null });
+    }
+
     async function handlePick(result) {
         if (!result || !Number.isFinite(result.lat) || !Number.isFinite(result.lng)) return;
         const seq = ++pickSeq;
@@ -213,12 +248,18 @@ function boot() {
             target = highlightTargetAt(result.lng, result.lat);
         }
 
+        // Capture the parcel under the click so the zone-highlight layer can
+        // paint that parcel red once the /score/similoo response arrives.
+        // `parcel_id` is promoted to feature.id by the parcels source.
+        const parcelFeature = pickParcelAt(result.lng, result.lat);
+        currentTargetParcelId = parcelFeature?.id ?? null;
+
         // Resolve EGRID and kick off the sidebar in parallel with the
         // map highlight — sidebar fetch is the slowest leg.
         try {
             const { egrid } = await resolveEgridFromLngLat(
                 { lng: result.lng, lat: result.lat },
-                target ? { properties: { parcel_id: target.id } } : null,
+                parcelFeature ?? (target ? { properties: { parcel_id: target.id } } : null),
             );
             if (seq !== pickSeq) return;
             if (egrid) {
