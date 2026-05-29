@@ -111,27 +111,32 @@ export async function initializeViewer(containerId) {
 export function applyZoneHighlight(map, { targetParcelId = null, czLocal = null } = {}) {
     if (!map || !map.getLayer(PARCEL_FILL_LAYER)) return;
 
-    if (!czLocal) {
+    const hasTarget = targetParcelId != null;
+    const hasZone = !!czLocal;
+
+    // Nothing to show — reset to the invisible resting state.
+    if (!hasTarget && !hasZone) {
         map.setPaintProperty(PARCEL_FILL_LAYER, 'fill-color', PARCEL_OTHER_COLOR);
         map.setPaintProperty(PARCEL_FILL_LAYER, 'fill-opacity', 0);
         return;
     }
 
-    const selectedExpr = targetParcelId != null
-        ? ['==', ['id'], targetParcelId]
-        : ['boolean', false];
+    const selectedExpr = hasTarget ? ['==', ['id'], targetParcelId] : ['boolean', false];
+    const sameZoneExpr = hasZone ? ['==', ['get', 'cz_local'], czLocal] : ['boolean', false];
 
     map.setPaintProperty(PARCEL_FILL_LAYER, 'fill-color', [
         'case',
         selectedExpr, PARCEL_SELECTED_COLOR,
-        ['==', ['get', 'cz_local'], czLocal], PARCEL_SAME_ZONE_COLOR,
+        sameZoneExpr, PARCEL_SAME_ZONE_COLOR,
         PARCEL_OTHER_COLOR,
     ]);
     map.setPaintProperty(PARCEL_FILL_LAYER, 'fill-opacity', [
         'case',
         selectedExpr, PARCEL_SELECTED_OPACITY,
-        ['==', ['get', 'cz_local'], czLocal], PARCEL_SAME_ZONE_OPACITY,
-        PARCEL_OTHER_OPACITY,
+        sameZoneExpr, PARCEL_SAME_ZONE_OPACITY,
+        // When the zone is known we wash everything else faintly so the
+        // mosaic still reads; when only the target is known, hide the rest.
+        hasZone ? PARCEL_OTHER_OPACITY : 0,
     ]);
 }
 

@@ -10,7 +10,7 @@ import {
 } from './viewer/viewerConfig.js';
 import { applyTranslations, bindLocaleSelect, t } from './i18n.js';
 import { createComparisonSidebar } from './comparison/sidebar.js';
-import { resolveEgridFromLngLat } from './comparison/parcelLookup.js';
+import { resolveEgridFromLngLat, normaliseEgrid } from './comparison/parcelLookup.js';
 import { bindLandingSearch } from './landing/addressSearch.js';
 import { createComparableMarkers } from './viewer/comparableMarkers.js';
 import { createBuildingDetailModal } from './detail/buildingDetailModal.js';
@@ -40,6 +40,7 @@ function boot() {
     let detailModal = null;
     let currentTargetBuildingId = null;
     let currentTargetParcelId = null;
+    let currentTargetCzLocal = null;
     let pickSeq = 0;
 
     async function ensureMap() {
@@ -106,10 +107,16 @@ function boot() {
             onDataLoaded: (data) => {
                 // Comparable mini-cubes on the map.
                 markers?.setComparables(data?.comparables || []);
-                // Paint the parcel layer by zoning. `cz_local` comes from
-                // the /score/similoo response; `currentTargetParcelId` was
-                // picked up from the parcel vector tile at handlePick time.
-                const czLocal = data?.target?.cz_local || null;
+                // Re-affirm the parcel paint once the sidebar data lands. The
+                // highlight was already applied instantly from the tile at
+                // pick time (see handlePick); the tile's own `cz_local` stays
+                // authoritative so the green set never shifts when the slower
+                // /score/similoo response arrives. We only fall back to the
+                // backend's `cz_local` when the tile pick missed the parcel.
+                const czLocal = currentTargetCzLocal || data?.target?.cz_local || null;
+                if (czLocal && czLocal !== currentTargetCzLocal) {
+                    currentTargetCzLocal = czLocal;
+                }
                 applyZoneHighlight(map, {
                     targetParcelId: currentTargetParcelId,
                     czLocal,
@@ -171,20 +178,32 @@ function boot() {
     // feature with the largest area among the hits (most reliable when
     // the click point straddles two adjacent buildings).
     function highlightTargetAt(lng, lat) {
-        if (!map) return null;
+        if (!map || !map.getLayer(BUILDING_LAYER)) return null;
         const point = map.project([lng, lat]);
-        // Probe a small box so we still hit the building even if the
-        // projected pixel falls on an edge.
-        const hits = map.queryRenderedFeatures(
+        // Tight probe first — the searched address normally lands right on its
+        // building footprint.
+        let hits = map.queryRenderedFeatures(
             [
-                [point.x - 4, point.y - 4],
-                [point.x + 4, point.y + 4],
+                [point.x - 8, point.y - 8],
+                [point.x + 8, point.y + 8],
             ],
             { layers: [BUILDING_LAYER] },
         );
-        if (!hits.length) return null;
-        const target = hits[0];
-        if (target.id == null) return null;
+        // Fallback: the geocoded point can land just off the footprint (a
+        // street entrance, or the parcel centroid for a large parcel). Widen
+        // the search and take the building whose footprint centroid is nearest
+        // the point, so we still light up the right building rather than none.
+        if (!hits.length) {
+            hits = map.queryRenderedFeatures(
+                [
+                    [point.x - 32, point.y - 32],
+                    [point.x + 32, point.y + 32],
+                ],
+                { layers: [BUILDING_LAYER] },
+            );
+        }
+        const target = nearestBuilding(hits, point);
+        if (!target || target.id == null) return null;
         clearTargetHighlight();
         currentTargetBuildingId = target.id;
         map.setFeatureState(
@@ -193,6 +212,50 @@ function boot() {
         );
         document.body.classList.add('cmp-shifted');
         return target;
+    }
+
+    // Pick the building footprint whose centroid projects closest to `point`.
+    // Falls back to the first id-bearing hit when geometry is unavailable.
+    function nearestBuilding(hits, point) {
+        if (!hits || !hits.length) return null;
+        let best = null;
+        let bestD = Infinity;
+        for (const f of hits) {
+            if (f.id == null) continue;
+            const centroid = footprintCentroid(f.geometry);
+            if (!centroid) {
+                if (!best) best = f;
+                continue;
+            }
+            const p = map.project(centroid);
+            const d = (p.x - point.x) ** 2 + (p.y - point.y) ** 2;
+            if (d < bestD) {
+                bestD = d;
+                best = f;
+            }
+        }
+        return best;
+    }
+
+    function footprintCentroid(geom) {
+        if (!geom) return null;
+        const ring = geom.type === 'Polygon'
+            ? geom.coordinates?.[0]
+            : geom.type === 'MultiPolygon'
+                ? geom.coordinates?.[0]?.[0]
+                : null;
+        if (!Array.isArray(ring) || !ring.length) return null;
+        let x = 0;
+        let y = 0;
+        let n = 0;
+        for (const pt of ring) {
+            if (Array.isArray(pt) && pt.length >= 2) {
+                x += pt[0];
+                y += pt[1];
+                n++;
+            }
+        }
+        return n ? [x / n, y / n] : null;
     }
 
     function clearTargetHighlight() {
@@ -223,6 +286,7 @@ function boot() {
 
     function clearZoneHighlight() {
         currentTargetParcelId = null;
+        currentTargetCzLocal = null;
         applyZoneHighlight(map, { targetParcelId: null, czLocal: null });
     }
 
@@ -232,67 +296,83 @@ function boot() {
 
         await showComparison(result.label || formatLatLng(result.lat, result.lng));
         syncDeepLink(result);
+        document.body.classList.add('cmp-shifted');
 
-        // Fly first so the building tile renders for the queryRenderedFeatures
-        // probe below. We need ~zoom 16+ for the buildings vector tile.
-        await flyToWaitForIdle(result);
-        if (seq !== pickSeq) return;
-
-        // First-pass highlight from rendered tiles. We retry once after a
-        // short delay because the buildings tile sometimes finishes
-        // rendering a tick after `idle` fires.
-        let target = highlightTargetAt(result.lng, result.lat);
-        if (!target) {
-            await waitMs(250);
-            if (seq !== pickSeq) return;
-            target = highlightTargetAt(result.lng, result.lat);
-        }
-
-        // Capture the parcel under the click so the zone-highlight layer can
-        // paint that parcel red once the /score/similoo response arrives.
-        // `parcel_id` is promoted to feature.id by the parcels source.
-        const parcelFeature = pickParcelAt(result.lng, result.lat);
-        currentTargetParcelId = parcelFeature?.id ?? null;
-
-        // Resolve EGRID and kick off the sidebar in parallel with the
-        // map highlight — sidebar fetch is the slowest leg.
-        try {
-            const { egrid } = await resolveEgridFromLngLat(
-                { lng: result.lng, lat: result.lat },
-                parcelFeature ?? (target ? { properties: { parcel_id: target.id } } : null),
-            );
-            if (seq !== pickSeq) return;
-            if (egrid) {
-                document.body.classList.add('cmp-shifted');
-                sidebar.show(egrid);
-            }
-        } catch (err) {
-            console.warn('comparison flow failed:', err?.message);
-        }
-    }
-
-    function flyToWaitForIdle(result) {
-        return new Promise((resolve) => {
-            if (!map) return resolve();
-            map.flyTo({
+        // Switch the view *instantly* — jumpTo, not flyTo. The searched
+        // address snaps into place on the next frame with zero fly animation.
+        if (map) {
+            map.jumpTo({
                 center: [result.lng, result.lat],
                 zoom: Math.max(16.5, map.getZoom()),
                 pitch: 50,
                 bearing: -25,
-                speed: 1.4,
-                essential: true,
             });
-            const onIdle = () => {
-                map.off('idle', onIdle);
-                resolve();
-            };
-            map.on('idle', onIdle);
-            // Safety net: don't hang forever if the tile server stalls.
-            setTimeout(() => {
-                map.off('idle', onIdle);
-                resolve();
-            }, 4500);
+        }
+
+        // Pull the parcel under the searched point from the rendered tile. The
+        // parcel tile carries everything the highlight needs — `cz_local` (the
+        // zone) and `parcel_id` (promoted to feature.id, itself the CH-format
+        // EGRID) — so we can highlight with no backend round-trip. We *poll*
+        // queryRenderedFeatures rather than waiting for `idle`: the highlight
+        // then appears the instant the tile under the point loads (faster than
+        // waiting for the whole viewport to settle, and reliable on a cold
+        // cache where `idle` can lag the actual feature availability).
+        const parcelFeature = await retryUntil(
+            () => pickParcelAt(result.lng, result.lat),
+            () => seq === pickSeq,
+        );
+        if (seq !== pickSeq) return;
+        currentTargetParcelId = parcelFeature?.id ?? null;
+        currentTargetCzLocal = parcelFeature?.properties?.cz_local || null;
+
+        // Instant highlight straight off the tile: the searched parcel goes
+        // red, every parcel sharing its `cz_local` (similar building type)
+        // goes green. No waiting on /score/similoo.
+        applyZoneHighlight(map, {
+            targetParcelId: currentTargetParcelId,
+            czLocal: currentTargetCzLocal,
         });
+
+        // Highlight the searched address's 3D building (red extrusion), polling
+        // the building tile the same way.
+        const target = await retryUntil(
+            () => highlightTargetAt(result.lng, result.lat),
+            () => seq === pickSeq,
+        );
+        if (seq !== pickSeq) return;
+
+        // Resolve the EGRID for the comparison sidebar. The tile's parcel_id
+        // is already the canonical CH-format EGRID, so prefer it directly —
+        // that skips the /api/parcel network leg entirely. Only fall back to
+        // the parcel_data lookup when the tile pick missed.
+        let egrid = normaliseEgrid(currentTargetParcelId);
+        if (!egrid) {
+            try {
+                const resolved = await resolveEgridFromLngLat(
+                    { lng: result.lng, lat: result.lat },
+                    parcelFeature ?? (target ? { properties: { parcel_id: target.id } } : null),
+                );
+                egrid = resolved?.egrid ?? null;
+            } catch (err) {
+                console.warn('egrid resolve failed:', err?.message);
+            }
+        }
+        if (seq !== pickSeq) return;
+        if (egrid) sidebar.show(egrid);
+    }
+
+    // Poll `fn` until it returns a truthy value or we exhaust the budget. Used
+    // to wait for vector-tile features under the searched point to render after
+    // an instant jumpTo. ~3 s budget covers a cold-cache tile fetch; in the
+    // common warm case the very first call already hits.
+    async function retryUntil(fn, stillCurrent, { tries = 15, gap = 200 } = {}) {
+        for (let i = 0; i < tries; i++) {
+            if (stillCurrent && !stillCurrent()) return null;
+            const r = fn();
+            if (r) return r;
+            await waitMs(gap);
+        }
+        return (!stillCurrent || stillCurrent()) ? fn() : null;
     }
 
     function waitMs(ms) {

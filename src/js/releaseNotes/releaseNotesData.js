@@ -41,6 +41,40 @@ export const KIND_META = {
 
 export const RELEASES = [
     {
+        version: '0.6.0',
+        date: 'May 29, 2026',
+        codename: 'Instant Match',
+        summary:
+            'Address search now snaps to the result instantly and lights up the comparison the moment the tiles arrive. Picking an address jumps the camera straight there — no fly animation, no waiting — and the highlight is driven directly off the parcel vector tile: the searched parcel goes red, its 3D building goes red, and every parcel sharing the same `cz_local` (the similar building type) goes green. The big fix underneath: the parcel API returns the canonical id under `parcel_id` (already a "CH…" EGRID) and has no `egrid` field, so the old lookup silently fell back to the seeded mock every time — which meant the zone never matched and nothing painted. similoo now reads `parcel_id`, talks to the live `/score/similoo` for the comparables list, and no longer blocks the map highlight on that network call at all.',
+        highlight: true,
+        items: [
+            {
+                kind: 'new',
+                icon: 'zap',
+                text: 'Address search switches the view instantly — `jumpTo` replaces the `flyTo` animation so the searched address snaps into place on the next frame with the lowest possible latency.',
+                prs: [],
+            },
+            {
+                kind: 'fixed',
+                icon: 'crosshair',
+                text: 'The searched parcel (red), its 3D building (red), and all same-zone parcels (green) now reliably highlight. The highlight reads `cz_local` + `parcel_id` straight off the parcel tile and applies the instant the tile under the point loads — it no longer waits on (or depends on) the `/score/similoo` response, so it works even before the comparables list arrives.',
+                prs: [],
+            },
+            {
+                kind: 'fixed',
+                icon: 'key',
+                text: 'EGRID resolution fixed: `/res_api/parcel_data` returns the id under `parcel_id` (a real "CH" + 12-char EGRID) with no `egrid` field, so the previous `props.egrid`-only read always returned null and the whole flow degraded to the EGRID-seeded mock. similoo now accepts `parcel_id`, so the comparison sidebar fetches live comparables and the target zone matches the map.',
+                prs: [],
+            },
+            {
+                kind: 'improved',
+                icon: 'building-2',
+                text: 'The 3D building highlight is more forgiving: when the geocoded point lands just off a footprint (a street entrance, or a big parcel\'s centroid) it widens the probe and lights up the nearest building rather than nothing.',
+                prs: [],
+            },
+        ],
+    },
+    {
         version: '0.5.0',
         date: 'May 29, 2026',
         codename: 'Zone in Context',
