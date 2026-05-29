@@ -54,10 +54,29 @@ function extractEgrid(payload) {
     const features = payload?.features || payload?.data?.features;
     if (Array.isArray(features) && features.length) {
         const props = features[0]?.properties || {};
-        return props.egrid || props.EGRID || null;
+        return (
+            normaliseEgrid(props.egrid)
+            || normaliseEgrid(props.EGRID)
+            || normaliseEgrid(props.parcel_id)
+            || null
+        );
     }
-    if (typeof payload === 'object' && payload.egrid) return payload.egrid;
+    if (typeof payload === 'object') {
+        return normaliseEgrid(payload.egrid) || normaliseEgrid(payload.parcel_id) || null;
+    }
     return null;
+}
+
+// RES parcel ids *are* EGRIDs ("CH" + 12 alphanumeric). The /res_api/parcel_data
+// response carries the canonical id under `parcel_id` and has **no** `egrid`
+// field at all — so the old `props.egrid`-only read always returned null and
+// the whole flow silently fell back to the synthetic-EGRID mock. Accept either
+// field, but only when it matches the real EGRID shape so a stray numeric id
+// can't poison the /score/similoo lookup.
+export function normaliseEgrid(raw) {
+    if (raw == null) return null;
+    const s = String(raw).trim().toUpperCase();
+    return /^CH[0-9A-Z]{12}$/.test(s) ? s : null;
 }
 
 function synthesisedEgrid(feature, ll) {
