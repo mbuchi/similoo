@@ -41,6 +41,34 @@ export const KIND_META = {
 
 export const RELEASES = [
     {
+        version: '0.5.0',
+        date: 'May 29, 2026',
+        codename: 'Zone in Context',
+        summary:
+            'The map gets its basemap back, and the comparison context is now visible at a glance. We restore the suite-standard satellite imagery (Esri World Imagery, same source the Cesium-based apps load by default) and paint the parcel layer by zoning straight off the vector tile: the searched parcel goes red, every other parcel sharing the target\'s `cz_local` goes green, and everything else fades to a near-transparent white wash so the imagery still reads. The earlier "model space" look intentionally dropped both — that revision left users wondering *why* a given building counted as comparable; surfacing the zone footprint answers that without an extra panel.',
+        highlight: true,
+        items: [
+            {
+                kind: 'new',
+                icon: 'map',
+                text: 'Satellite basemap restored — Esri World Imagery, matching project_RES and the other SwissNovo apps. The previous off-white "model space" background is gone.',
+                prs: [],
+            },
+            {
+                kind: 'new',
+                icon: 'palette',
+                text: 'Parcel layer painted by `cz_local`: red for the searched parcel, green for every other parcel in the same zone, white wash everywhere else. The expression reads `cz_local` directly off the parcel vector tile so zone neighbours are coloured consistently across the whole dataset, not just the viewport.',
+                prs: [],
+            },
+            {
+                kind: 'improved',
+                icon: 'square-stack',
+                text: 'Selected parcel id is captured from the parcel tile under the click (promoted `parcel_id`) so the EGRID fallback gets a real value when the network is reachable, while still feeding the LOD 2.5 target highlight on the building extrusion above.',
+                prs: [],
+            },
+        ],
+    },
+    {
         version: '0.4.0',
         date: 'May 28, 2026',
         codename: 'Address First',
