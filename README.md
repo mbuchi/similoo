@@ -39,6 +39,27 @@ npm run build         # static bundle in dist/
 
 Vercel autodeploys `main`. Production URL: `https://swissnovo-similoo.vercel.app`.
 
+> Domain note: the Vercel **project is named `similoo`**, so Vercel auto-assigns it
+> `similoo.vercel.app`. The suite-standard `swissnovo-similoo.vercel.app` (the URL the
+> toolbox launcher and this README use) is added as an **additional domain on the same
+> project**. Both serve the same production deployment. If `swissnovo-similoo.vercel.app`
+> ever 404s, that domain has been dropped from the project — re-add it in the project's
+> Domains settings (or `POST /v10/projects/similoo/domains`).
+
+### Required: post-publish smoke check
+
+A green build and a merged PR do **not** prove the app is reachable at the URL the suite
+links to — a missing `swissnovo-*` domain returns a 404 that no local `npm run build`
+catches. **Every publish must end with the live smoke check passing:**
+
+```bash
+npm run smoke   # hits https://swissnovo-similoo.vercel.app — exits non-zero if not online
+```
+
+It checks HTTP 200, that there's no Vercel login wall, that the expected HTML rendered,
+and that the hashed JS bundle loads. CI runs the same check on every push to `main`
+(`.github/workflows/smoke.yml`), so a bad publish turns the commit red automatically.
+
 ## Lineage
 
 Forked from `mbuchi/hood` @ commit `05f85e9`. Brand identifiers (`app_name`, `APP_SOURCE`, screenshot prefix, localStorage namespace) are switched to `similoo` so telemetry and per-user state stay isolated from hood.

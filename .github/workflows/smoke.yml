@@ -1,0 +1,34 @@
+name: Production smoke check
+
+# Why: Vercel reports a build as "success" even when the live app is unreachable
+# (deployment protection / 401 SSO wall, wrong alias / 404, broken bundle). This job
+# hits the real production URL after each push to main and turns the commit red if the
+# app is not actually online — so a bad publish can't pass silently.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Wait for Vercel deploy, then smoke-test production
+        run: |
+          for i in $(seq 1 12); do
+            echo "::group::smoke attempt $i"
+            if node scripts/smoke.mjs; then
+              echo "::endgroup::"
+              exit 0
+            fi
+            echo "::endgroup::"
+            echo "not ready yet, retrying in 25s (Vercel may still be deploying)…"
+            sleep 25
+          done
+          echo "Production smoke check still failing after ~5min — the app is not online."
+          exit 1
