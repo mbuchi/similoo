@@ -303,7 +303,9 @@ function boot() {
         if (map) {
             map.jumpTo({
                 center: [result.lng, result.lat],
-                zoom: Math.max(16.5, map.getZoom()),
+                // Suite convention: a deep-linked / searched address opens at
+                // street level (zoom >= 17) so the target building reads.
+                zoom: Math.max(17, map.getZoom()),
                 pitch: 50,
                 bearing: -25,
             });

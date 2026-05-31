@@ -60,7 +60,7 @@ const translations = {
     'common.open': 'Open',
 
     // ---------- meta ----------
-    'meta.title': 'similoo - Comparable Buildings Explorer',
+    'meta.title': 'similoo — Comparable Buildings Explorer',
     'meta.description':
       'Find buildings comparable to your parcel — same zoning, recent construction — visualised in 3D across Switzerland.',
     'meta.og_title': 'similoo — comparable buildings explorer',

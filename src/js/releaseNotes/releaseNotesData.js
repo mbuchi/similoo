@@ -41,6 +41,46 @@ export const KIND_META = {
 
 export const RELEASES = [
     {
+        version: '0.6.1',
+        date: 'May 31, 2026',
+        codename: 'Polish Pass',
+        summary:
+            'A low-risk UI/UX polish sweep: brand and accessibility consistency fixes with no behaviour or data-model changes. The page title now uses the suite-standard em-dash; the release-notes panel renders the similoo wordmark (it previously still showed the inherited hood mark); a searched/deep-linked address now opens at street level (zoom 17, the suite convention) so the target building reads cleanly; the comparison panel and the map controls stay perfectly aligned when the sidebar opens (the gutter and the MapLibre control shift now both match the panel\'s 400px width, and the mobile collapse breakpoint lines up at 640px); and the comparison sidebar\'s accessible label re-localises with the rest of the UI when you switch language.',
+        highlight: false,
+        items: [
+            {
+                kind: 'fixed',
+                icon: 'type',
+                text: 'Page <title> + meta.title now use the suite-standard em-dash ("similoo — Comparable Buildings Explorer"), matching the FR/DE/IT titles and the rest of the SwissNovo suite.',
+                prs: [],
+            },
+            {
+                kind: 'fixed',
+                icon: 'tag',
+                text: 'Release-notes panel header renders the similoo wordmark (lowercase, red "oo") instead of the inherited "hood" mark left over from the fork.',
+                prs: [],
+            },
+            {
+                kind: 'improved',
+                icon: 'zoom-in',
+                text: 'Searched and deep-linked addresses now jump to zoom 17 (was 16.5) so the target building is at street level on arrival — the suite-wide deep-link zoom convention.',
+                prs: [],
+            },
+            {
+                kind: 'fixed',
+                icon: 'layout',
+                text: 'Comparison panel alignment: the map gutter and the MapLibre top-right controls now both shift by the panel\'s real 400px width (the gutter was 380px), and the mobile full-width collapse breakpoint matches at 640px. Dead Cesium-era control-shift selectors were removed.',
+                prs: [],
+            },
+            {
+                kind: 'improved',
+                icon: 'languages',
+                text: 'The comparison sidebar\'s accessible region label (aria-label) now re-localises on language change alongside the rest of its chrome.',
+                prs: [],
+            },
+        ],
+    },
+    {
         version: '0.6.0',
         date: 'May 29, 2026',
         codename: 'Instant Match',
