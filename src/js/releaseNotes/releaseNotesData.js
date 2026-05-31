@@ -50,6 +50,12 @@ export const RELEASES = [
         items: [
             {
                 kind: 'fixed',
+                icon: 'trash-2',
+                text: 'Removed dead Netlify config — Vercel-only. similoo runs entirely on Vercel (vercel.json + the api/ serverless functions, including api/signal-collect.js), so netlify.toml and netlify/functions/signal-collect.js were deleted. Client telemetry already POSTs to /api/signal-collect, so nothing in the app changes.',
+                prs: [13],
+            },
+            {
+                kind: 'fixed',
                 icon: 'type',
                 text: 'Page <title> + meta.title now use the suite-standard em-dash ("similoo — Comparable Buildings Explorer"), matching the FR/DE/IT titles and the rest of the SwissNovo suite.',
                 prs: [],
