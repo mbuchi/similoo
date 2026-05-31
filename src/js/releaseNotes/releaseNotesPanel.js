@@ -181,7 +181,7 @@ function renderPanel() {
                 <button class="rn-close" aria-label="${escapeHtml(t('release_notes.close_label'))}"><i data-lucide="x"></i></button>
                 <div class="rn-header-top">
                     <div class="rn-header-info">
-                        <h1 class="rn-title">${escapeHtml(t('release_notes.title'))} <span class="rn-brand"><span class="rn-brand-first">h</span><span class="rn-brand-second">oo</span><span class="rn-brand-first">d</span></span></h1>
+                        <h1 class="rn-title">${escapeHtml(t('release_notes.title'))} <span class="rn-brand"><span class="rn-brand-first">simil</span><span class="rn-brand-second">oo</span></span></h1>
                         <p class="rn-subtitle">${escapeHtml(t('release_notes.subtitle', { version: 'v' + latest.version, codename: latest.codename, date: latest.date }))}</p>
                         <div class="rn-pills">
                             <span class="rn-pill rn-pill-live"><span class="rn-pill-dot"></span>v${escapeHtml(latest.version)} ${escapeHtml(t('release_notes.live'))}</span>

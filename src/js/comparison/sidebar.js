@@ -380,6 +380,7 @@ export function createComparisonSidebar({ map, onClose, onFlyTo, onSelectCompara
 
     function relabel() {
         // Re-render every translatable string when the locale flips.
+        aside.setAttribute('aria-label', t('comparison.title'));
         aside.querySelector('.cmp-eyebrow').textContent = t('comparison.eyebrow');
         aside.querySelector('.cmp-title').textContent = t('comparison.title');
         aside.querySelector('.cmp-close').setAttribute('aria-label', t('comparison.close'));

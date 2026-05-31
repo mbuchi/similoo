@@ -173,17 +173,28 @@
 }
 
 /* When the sidebar is open the map should make room on the right so
- * cubes/markers stay visible. The comparison sidebar is 380px by
- * default (see comparison.css); below 720px it goes full-width and
- * the gutter collapses. */
+ * cubes/markers stay visible. The comparison sidebar is 400px wide
+ * (see comparison.css .cmp); below 640px it goes full-width and the
+ * gutter collapses (matching the comparison.css mobile breakpoint). */
 body.cmp-shifted .comparison-map {
-    padding-right: 380px;
+    padding-right: 400px;
     transition: padding-right 200ms ease;
 }
 
-@media (max-width: 720px) {
+/* Slide MapLibre's top-right controls (nav / zoom / compass) out from
+ * under the comparison panel so they stay reachable while it's open —
+ * the suite convention for map controls when an info panel opens. */
+body.cmp-shifted #mapContainer .maplibregl-ctrl-top-right {
+    transform: translateX(-400px);
+    transition: transform 200ms ease;
+}
+
+@media (max-width: 640px) {
     body.cmp-shifted .comparison-map {
         padding-right: 0;
+    }
+    body.cmp-shifted #mapContainer .maplibregl-ctrl-top-right {
+        transform: translateX(0);
     }
 }
 

@@ -402,11 +402,12 @@
 .cmp-meta:empty { display: none; }
 
 /* ---------- right-side control shift ---------- */
-/* When the comparison sidebar is open, slide the same right-edge map
-   controls the .bip already moves out from under the panel. */
-body.cmp-shifted .basemap-selector,
-body.cmp-shifted .cesium-viewer-cesiumNavigationContainer,
-body.cmp-shifted .cesium-viewer-toolbar {
+/* The map's own controls (MapLibre top-right nav/zoom + the basemap
+   selector) are slid out from under this panel in map.css via the
+   `body.cmp-shifted` hook, so they stay reachable while the comparison
+   is open. The Cesium-era selectors that used to live here were dead
+   (this app is MapLibre, not Cesium) and have been removed. */
+body.cmp-shifted .basemap-selector {
     transform: translateX(-400px);
     transition: transform 200ms ease;
 }
@@ -417,9 +418,7 @@ body.cmp-shifted .cesium-viewer-toolbar {
         width: 100%;
         top: 60px;
     }
-    body.cmp-shifted .basemap-selector,
-    body.cmp-shifted .cesium-viewer-cesiumNavigationContainer,
-    body.cmp-shifted .cesium-viewer-toolbar {
+    body.cmp-shifted .basemap-selector {
         transform: translateX(0);
         opacity: 0;
         pointer-events: none;
