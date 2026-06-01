@@ -41,6 +41,10 @@ function boot() {
     let currentTargetBuildingId = null;
     let currentTargetParcelId = null;
     let currentTargetCzLocal = null;
+    let currentComparables = [];
+    // comparable parcel EGRID → resolved building feature id (also the
+    // "already painted" guard so we re-probe only the unresolved ones).
+    const comparableBuildingByEgrid = new Map();
     let pickSeq = 0;
 
     async function ensureMap() {
@@ -48,6 +52,10 @@ function boot() {
         try {
             map = await initializeViewer('mapContainer');
             window.__similooMap = map; // exposed for browser-driven tests
+            // Comparable footprints can only be coloured once their tile has
+            // rendered, so re-probe whenever the map settles — this lights up
+            // comparables the moment the user pans/flies one into view.
+            map.on('idle', refreshComparableBuildingHighlights);
         } catch (e) {
             console.error('Error initializing viewer:', e);
             throw e;
@@ -87,6 +95,7 @@ function boot() {
             onClose: () => {
                 clearTargetHighlight();
                 clearZoneHighlight();
+                clearComparableHighlights();
                 markers?.clear();
                 document.body.classList.remove('cmp-shifted');
             },
@@ -107,6 +116,9 @@ function boot() {
             onDataLoaded: (data) => {
                 // Comparable mini-cubes on the map.
                 markers?.setComparables(data?.comparables || []);
+                // Paint each comparable's 3D footprint pink (resolved lazily as
+                // tiles render — see refreshComparableBuildingHighlights).
+                setComparablesForHighlight(data?.comparables || []);
                 // Re-affirm the parcel paint once the sidebar data lands. The
                 // highlight was already applied instantly from the tile at
                 // pick time (see handlePick); the tile's own `cz_local` stays
@@ -152,6 +164,7 @@ function boot() {
         landingView.hidden = false;
         clearTargetHighlight();
         clearZoneHighlight();
+        clearComparableHighlights();
         markers?.clear();
         if (sidebar) {
             sidebar.hide();
@@ -172,12 +185,12 @@ function boot() {
 
     backBtn?.addEventListener('click', showLanding);
 
-    // Paints the building feature at (lat, lng) as the "target". MapLibre
-    // can only setFeatureState on features that have a stable id, so we
-    // queryRenderedFeatures at the lat/lng's projected point and use the
-    // feature with the largest area among the hits (most reliable when
-    // the click point straddles two adjacent buildings).
-    function highlightTargetAt(lng, lat) {
+    // Probe the building vector tile under (lng, lat) and return the rendered
+    // footprint feature whose centroid sits nearest the point. MapLibre can
+    // only resolve a feature id from a *rendered* tile, so this works for
+    // anything currently on screen (the searched address, or a comparable the
+    // user has panned/flown to). Returns null when no footprint renders there.
+    function buildingFeatureAt(lng, lat) {
         if (!map || !map.getLayer(BUILDING_LAYER)) return null;
         const point = map.project([lng, lat]);
         // Tight probe first — the searched address normally lands right on its
@@ -189,9 +202,9 @@ function boot() {
             ],
             { layers: [BUILDING_LAYER] },
         );
-        // Fallback: the geocoded point can land just off the footprint (a
-        // street entrance, or the parcel centroid for a large parcel). Widen
-        // the search and take the building whose footprint centroid is nearest
+        // Fallback: the point can land just off the footprint (a street
+        // entrance, or the parcel centroid for a large parcel). Widen the
+        // search and take the building whose footprint centroid is nearest
         // the point, so we still light up the right building rather than none.
         if (!hits.length) {
             hits = map.queryRenderedFeatures(
@@ -202,7 +215,14 @@ function boot() {
                 { layers: [BUILDING_LAYER] },
             );
         }
-        const target = nearestBuilding(hits, point);
+        return nearestBuilding(hits, point);
+    }
+
+    // Paints the building feature at (lat, lng) as the "target" (red extrusion)
+    // via the `target` feature-state read by the building layer's paint
+    // expression.
+    function highlightTargetAt(lng, lat) {
+        const target = buildingFeatureAt(lng, lat);
         if (!target || target.id == null) return null;
         clearTargetHighlight();
         currentTargetBuildingId = target.id;
@@ -265,6 +285,58 @@ function boot() {
             { target: false },
         );
         currentTargetBuildingId = null;
+    }
+
+    // --- Comparable building highlights -------------------------------------
+    //
+    // The comparable list from /score/similoo carries each match's parcel
+    // EGRID + centroid lat/lng but *not* a building id, and the footprint tile
+    // has no parcel column to match on — so (unlike the same-zone parcel wash,
+    // which paints off a tile property) we can only colour a comparable's 3D
+    // footprint once it has rendered. We resolve each comparable's building id
+    // by probing the tile at its centroid and set the `comparable` feature-
+    // state the building layer paints pink (matching the mini-cube markers).
+    //
+    // Resolution is lazy + sticky: comparables off-screen at search time light
+    // up the moment the user pans/flies them into view (we re-probe on every
+    // map `idle`), and MapLibre keeps the feature-state across tile reloads, so
+    // each building stays pink once discovered. `comparableBuildingByEgrid`
+    // doubles as the "already resolved" guard so we never re-probe a hit.
+    function refreshComparableBuildingHighlights() {
+        if (!map || !map.getLayer(BUILDING_LAYER) || !currentComparables.length) return;
+        for (const c of currentComparables) {
+            const key = c?.egrid || null;
+            if (!key || comparableBuildingByEgrid.has(key)) continue;
+            if (!Number.isFinite(c.lat) || !Number.isFinite(c.lng)) continue;
+            const feat = buildingFeatureAt(c.lng, c.lat);
+            if (!feat || feat.id == null) continue;
+            // Never recolour the searched building — its red `target` paint wins.
+            if (feat.id === currentTargetBuildingId) continue;
+            comparableBuildingByEgrid.set(key, feat.id);
+            map.setFeatureState(
+                { source: BUILDING_SOURCE, sourceLayer: BUILDING_SOURCE_LAYER, id: feat.id },
+                { comparable: true },
+            );
+        }
+    }
+
+    function setComparablesForHighlight(list) {
+        clearComparableHighlights();
+        currentComparables = Array.isArray(list) ? list : [];
+        refreshComparableBuildingHighlights();
+    }
+
+    function clearComparableHighlights() {
+        if (map) {
+            for (const id of comparableBuildingByEgrid.values()) {
+                map.setFeatureState(
+                    { source: BUILDING_SOURCE, sourceLayer: BUILDING_SOURCE_LAYER, id },
+                    { comparable: false },
+                );
+            }
+        }
+        comparableBuildingByEgrid.clear();
+        currentComparables = [];
     }
 
     // Pull the parcel feature under (lng,lat) from the parcel vector tile.
