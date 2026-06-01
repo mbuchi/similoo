@@ -41,6 +41,28 @@ export const KIND_META = {
 
 export const RELEASES = [
     {
+        version: '0.7.0',
+        date: 'June 1, 2026',
+        codename: 'Comparable Glow',
+        summary:
+            'The comparable buildings now light up on the 3D map, not just their parcels. Until now the map painted the searched parcel red, every same-zone parcel green, and the searched building red — but the comparable buildings themselves stayed the resting grey. They now render pink (the same colour as the mini-cube markers and the sidebar cards), so the matches you see ranked in the panel are immediately findable as actual buildings on the map. A comparable lights up the moment it scrolls into view (pan or fly to one from its card) and stays lit as you move around, while the searched building keeps its red.',
+        highlight: true,
+        items: [
+            {
+                kind: 'new',
+                icon: 'building-2',
+                text: 'Comparable buildings are highlighted in pink on the 3D map. Previously only the same-zone parcels were tinted green; now each comparable\'s footprint extrusion is painted pink to match its mini-cube marker and sidebar card, so "similar building" reads as a building, not just a parcel. The searched building stays red and the same-zone parcels stay green underneath.',
+                prs: [],
+            },
+            {
+                kind: 'improved',
+                icon: 'eye',
+                text: 'The comparable highlight resolves lazily and sticks: a comparable that is off-screen when you search lights up as soon as you pan or fly it into view, and once lit it stays pink while you move around the map (the colour is re-checked every time the map settles). Returning to search or closing the panel clears every comparable highlight.',
+                prs: [],
+            },
+        ],
+    },
+    {
         version: '0.6.2',
         date: 'May 31, 2026',
         codename: 'Centralised share card',
