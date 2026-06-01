@@ -41,6 +41,22 @@ export const KIND_META = {
 
 export const RELEASES = [
     {
+        version: '0.6.2',
+        date: 'May 31, 2026',
+        codename: 'Centralised share card',
+        summary:
+            'The social-share preview image (Open Graph / Twitter card) now points at the centralized toolbox-hosted canonical image instead of a per-app file, with the correct real pixel dimensions — so link unfurls match the rest of the SwissNovo suite.',
+        highlight: false,
+        items: [
+            {
+                kind: 'improved',
+                icon: 'image',
+                text: 'Social-share preview image now uses the centralized toolbox URL (https://toolbox.swissnovo.com/meta/similoo.jpg) with correct dimensions.',
+                prs: [],
+            },
+        ],
+    },
+    {
         version: '0.6.1',
         date: 'May 31, 2026',
         codename: 'Polish Pass',
