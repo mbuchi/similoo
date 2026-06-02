@@ -41,6 +41,22 @@ export const KIND_META = {
 
 export const RELEASES = [
     {
+        version: '0.7.1',
+        date: 'June 2, 2026',
+        codename: 'Dark Match',
+        summary:
+            'A small suite-consistency fix: in dark mode, the landing address-search results now use the theme-aware red tokens for their hover and selected states instead of a hardcoded light-red on dark surfaces, so the highlighted result reads with proper contrast — matching how the rest of the app tints active surfaces in dark mode.',
+        highlight: false,
+        items: [
+            {
+                kind: 'fixed',
+                icon: 'palette',
+                text: 'Landing search results now have a dark-mode hover/selected style (theme-aware --hood-red-soft background and --hood-red text) so the active result no longer renders as low-contrast light-red on the dark card.',
+                prs: [],
+            },
+        ],
+    },
+    {
         version: '0.7.0',
         date: 'June 1, 2026',
         codename: 'Comparable Glow',
