@@ -363,6 +363,12 @@ const translations = {
     // ---------- comparison surface ----------
     'comparison.back': 'Search again',
 
+    // ---------- map legend ----------
+    'legend.title': 'Legend',
+    'legend.target': 'Searched parcel & its buildings',
+    'legend.same_zone': 'Same-zone parcels',
+    'legend.comparable': 'Comparable buildings',
+
     // ---------- building detail popup ----------
     'detail.close': 'Close 3D detail',
     'detail.mode_pointcloud': 'Point cloud',
@@ -695,6 +701,12 @@ const translations = {
 
     'comparison.back': 'Nouvelle recherche',
 
+    // ---------- map legend ----------
+    'legend.title': 'Légende',
+    'legend.target': 'Parcelle recherchée et ses bâtiments',
+    'legend.same_zone': 'Parcelles de même zone',
+    'legend.comparable': 'Bâtiments comparables',
+
     'detail.close': 'Fermer la vue 3D détaillée',
     'detail.mode_pointcloud': 'Nuage de points',
     'detail.mode_solid': 'Modèle solide',
@@ -1026,6 +1038,12 @@ const translations = {
 
     'comparison.back': 'Neue Suche',
 
+    // ---------- map legend ----------
+    'legend.title': 'Legende',
+    'legend.target': 'Gesuchte Parzelle & ihre Gebäude',
+    'legend.same_zone': 'Parzellen gleicher Zone',
+    'legend.comparable': 'Vergleichbare Gebäude',
+
     'detail.close': '3D-Detailansicht schliessen',
     'detail.mode_pointcloud': 'Punktwolke',
     'detail.mode_solid': 'Festkörpermodell',
@@ -1355,6 +1373,12 @@ const translations = {
     'landing.hint': 'Seleziona un risultato per caricare il confronto.',
 
     'comparison.back': 'Nuova ricerca',
+
+    // ---------- map legend ----------
+    'legend.title': 'Legenda',
+    'legend.target': 'Particella cercata e i suoi edifici',
+    'legend.same_zone': 'Particelle della stessa zona',
+    'legend.comparable': 'Edifici comparabili',
 
     'detail.close': 'Chiudi vista 3D dettagliata',
     'detail.mode_pointcloud': 'Nuvola di punti',

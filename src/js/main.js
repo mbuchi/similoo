@@ -14,6 +14,7 @@ import { resolveEgridFromLngLat, normaliseEgrid } from './comparison/parcelLooku
 import { bindLandingSearch } from './landing/addressSearch.js';
 import { createComparableMarkers } from './viewer/comparableMarkers.js';
 import { createBuildingDetailModal } from './detail/buildingDetailModal.js';
+import { createMapLegend } from './viewer/mapLegend.js';
 
 // Apply translations as soon as the static DOM is parsed.
 if (document.readyState === 'loading') {
@@ -38,7 +39,11 @@ function boot() {
     let sidebar = null;
     let markers = null;
     let detailModal = null;
-    let currentTargetBuildingId = null;
+    let legend = null;
+    // Every building inside the searched parcel is painted red (the `target`
+    // feature-state). We track the full set of resolved building ids so we can
+    // clear them all at once and so the comparable pass never recolours one.
+    const targetBuildingIds = new Set();
     let currentTargetParcelId = null;
     let currentTargetCzLocal = null;
     let currentComparables = [];
@@ -52,10 +57,13 @@ function boot() {
         try {
             map = await initializeViewer('mapContainer');
             window.__similooMap = map; // exposed for browser-driven tests
-            // Comparable footprints can only be coloured once their tile has
-            // rendered, so re-probe whenever the map settles — this lights up
-            // comparables the moment the user pans/flies one into view.
-            map.on('idle', refreshComparableBuildingHighlights);
+            // Both the comparable footprints and the searched parcel's own
+            // buildings can only be coloured once their tile has rendered, so
+            // re-probe whenever the map settles — this lights them up the moment
+            // the user pans/flies them into view (and on a cold tile cache).
+            map.on('idle', refreshHighlightsOnIdle);
+            // Bottom-left legend explaining the red/green/pink highlights.
+            legend = createMapLegend(map.getContainer());
         } catch (e) {
             console.error('Error initializing viewer:', e);
             throw e;
@@ -218,20 +226,26 @@ function boot() {
         return nearestBuilding(hits, point);
     }
 
-    // Paints the building feature at (lat, lng) as the "target" (red extrusion)
-    // via the `target` feature-state read by the building layer's paint
-    // expression.
+    // Fallback single-building highlight: paints just the building nearest
+    // (lng, lat) red via the `target` feature-state read by the building layer's
+    // paint expression. Used only when the parcel polygon is unavailable or
+    // holds no resolvable footprint, so the searched address still reads.
+    // Additive — the caller clears the previous search's set beforehand.
     function highlightTargetAt(lng, lat) {
         const target = buildingFeatureAt(lng, lat);
         if (!target || target.id == null) return null;
-        clearTargetHighlight();
-        currentTargetBuildingId = target.id;
-        map.setFeatureState(
-            { source: BUILDING_SOURCE, sourceLayer: BUILDING_SOURCE_LAYER, id: currentTargetBuildingId },
-            { target: true },
-        );
+        addTargetBuilding(target.id);
         document.body.classList.add('cmp-shifted');
         return target;
+    }
+
+    function addTargetBuilding(id) {
+        if (id == null || targetBuildingIds.has(id)) return;
+        targetBuildingIds.add(id);
+        map.setFeatureState(
+            { source: BUILDING_SOURCE, sourceLayer: BUILDING_SOURCE_LAYER, id },
+            { target: true },
+        );
     }
 
     // Pick the building footprint whose centroid projects closest to `point`.
@@ -279,12 +293,15 @@ function boot() {
     }
 
     function clearTargetHighlight() {
-        if (!map || currentTargetBuildingId == null) return;
-        map.setFeatureState(
-            { source: BUILDING_SOURCE, sourceLayer: BUILDING_SOURCE_LAYER, id: currentTargetBuildingId },
-            { target: false },
-        );
-        currentTargetBuildingId = null;
+        if (map) {
+            for (const id of targetBuildingIds) {
+                map.setFeatureState(
+                    { source: BUILDING_SOURCE, sourceLayer: BUILDING_SOURCE_LAYER, id },
+                    { target: false },
+                );
+            }
+        }
+        targetBuildingIds.clear();
     }
 
     // --- Comparable building highlights -------------------------------------
@@ -310,8 +327,8 @@ function boot() {
             if (!Number.isFinite(c.lat) || !Number.isFinite(c.lng)) continue;
             const feat = buildingFeatureAt(c.lng, c.lat);
             if (!feat || feat.id == null) continue;
-            // Never recolour the searched building — its red `target` paint wins.
-            if (feat.id === currentTargetBuildingId) continue;
+            // Never recolour a searched-parcel building — its red `target` paint wins.
+            if (targetBuildingIds.has(feat.id)) continue;
             comparableBuildingByEgrid.set(key, feat.id);
             map.setFeatureState(
                 { source: BUILDING_SOURCE, sourceLayer: BUILDING_SOURCE_LAYER, id: feat.id },
@@ -337,6 +354,79 @@ function boot() {
         }
         comparableBuildingByEgrid.clear();
         currentComparables = [];
+    }
+
+    // --- Target-parcel building highlights ----------------------------------
+    //
+    // The product ask: paint EVERY building in the searched parcel red, not just
+    // the single footprint under the search point. The footprint tile carries no
+    // parcel column to match on, so we resolve membership geometrically — take
+    // the searched parcel's polygon (gathered from the rendered parcel tiles by
+    // id, so a tile-split parcel still counts) and paint every building whose
+    // footprint centroid falls inside it. Like the comparable pass this is lazy
+    // + sticky: buildings that render late (cold tile cache, or panned into view)
+    // light up on the next map `idle`, and MapLibre keeps the feature-state
+    // across tile reloads. Returns the running count so the pick loop can poll
+    // until at least one building resolves. Idempotent — safe to re-run.
+    function highlightBuildingsInTargetParcel() {
+        if (!map || !map.getLayer(BUILDING_LAYER) || currentTargetParcelId == null) {
+            return targetBuildingIds.size;
+        }
+        const rings = collectTargetParcelRings();
+        if (!rings.length) return targetBuildingIds.size;
+
+        const bbox = parcelScreenBbox(rings);
+        if (!bbox) return targetBuildingIds.size;
+
+        const hits = map.queryRenderedFeatures(bbox, { layers: [BUILDING_LAYER] });
+        for (const f of hits) {
+            if (f.id == null || targetBuildingIds.has(f.id)) continue;
+            const c = footprintCentroid(f.geometry);
+            if (!c || !pointInRings(c[0], c[1], rings)) continue;
+            addTargetBuilding(f.id);
+        }
+        if (targetBuildingIds.size) document.body.classList.add('cmp-shifted');
+        return targetBuildingIds.size;
+    }
+
+    // Gather the searched parcel's outer rings from every rendered parcel-fill
+    // feature carrying its id (a large parcel can be split across vector tiles).
+    function collectTargetParcelRings() {
+        if (!map || currentTargetParcelId == null || !map.getLayer(PARCEL_FILL_LAYER)) return [];
+        const feats = map.queryRenderedFeatures({ layers: [PARCEL_FILL_LAYER] });
+        const rings = [];
+        for (const f of feats) {
+            if (f.id !== currentTargetParcelId) continue;
+            collectOuterRings(f.geometry, rings);
+        }
+        return rings;
+    }
+
+    // Screen-space bounding box (padded) of a set of geographic rings, used to
+    // bound the building queryRenderedFeatures. The pad covers the pitch lean of
+    // tall extrusions so footprints near the parcel edge aren't queried out.
+    function parcelScreenBbox(rings) {
+        let minX = Infinity;
+        let minY = Infinity;
+        let maxX = -Infinity;
+        let maxY = -Infinity;
+        for (const ring of rings) {
+            for (const pt of ring) {
+                const p = map.project([pt[0], pt[1]]);
+                if (p.x < minX) minX = p.x;
+                if (p.y < minY) minY = p.y;
+                if (p.x > maxX) maxX = p.x;
+                if (p.y > maxY) maxY = p.y;
+            }
+        }
+        if (!Number.isFinite(minX)) return null;
+        const PAD = 40;
+        return [[minX - PAD, minY - PAD], [maxX + PAD, maxY + PAD]];
+    }
+
+    function refreshHighlightsOnIdle() {
+        refreshComparableBuildingHighlights();
+        highlightBuildingsInTargetParcel();
     }
 
     // Pull the parcel feature under (lng,lat) from the parcel vector tile.
@@ -407,13 +497,34 @@ function boot() {
             czLocal: currentTargetCzLocal,
         });
 
-        // Highlight the searched address's 3D building (red extrusion), polling
-        // the building tile the same way.
-        const target = await retryUntil(
-            () => highlightTargetAt(result.lng, result.lat),
+        // Clear any red buildings left from the previous search before painting
+        // this parcel's set.
+        clearTargetHighlight();
+
+        // Highlight EVERY building inside the searched parcel (red extrusion),
+        // resolved geometrically from the parcel polygon. Poll until at least
+        // one resolves — the parcel/building tiles under the point may still be
+        // streaming on a cold cache.
+        const painted = await retryUntil(
+            () => {
+                const n = highlightBuildingsInTargetParcel();
+                return n > 0 ? n : null;
+            },
             () => seq === pickSeq,
         );
         if (seq !== pickSeq) return;
+
+        // Fallback: no parcel polygon (or no building resolved inside it) — light
+        // up just the building nearest the searched point so the address still
+        // reads, and seed the EGRID fallback below with that building.
+        let fallbackBuilding = null;
+        if (!painted) {
+            fallbackBuilding = await retryUntil(
+                () => highlightTargetAt(result.lng, result.lat),
+                () => seq === pickSeq,
+            );
+            if (seq !== pickSeq) return;
+        }
 
         // Resolve the EGRID for the comparison sidebar. The tile's parcel_id
         // is already the canonical CH-format EGRID, so prefer it directly —
@@ -424,7 +535,7 @@ function boot() {
             try {
                 const resolved = await resolveEgridFromLngLat(
                     { lng: result.lng, lat: result.lat },
-                    parcelFeature ?? (target ? { properties: { parcel_id: target.id } } : null),
+                    parcelFeature ?? (fallbackBuilding ? { properties: { parcel_id: fallbackBuilding.id } } : null),
                 );
                 egrid = resolved?.egrid ?? null;
             } catch (err) {
@@ -490,6 +601,46 @@ function boot() {
 
 function formatLatLng(lat, lng) {
     return `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+}
+
+// Collect the outer ring(s) of a GeoJSON Polygon / MultiPolygon geometry.
+// Holes are ignored — parcels rarely have them, and ignoring them only ever
+// over-includes, which is harmless for the "is this building in the parcel" test.
+function collectOuterRings(geom, out) {
+    if (!geom) return;
+    if (geom.type === 'Polygon') {
+        const ring = geom.coordinates?.[0];
+        if (Array.isArray(ring) && ring.length >= 3) out.push(ring);
+    } else if (geom.type === 'MultiPolygon') {
+        for (const poly of geom.coordinates || []) {
+            const ring = poly?.[0];
+            if (Array.isArray(ring) && ring.length >= 3) out.push(ring);
+        }
+    }
+}
+
+// Ray-casting point-in-polygon on [lng, lat] coordinates. A planar test is fine
+// at parcel scale (a few hundred metres) where the geographic distortion is
+// negligible. `ring` is an array of [lng, lat] pairs.
+function pointInRing(lng, lat, ring) {
+    let inside = false;
+    for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+        const xi = ring[i][0];
+        const yi = ring[i][1];
+        const xj = ring[j][0];
+        const yj = ring[j][1];
+        const intersect = ((yi > lat) !== (yj > lat))
+            && (lng < ((xj - xi) * (lat - yi)) / (yj - yi) + xi);
+        if (intersect) inside = !inside;
+    }
+    return inside;
+}
+
+function pointInRings(lng, lat, rings) {
+    for (const ring of rings) {
+        if (pointInRing(lng, lat, ring)) return true;
+    }
+    return false;
 }
 
 // Minimal dark-mode toggle — mirrors the pre-paint bootstrap in index.html.

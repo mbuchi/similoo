@@ -223,3 +223,88 @@ html[data-theme='dark'] .comparison-back:hover {
 html[data-theme='dark'] .comparison-address {
     color: #f1f5f9;
 }
+
+/* On-map legend (src/js/viewer/mapLegend.js) — suite-standard bottom-left
+ * panel explaining the highlight colours: red = searched parcel + its
+ * buildings, green = same-zone parcels, pink = comparable buildings. Built
+ * on the shared --hood-* tokens so it flips cleanly under dark mode. Sits
+ * just above MapLibre's bottom-left ScaleControl. */
+.map-legend {
+    position: absolute;
+    left: 12px;
+    bottom: 30px;
+    z-index: 3;
+    background: var(--hood-surface);
+    border: 1px solid var(--hood-border);
+    border-radius: var(--hood-radius-md);
+    box-shadow: var(--hood-shadow-md);
+    padding: 10px 12px;
+    font-family: var(--hood-font);
+    max-width: 240px;
+    pointer-events: none;
+}
+
+.map-legend-title {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--hood-muted);
+    margin-bottom: 8px;
+}
+
+.map-legend-rows {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.map-legend-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.map-legend-swatch {
+    width: 16px;
+    height: 12px;
+    flex-shrink: 0;
+    border-radius: 3px;
+    border: 1px solid rgba(15, 23, 42, 0.18);
+}
+
+.map-legend-swatch--target {
+    background: #DC2626;
+}
+
+.map-legend-swatch--same-zone {
+    background: #16a34a;
+}
+
+.map-legend-swatch--comparable {
+    background: #F472B6;
+}
+
+.map-legend-label {
+    font-size: 12px;
+    line-height: 1.3;
+    color: var(--hood-text);
+}
+
+html[data-theme='dark'] .map-legend-swatch {
+    border-color: rgba(255, 255, 255, 0.22);
+}
+
+@media (max-width: 640px) {
+    .map-legend {
+        max-width: 200px;
+        padding: 8px 10px;
+        bottom: 26px;
+    }
+    .map-legend-label {
+        font-size: 11px;
+    }
+}

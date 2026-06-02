@@ -41,6 +41,28 @@ export const KIND_META = {
 
 export const RELEASES = [
     {
+        version: '0.8.0',
+        date: 'June 3, 2026',
+        codename: 'Whole Parcel',
+        summary:
+            'The red highlight now covers the whole parcel, not just one building. Until now searching an address painted the searched parcel red and lit up only the single building footprint under the search point — but a parcel often holds several buildings, and the others stayed the resting grey. similoo now paints every building inside the searched parcel red. Because the footprint tile carries no parcel id, membership is resolved geometrically: the searched parcel\'s polygon is gathered from the parcel tiles (so a tile-split parcel still counts) and every building whose footprint centroid falls inside it is highlighted. Like the comparable (pink) highlight, this is lazy and sticky — buildings that stream in late or are panned into view light up on the next map settle, and stay lit as you move. A new bottom-left legend explains the colours: red for the searched parcel and its buildings, green for same-zone parcels, pink for comparable buildings.',
+        highlight: true,
+        items: [
+            {
+                kind: 'new',
+                icon: 'building-2',
+                text: 'Every building in the searched parcel is now highlighted red, not just the one under the search point. The footprint tile has no parcel column, so membership is resolved geometrically — the parcel polygon is gathered from the rendered parcel tiles by id (tile-split parcels included) and each building whose footprint centroid sits inside it is painted red. Resolution is lazy + sticky (re-checked on every map idle) so late-rendering buildings still light up. Falls back to the single nearest building when no parcel polygon is available.',
+                prs: [],
+            },
+            {
+                kind: 'new',
+                icon: 'list',
+                text: 'New on-map legend (bottom-left, suite-standard panel) explaining the highlight colours: red = searched parcel & its buildings, green = same-zone parcels, pink = comparable buildings. Fully localised across EN/FR/DE/IT and re-localises on language change.',
+                prs: [],
+            },
+        ],
+    },
+    {
         version: '0.7.1',
         date: 'June 2, 2026',
         codename: 'Dark Match',
