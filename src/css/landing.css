@@ -141,6 +141,12 @@
     color: #dc2626;
 }
 
+[data-theme='dark'] .landing-result:hover,
+[data-theme='dark'] .landing-result[aria-selected='true'] {
+    background: var(--hood-red-soft);
+    color: var(--hood-red);
+}
+
 .landing-hint {
     margin: 14px 0 0;
     color: var(--muted, #94a3b8);
