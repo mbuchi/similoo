@@ -14,7 +14,9 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { fetchTerrainGLB, fetchBuildingGLB } from './api3d.js';
 import { wgs84ToLV95 } from './swissCoords.js';
 
-const SCENE_RADIUS_M = 100;
+// Half the previous 100 m so the point-cloud view loads a tighter zone
+// (≈100 m across) focused on the building rather than a wide neighbourhood.
+const SCENE_RADIUS_M = 50;
 
 export function createBuildingScene({ container }) {
     if (!container) throw new Error('createBuildingScene: container is required');
@@ -237,6 +239,89 @@ export function createBuildingScene({ container }) {
         });
     }
 
+    // Find the terrain GROUND Y near a given (x, z) point.
+    //
+    // The terrain GLB is a coloured point cloud where each vertex carries
+    // its LAS classification colour. The building GLB arrives at absolute
+    // LV95 elevation (hundreds of metres) while the terrain export rebases
+    // its Z so the scene's lowest point sits at Y≈0 — so without seating
+    // the building floats high above the terrain. We sample the LAS
+    // "ground" class (brown ≈ rgb(165,42,42)) under the footprint and pick
+    // its 80th-percentile Y as the local ground level, robust to a few
+    // stray sub-surface points. The filtered ground array is cached on the
+    // terrain object so the linear scan only runs once.
+    function buildGroundIndex(terrainObject) {
+        const grounds = [];
+        terrainObject.updateWorldMatrix(true, true);
+        const v = new THREE.Vector3();
+        terrainObject.traverse((node) => {
+            const geo = node.geometry;
+            const posAttr = geo?.attributes?.position;
+            const colAttr = geo?.attributes?.color;
+            if (!posAttr) return;
+            const out = [];
+            for (let i = 0; i < posAttr.count; i++) {
+                if (colAttr) {
+                    const r = colAttr.getX(i) * 255;
+                    const g = colAttr.getY(i) * 255;
+                    const b = colAttr.getZ(i) * 255;
+                    const isGround =
+                        Math.abs(r - 165) <= 8 &&
+                        Math.abs(g - 42) <= 8 &&
+                        Math.abs(b - 42) <= 8;
+                    if (!isGround) continue;
+                }
+                v.fromBufferAttribute(posAttr, i);
+                v.applyMatrix4(node.matrixWorld);
+                out.push(v.x, v.y, v.z);
+            }
+            if (out.length) grounds.push(new Float32Array(out));
+        });
+        return grounds;
+    }
+
+    function getGroundHeightAt(terrainObject, x, z, radius = 3.0) {
+        if (!terrainObject) return null;
+        if (!terrainObject.userData.__groundArrays) {
+            terrainObject.userData.__groundArrays = buildGroundIndex(terrainObject);
+        }
+        const arrays = terrainObject.userData.__groundArrays;
+        const r2 = radius * radius;
+        const hits = [];
+        for (const arr of arrays) {
+            for (let i = 0; i < arr.length; i += 3) {
+                const dx = arr[i] - x;
+                const dz = arr[i + 2] - z;
+                if (dx * dx + dz * dz <= r2) hits.push(arr[i + 1]);
+            }
+        }
+        if (!hits.length) return null;
+        hits.sort((a, b) => a - b);
+        const idx = Math.min(hits.length - 1, Math.floor(hits.length * 0.8));
+        return hits[idx];
+    }
+
+    // Drop the building so its lowest vertex sits on the local ground level
+    // sampled from the terrain point cloud. Steps the sample radius outward
+    // because dense footprints can have a ground gap right under the centre.
+    function seatOnTerrain(buildingNode, terrainObject) {
+        if (!buildingNode || !terrainObject) return false;
+        const box = new THREE.Box3().setFromObject(buildingNode);
+        if (!isFinite(box.min.x) || !isFinite(box.max.x)) return false;
+        const center = box.getCenter(new THREE.Vector3());
+
+        let groundY = null;
+        for (const r of [2.0, 4.0, 8.0, 16.0]) {
+            groundY = getGroundHeightAt(terrainObject, center.x, center.z, r);
+            if (groundY != null) break;
+        }
+        if (groundY == null) return false;
+
+        // Sink ~10 cm below grade so the base reads as planted, not floating.
+        buildingNode.position.y += groundY - box.min.y - 0.1;
+        return true;
+    }
+
     function setMode(next) {
         mode = next === 'solid' ? 'solid' : 'pointcloud';
         if (terrainPointObject) terrainPointObject.visible = mode === 'pointcloud';
@@ -283,6 +368,10 @@ export function createBuildingScene({ container }) {
             applyBuildingSolidMaterial(building);
             sceneGroup.add(building);
             buildingObject = building;
+            // The building arrives at absolute LV95 elevation; drop it onto
+            // the terrain point cloud so it sits on the ground (not floating)
+            // in both point-cloud and solid modes.
+            seatOnTerrain(building, terrainPointObject);
         } catch (err) {
             console.warn('detail building load failed', err);
         }
