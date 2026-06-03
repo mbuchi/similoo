@@ -14,9 +14,9 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { fetchTerrainGLB, fetchBuildingGLB } from './api3d.js';
 import { wgs84ToLV95 } from './swissCoords.js';
 
-// Half the previous 100 m so the point-cloud view loads a tighter zone
-// (≈100 m across) focused on the building rather than a wide neighbourhood.
-const SCENE_RADIUS_M = 50;
+// A quarter of the original 100 m so the point-cloud view loads a tight
+// zone (≈50 m across) focused on the building, not a wide neighbourhood.
+const SCENE_RADIUS_M = 25;
 
 export function createBuildingScene({ container }) {
     if (!container) throw new Error('createBuildingScene: container is required');

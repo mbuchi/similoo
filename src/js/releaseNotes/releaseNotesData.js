@@ -45,7 +45,7 @@ export const RELEASES = [
         date: 'June 3, 2026',
         codename: 'Planted',
         summary:
-            'Two fixes to the building-detail 3D viewer (the popup that opens from a comparable building). The solid model used to float high above its terrain: the building mesh arrives at absolute elevation (hundreds of metres above sea level) while the terrain point cloud is rebased so its lowest point sits at the origin, so the two never lined up. The viewer now samples the terrain\'s ground-class LiDAR points directly under the footprint and drops the building onto that local ground level, so it sits planted on the terrain in both point-cloud and solid modes. Separately, the point-cloud view now loads a tighter zone — the default radius is halved (≈100 m across instead of ≈200 m) so the scene is focused on the building rather than a wide stretch of neighbourhood.',
+            'Two fixes to the building-detail 3D viewer (the popup that opens from a comparable building). The solid model used to float high above its terrain: the building mesh arrives at absolute elevation (hundreds of metres above sea level) while the terrain point cloud is rebased so its lowest point sits at the origin, so the two never lined up. The viewer now samples the terrain\'s ground-class LiDAR points directly under the footprint and drops the building onto that local ground level, so it sits planted on the terrain in both point-cloud and solid modes. Separately, the point-cloud view now loads a much tighter zone — the default radius is cut to a quarter of the original (25 m, ≈50 m across instead of ≈200 m) so the scene is focused tightly on the building rather than a wide stretch of neighbourhood.',
         highlight: false,
         items: [
             {
@@ -57,7 +57,7 @@ export const RELEASES = [
             {
                 kind: 'improved',
                 icon: 'scan',
-                text: 'The point-cloud view now loads a smaller, tighter zone: the default scene radius is halved (50 m, ≈100 m across) so the visualisation centres on the building instead of pulling in a wide neighbourhood of points.',
+                text: 'The point-cloud view now loads a much smaller, tighter zone: the default scene radius is cut to 25 m (≈50 m across — a quarter of the original 100 m radius) so the visualisation centres tightly on the building instead of pulling in a wide neighbourhood of points.',
                 prs: [22],
             },
         ],
