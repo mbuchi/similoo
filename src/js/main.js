@@ -15,6 +15,7 @@ import { bindLandingSearch } from './landing/addressSearch.js';
 import { createComparableMarkers } from './viewer/comparableMarkers.js';
 import { createBuildingDetailModal } from './detail/buildingDetailModal.js';
 import { createMapLegend } from './viewer/mapLegend.js';
+import { initMethodologyHelp } from './help/methodologyPanel.js';
 
 // Apply translations as soon as the static DOM is parsed.
 if (document.readyState === 'loading') {
@@ -27,6 +28,7 @@ function boot() {
     applyTranslations(document);
     bindLocaleSelect('locale-select');
     setupThemeToggle();
+    initMethodologyHelp();
 
     const landingView = document.getElementById('landingView');
     const comparisonView = document.getElementById('comparisonView');
