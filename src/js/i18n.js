@@ -60,7 +60,7 @@ const translations = {
     'common.open': 'Open',
 
     // ---------- meta ----------
-    'meta.title': 'similoo — Comparable Buildings Explorer',
+    'meta.title': 'similoo - Comparable Buildings Explorer',
     'meta.description':
       'Find buildings comparable to your parcel — same zoning, recent construction — visualised in 3D across Switzerland.',
     'meta.og_title': 'similoo — comparable buildings explorer',
@@ -435,7 +435,7 @@ const translations = {
 
     // ---------- meta ----------
     'meta.title':
-      'similoo — Explorateur de bâtiments comparables',
+      'similoo - Explorateur de bâtiments comparables',
     'meta.description':
       'Trouvez des bâtiments comparables à votre parcelle — même zonage, construction récente — visualisés en 3D dans toute la Suisse.',
     'meta.og_title': 'similoo — Bâtiments comparables',
@@ -811,7 +811,7 @@ const translations = {
     'common.open': 'Öffnen',
 
     // ---------- meta ----------
-    'meta.title': 'similoo — Vergleichbare Gebäude-Explorer',
+    'meta.title': 'similoo - Vergleichbare Gebäude-Explorer',
     'meta.description':
       'Finden Sie Gebäude, die mit Ihrer Parzelle vergleichbar sind — gleiche Zonierung, neuere Bauten — in 3D in der ganzen Schweiz visualisiert.',
     'meta.og_title': 'similoo — Vergleichbare Gebäude',
@@ -1189,7 +1189,7 @@ const translations = {
 
     // ---------- meta ----------
     'meta.title':
-      'similoo — Esploratore di edifici comparabili',
+      'similoo - Esploratore di edifici comparabili',
     'meta.description':
       'Trova edifici comparabili alla tua particella — stessa zona, costruzione recente — visualizzati in 3D in tutta la Svizzera.',
     'meta.og_title': 'similoo — Edifici comparabili',

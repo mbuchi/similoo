@@ -41,6 +41,22 @@ export const KIND_META = {
 
 export const RELEASES = [
     {
+        version: '0.9.1',
+        date: 'June 3, 2026',
+        codename: 'Hyphen Title',
+        summary:
+            'Browser tab title now uses a plain hyphen separator instead of an em dash.',
+        highlight: false,
+        items: [
+            {
+                kind: 'fixed',
+                icon: 'type',
+                text: 'Browser tab title now uses a plain hyphen separator instead of an em dash.',
+                prs: [],
+            },
+        ],
+    },
+    {
         version: '0.9.0',
         date: 'June 3, 2026',
         codename: 'One Scene',
