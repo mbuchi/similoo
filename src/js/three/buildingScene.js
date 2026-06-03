@@ -1,11 +1,14 @@
 // Compact Three.js scene for the building-detail popup.
 //
 // A lighter sibling of similoo-three's full sceneViewer: no sky dome, no
-// sun simulation, no compass — just the terrain LAS point cloud + the
-// picked building, rendered in either point-cloud mode (raw coloured
-// LiDAR) or solid mode (Roofer building mesh + grey terrain mesh
-// constructed from the ground-class points). The user toggles between
-// the two from the popup's chrome.
+// sun simulation, no compass. Everything lives in ONE view: a solid grey
+// terrain mesh (built from the LAS ground class) is the always-visible
+// ground base, and the user independently toggles two overlays on top of
+// it — the raw coloured LAS point cloud and the Roofer building model.
+// An optional basemap drape textures the terrain with a swisstopo aerial
+// orthophoto. (This replaces the old two-tab "point cloud vs solid model"
+// split, where the building was shown in both tabs and the two terrain
+// forms were mutually exclusive.)
 
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
@@ -83,13 +86,23 @@ export function createBuildingScene({ container }) {
     scene.add(sceneGroup);
 
     const loader = new GLTFLoader();
+    const textureLoader = new THREE.TextureLoader();
+    textureLoader.setCrossOrigin('anonymous');
     let disposed = false;
     let loadToken = 0;
     let resizeRaf = 0;
-    let mode = 'pointcloud';
-    let terrainPointObject = null;   // raw point cloud
-    let terrainSolidObject = null;   // derived solid mesh
+    // Independent layer visibility. The solid terrain mesh is the always-on
+    // base — "the terrain is always visualized" — while the point cloud and
+    // the building are overlays the user toggles on top of it. (The old
+    // two-tab "point cloud vs solid" mode is gone: both terrain forms and
+    // the building now live in one scene, switched per-layer.)
+    const layers = { pointcloud: true, building: true };
+    let basemapEnabled = false;
+    let basemapToken = 0;            // guards async drape against load races
+    let terrainPointObject = null;   // raw LAS point cloud overlay
+    let terrainSolidObject = null;   // always-on solid ground mesh
     let buildingObject = null;
+    let sceneCenter = null;          // { E, N } LV95 of the loaded scene
 
     function setStatus() { /* status surfacing is owned by the modal */ }
 
@@ -344,19 +357,116 @@ export function createBuildingScene({ container }) {
         return true;
     }
 
-    function setMode(next) {
-        mode = next === 'solid' ? 'solid' : 'pointcloud';
-        if (terrainPointObject) terrainPointObject.visible = mode === 'pointcloud';
-        if (terrainSolidObject) terrainSolidObject.visible = mode === 'solid';
-        if (buildingObject) buildingObject.visible = true; // both modes show building
+    // Apply the current layer flags to whatever objects exist. The solid
+    // terrain mesh is the ground base and stays visible in every state.
+    function applyVisibility() {
+        if (terrainSolidObject) terrainSolidObject.visible = true;
+        if (terrainPointObject) terrainPointObject.visible = layers.pointcloud;
+        if (buildingObject) buildingObject.visible = layers.building;
+    }
+
+    function setLayer(name, visible) {
+        if (name in layers) layers[name] = !!visible;
+        applyVisibility();
+    }
+
+    // ---- Basemap drape -----------------------------------------------------
+    // Drape a swisstopo SWISSIMAGE orthophoto onto the solid terrain mesh so
+    // the ground reads as the real place, not a grey blob. The mesh is a flat
+    // height-map (PlaneGeometry) with default 0..1 UVs, so a single north-up
+    // WMS image covering the mesh's exact LV95 bbox aligns pixel-for-pixel:
+    // local +X = east, local +Z = south (so N = centerN − z), and the default
+    // texture flipY puts the image's north edge at the mesh's north edge.
+    const BASEMAP_WMS = 'https://wms.geo.admin.ch/';
+    const BASEMAP_LAYER = 'ch.swisstopo.swissimage';
+
+    function basemapURLForMesh() {
+        if (!terrainSolidObject || !sceneCenter) return null;
+        const box = new THREE.Box3().setFromObject(terrainSolidObject);
+        if (!isFinite(box.min.x) || !isFinite(box.max.x)) return null;
+        const minE = box.min.x + sceneCenter.E;
+        const maxE = box.max.x + sceneCenter.E;
+        // world +Z points south, so northing decreases as z grows.
+        const minN = sceneCenter.N - box.max.z;
+        const maxN = sceneCenter.N - box.min.z;
+        if (maxE <= minE || maxN <= minN) return null;
+        const params = new URLSearchParams({
+            SERVICE: 'WMS',
+            VERSION: '1.1.1',
+            REQUEST: 'GetMap',
+            LAYERS: BASEMAP_LAYER,
+            STYLES: '',
+            SRS: 'EPSG:2056',
+            BBOX: `${minE.toFixed(2)},${minN.toFixed(2)},${maxE.toFixed(2)},${maxN.toFixed(2)}`,
+            WIDTH: '768',
+            HEIGHT: '768',
+            FORMAT: 'image/jpeg',
+        });
+        return `${BASEMAP_WMS}?${params.toString()}`;
+    }
+
+    function revertBasemap() {
+        if (!terrainSolidObject) return;
+        const grey = terrainSolidObject.userData.__greyMaterial;
+        if (grey && terrainSolidObject.material !== grey) {
+            const draped = terrainSolidObject.material;
+            terrainSolidObject.material = grey;
+            draped.map?.dispose?.();
+            draped.dispose?.();
+        }
+    }
+
+    async function applyBasemap() {
+        const token = ++basemapToken;
+        const url = basemapURLForMesh();
+        if (!url || !terrainSolidObject) return;
+        let texture;
+        try {
+            texture = await new Promise((resolve, reject) => {
+                textureLoader.load(url, resolve, undefined, reject);
+            });
+        } catch (err) {
+            console.warn('basemap drape failed', err);
+            return;
+        }
+        // Bail if a newer load/toggle superseded this fetch.
+        if (token !== basemapToken || !basemapEnabled || disposed || !terrainSolidObject) {
+            texture.dispose?.();
+            return;
+        }
+        texture.colorSpace = THREE.SRGBColorSpace;
+        texture.wrapS = texture.wrapT = THREE.ClampToEdgeWrapping;
+        const maxAniso = renderer.capabilities.getMaxAnisotropy?.() || 1;
+        texture.anisotropy = Math.min(8, maxAniso);
+        if (!terrainSolidObject.userData.__greyMaterial) {
+            terrainSolidObject.userData.__greyMaterial = terrainSolidObject.material;
+        }
+        terrainSolidObject.material = new THREE.MeshStandardMaterial({
+            map: texture,
+            color: 0xffffff,
+            roughness: 0.95,
+            metalness: 0.0,
+        });
+    }
+
+    function setBasemap(enabled) {
+        basemapEnabled = !!enabled;
+        if (basemapEnabled) {
+            applyBasemap();
+        } else {
+            basemapToken++; // cancel any in-flight drape
+            revertBasemap();
+        }
     }
 
     async function loadAt({ lat, lng, label }) {
         const token = ++loadToken;
+        basemapToken++; // invalidate any drape in flight for the old scene
         clearGroup(sceneGroup);
         terrainPointObject = null;
         terrainSolidObject = null;
         buildingObject = null;
+        sceneCenter = null;
 
         // Snap to the nearest footprint so the building resolves and the
         // terrain/building stay co-located on one real building.
@@ -364,6 +474,7 @@ export function createBuildingScene({ container }) {
         if (token !== loadToken) return;
 
         const { easting: centerE, northing: centerN } = wgs84ToLV95(clng, clat);
+        sceneCenter = { E: centerE, N: centerN };
 
         try {
             const { blob } = await fetchTerrainGLB({ lat: clat, lng: clng, radius_m: SCENE_RADIUS_M });
@@ -397,14 +508,15 @@ export function createBuildingScene({ container }) {
             buildingObject = building;
             // The building arrives at absolute LV95 elevation; drop it onto
             // the terrain point cloud so it sits on the ground (not floating)
-            // in both point-cloud and solid modes.
+            // whether or not the point-cloud overlay is shown.
             seatOnTerrain(building, terrainPointObject);
         } catch (err) {
             console.warn('detail building load failed', err);
         }
 
         if (token !== loadToken) return;
-        setMode(mode);
+        applyVisibility();
+        if (basemapEnabled) applyBasemap();
         frameOnContent(sceneGroup);
         return { label, lat: clat, lng: clng };
     }
@@ -448,8 +560,10 @@ export function createBuildingScene({ container }) {
 
     return {
         loadAt,
-        setMode,
-        getMode: () => mode,
+        setLayer,
+        getLayers: () => ({ ...layers }),
+        setBasemap,
+        getBasemap: () => basemapEnabled,
         dispose() {
             disposed = true;
             resizeObserver.disconnect();

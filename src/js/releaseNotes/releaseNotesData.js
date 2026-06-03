@@ -41,6 +41,34 @@ export const KIND_META = {
 
 export const RELEASES = [
     {
+        version: '0.9.0',
+        date: 'June 3, 2026',
+        codename: 'One Scene',
+        summary:
+            'The building-detail 3D viewer is now a single scene instead of two separate "Point cloud" and "Solid model" tabs. The solid terrain is always shown as the ground base, and three independent toggles let you mix exactly what you want on top of it: the raw coloured LAS point cloud, the 3D building model, and — new — an aerial Basemap that drapes a swisstopo SWISSIMAGE orthophoto over the terrain so the ground reads as the real place rather than a grey surface. Previously you had to switch tabs and could never see, say, the point cloud and the solid building together; now every combination is one click away in the same view, and the camera/zoom stay put as you toggle.',
+        highlight: true,
+        items: [
+            {
+                kind: 'new',
+                icon: 'layers',
+                text: 'Point cloud, Buildings, and Basemap are now three independent toggles in one scene — flip any of them on or off without leaving the view or losing your camera angle. Replaces the old two-tab "Point cloud / Solid model" switch, which forced an either/or choice and always re-showed the building in both tabs.',
+                prs: [27],
+            },
+            {
+                kind: 'new',
+                icon: 'map',
+                text: 'New "Aerial map" toggle drapes a swisstopo SWISSIMAGE orthophoto onto the terrain mesh, so the ground shows the real surroundings (roads, vegetation, neighbouring plots) instead of a flat grey surface. The photo is fetched for the exact terrain footprint and aligned pixel-for-pixel; it falls back to the grey terrain if the imagery is unavailable.',
+                prs: [27],
+            },
+            {
+                kind: 'improved',
+                icon: 'mountain',
+                text: 'The terrain is now always visualized as the solid ground base, so the building always has a surface to sit on no matter which overlays you have enabled.',
+                prs: [27],
+            },
+        ],
+    },
+    {
         version: '0.8.3',
         date: 'June 3, 2026',
         codename: 'Fresh Key',

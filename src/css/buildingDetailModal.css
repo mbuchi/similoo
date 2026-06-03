@@ -87,32 +87,69 @@
     font-family: var(--hood-mono, ui-monospace);
 }
 
-.bdm-mode {
+/* Independent layer toggles (Point cloud / Buildings / Basemap). Each chip
+   is its own on/off switch with a coloured dot when active — not a
+   segmented radio. */
+.bdm-layers {
     display: inline-flex;
-    border: 1px solid var(--hood-border, #e5e7eb);
-    border-radius: var(--hood-radius-pill, 999px);
-    padding: 2px;
-    background: var(--hood-surface-2, #f9fafb);
+    gap: 6px;
+    flex-wrap: wrap;
 }
 
-.bdm-mode-btn {
+.bdm-layer-btn {
     appearance: none;
-    border: 0;
-    background: transparent;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    border: 1px solid var(--hood-border, #e5e7eb);
+    background: var(--hood-surface-2, #f9fafb);
     color: var(--hood-muted, #6b7280);
     font: inherit;
     font-size: 12px;
     font-weight: 500;
-    padding: 5px 12px;
+    padding: 5px 11px;
     border-radius: var(--hood-radius-pill, 999px);
     cursor: pointer;
-    transition: background var(--hood-transition, 0.15s), color var(--hood-transition, 0.15s);
+    white-space: nowrap;
+    transition: background var(--hood-transition, 0.15s), color var(--hood-transition, 0.15s), border-color var(--hood-transition, 0.15s);
 }
 
-.bdm-mode-btn[aria-pressed="true"] {
+.bdm-layer-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    border: 1.5px solid currentColor;
+    background: transparent;
+    flex: none;
+    transition: background var(--hood-transition, 0.15s), border-color var(--hood-transition, 0.15s);
+}
+
+.bdm-layer-btn:hover {
+    border-color: var(--hood-border-strong, #d1d5db);
+    color: var(--hood-ink, #111827);
+}
+
+.bdm-layer-btn[aria-pressed="true"] {
     background: var(--hood-surface, #fff);
     color: var(--hood-ink, #111827);
     box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
+}
+
+/* Per-layer accent on the active dot: sky = point cloud (LiDAR colours),
+   red = building (its mesh colour), green = aerial basemap. */
+.bdm-layer-point[aria-pressed="true"] .bdm-layer-dot {
+    background: #38bdf8;
+    border-color: #38bdf8;
+}
+
+.bdm-layer-building[aria-pressed="true"] .bdm-layer-dot {
+    background: #dc2626;
+    border-color: #dc2626;
+}
+
+.bdm-layer-basemap[aria-pressed="true"] .bdm-layer-dot {
+    background: #10b981;
+    border-color: #10b981;
 }
 
 .bdm-close {
@@ -185,18 +222,21 @@
     color: #94a3b8;
 }
 
-[data-theme="dark"] .bdm-mode {
+[data-theme="dark"] .bdm-layer-btn {
     background: rgba(255, 255, 255, 0.04);
     border-color: rgba(255, 255, 255, 0.08);
-}
-
-[data-theme="dark"] .bdm-mode-btn {
     color: #cbd5e1;
 }
 
-[data-theme="dark"] .bdm-mode-btn[aria-pressed="true"] {
+[data-theme="dark"] .bdm-layer-btn:hover {
+    border-color: rgba(255, 255, 255, 0.18);
+    color: #f1f5f9;
+}
+
+[data-theme="dark"] .bdm-layer-btn[aria-pressed="true"] {
     background: #1f2937;
     color: #f1f5f9;
+    border-color: rgba(255, 255, 255, 0.14);
 }
 
 [data-theme="dark"] .bdm-close:hover {
@@ -220,7 +260,24 @@ body.bdm-open {
     .bdm[data-state="visible"] .bdm-panel {
         transform: translate(0, 0);
     }
-    .bdm-mode-btn {
-        padding: 5px 8px;
+    /* Let the toggle chips wrap onto their own row under the title/close on
+       narrow screens instead of squeezing the header into one overflowing
+       row. Order keeps title + close on row 1, chips on row 2. */
+    .bdm-header {
+        flex-wrap: wrap;
+    }
+    .bdm-titles {
+        order: 1;
+        flex: 1 1 60%;
+    }
+    .bdm-close {
+        order: 2;
+    }
+    .bdm-layers {
+        order: 3;
+        flex-basis: 100%;
+    }
+    .bdm-layer-btn {
+        padding: 5px 9px;
     }
 }
