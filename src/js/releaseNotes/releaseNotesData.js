@@ -41,6 +41,28 @@ export const KIND_META = {
 
 export const RELEASES = [
     {
+        version: '0.8.1',
+        date: 'June 3, 2026',
+        codename: 'Planted',
+        summary:
+            'Two fixes to the building-detail 3D viewer (the popup that opens from a comparable building). The solid model used to float high above its terrain: the building mesh arrives at absolute elevation (hundreds of metres above sea level) while the terrain point cloud is rebased so its lowest point sits at the origin, so the two never lined up. The viewer now samples the terrain\'s ground-class LiDAR points directly under the footprint and drops the building onto that local ground level, so it sits planted on the terrain in both point-cloud and solid modes. Separately, the point-cloud view now loads a tighter zone — the default radius is halved (≈100 m across instead of ≈200 m) so the scene is focused on the building rather than a wide stretch of neighbourhood.',
+        highlight: false,
+        items: [
+            {
+                kind: 'fixed',
+                icon: 'move-vertical',
+                text: 'The solid 3D model no longer floats above the terrain. The building GLB comes in at absolute LV95 elevation while the terrain cloud is rebased to a zero origin, so the model levitated by the scene\'s base elevation. The viewer now raycasts the terrain\'s ground-class points under the footprint (stepping the sample radius outward to clear ground gaps under dense blocks) and seats the building\'s lowest vertex on that local ground level — fixing both the point-cloud and solid modes.',
+                prs: [],
+            },
+            {
+                kind: 'improved',
+                icon: 'scan',
+                text: 'The point-cloud view now loads a smaller, tighter zone: the default scene radius is halved (50 m, ≈100 m across) so the visualisation centres on the building instead of pulling in a wide neighbourhood of points.',
+                prs: [],
+            },
+        ],
+    },
+    {
         version: '0.8.0',
         date: 'June 3, 2026',
         codename: 'Whole Parcel',
