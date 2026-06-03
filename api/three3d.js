@@ -146,32 +146,34 @@ export default async function handler(req, res) {
         );
 
         // A 5xx from the model endpoints is transient and worth retrying.
-        // Two distinct failures produce it, observed live:
-        //   1. The known upstream cache-read bug — HTTP 500 "cannot access
-        //      local variable 'glb_bytes'" raised on cache *hits* (the
-        //      cache-read branch is dead code). Fresh generation works.
-        //   2. An intermittent Cloudflare/tunnel "Bad Gateway" (HTTP 502
-        //      with an HTML error page) in front of the origin, while the
-        //      origin itself serves the request fine moments later.
-        // In both cases the origin answers a fresh request reliably, so we
-        // retry with a slightly perturbed lat/lng. The jitter changes the
-        // upstream cache key (dodging bug #1) and re-rolls the flaky edge
-        // (bug #2). Offsets are sub-metre — imperceptible against the
-        // scene's tens-of-metres radius. We retry on ANY 5xx rather than
-        // only the cache-bug signature so the Cloudflare 502 is covered too.
+        // Two failures produce it, both verified live against the origin:
+        //   1. The upstream caches GLBs under an EXACT, full-precision key
+        //      `{lat}_{lng}_{bbox_radius_m}_{classes}_{color_by}`, but its
+        //      cache-READ branch is dead code (`if False and ...`) and it
+        //      only generates when the file is absent — so a cache HIT (any
+        //      coordinate generated before) raises HTTP 500 "cannot access
+        //      local variable 'glb_bytes'" instead of returning the cached
+        //      bytes. See project_res_3D_api/app/main.py get_point_cloud_glb.
+        //   2. An intermittent Cloudflare/tunnel "Bad Gateway" (HTTP 502).
+        // A *fresh, never-before-seen* cache key always regenerates cleanly,
+        // so each retry RANDOMISES a key component. Randomness is essential:
+        // a fixed offset gets cached on first use and is then poisoned too,
+        // so it must differ every attempt. For terrain we nudge the radius
+        // by a sub-centimetre random amount (keeps the centre EXACT); for
+        // building (no radius) we jitter lat/lng by ≤~0.6 m (the client has
+        // already snapped the centre well inside the footprint, so it still
+        // intersects). Both are imperceptible at the scene's 25 m radius.
         if ((op === 'terrain' || op === 'building') && upstream && upstream.status >= 500) {
-            const perturbations = [
-                [0.0000010, 0.0000010],
-                [-0.0000010, 0.0000010],
-                [0.0000020, -0.0000020],
-                [0.0000035, 0.0000035],
-            ];
-            for (const [dLat, dLng] of perturbations) {
-                const perturbed = {
-                    ...body,
-                    lat: Number(body.lat) + dLat,
-                    lng: Number(body.lng) + dLng,
-                };
+            for (let attempt = 0; attempt < 4; attempt++) {
+                const perturbed = { ...body };
+                if (op === 'terrain') {
+                    const r = Number(body.bbox_radius_m) || 25;
+                    perturbed.bbox_radius_m = r + Math.random() * 0.01; // +0–1 cm, fresh key
+                } else {
+                    const jitter = () => (Math.random() * 2 - 1) * 0.000006; // ±~0.6 m
+                    perturbed.lat = Number(body.lat) + jitter();
+                    perturbed.lng = Number(body.lng) + jitter();
+                }
                 upstream = await fetchUpstreamWithBusyRetry(
                     `${CONTOOR_BASE}${upstreamPath}`,
                     {
