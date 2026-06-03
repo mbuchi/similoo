@@ -41,6 +41,28 @@ export const KIND_META = {
 
 export const RELEASES = [
     {
+        version: '0.8.2',
+        date: 'June 3, 2026',
+        codename: 'No Bad Gateway',
+        summary:
+            'Fixes the two errors that broke the building-detail 3D viewer when opening a comparable. First, the point cloud sometimes failed with a "502 Bad Gateway": the 3D upstream is fronted by a tunnel that intermittently returns a gateway error even though the origin serves the request fine moments later. The proxy already retried the upstream\'s known cache-read bug, but it surfaced these gateway errors immediately — it now retries any transient upstream 5xx (with a sub-metre coordinate jitter that also dodges the cache bug), so the point cloud loads reliably. Second, the solid model often failed with "No features returned from WFS": a comparable\'s coordinate can land a few metres off its building footprint, so the upstream\'s exact-point lookup missed. The viewer now snaps to the nearest real footprint before loading and recenters the whole scene there, so the building resolves and sits on its own terrain. If no footprint is nearby it falls back gracefully to a terrain-only view.',
+        highlight: false,
+        items: [
+            {
+                kind: 'fixed',
+                icon: 'plug-zap',
+                text: 'Point cloud no longer fails with "502 Bad Gateway". The Vercel proxy now retries any transient upstream 5xx (the intermittent Cloudflare/tunnel 502 in front of the 3D origin, as well as the origin\'s cache-read bug) using a sub-metre lat/lng jitter that both re-rolls the flaky edge and changes the upstream cache key. The origin answers fresh requests reliably, so the point cloud loads on retry instead of erroring out.',
+                prs: [],
+            },
+            {
+                kind: 'fixed',
+                icon: 'crosshair',
+                text: 'Solid model no longer fails with "No features returned from WFS". A comparable\'s coordinate can sit a few metres outside its footprint polygon, so the upstream\'s exact-point INTERSECTS lookup found nothing. The viewer now snaps to the nearest building footprint (its GWR reference point, reliably inside the polygon) and recenters the whole scene on it, so the terrain slice and the building stay co-located and the model resolves. Falls back to the raw coordinate (terrain only) when no footprint is nearby.',
+                prs: [],
+            },
+        ],
+    },
+    {
         version: '0.8.1',
         date: 'June 3, 2026',
         codename: 'Planted',

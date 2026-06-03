@@ -145,58 +145,49 @@ export default async function handler(req, res) {
             },
         );
 
-        // The pointcloud/glb and building-model endpoints share the same
-        // cache-read codepath upstream, which has a known bug: it raises
-        // 500 "cannot access local variable 'glb_bytes'" / "'metadata'"
-        // on cache hits because the cache-read branch is dead code. We
-        // can't restart the upstream, but we can perturb lat/lng so the
-        // cache key changes and the upstream falls back to fresh
-        // generation. Each retry uses a different perturbation in case
-        // the previous one is now also cached.
+        // A 5xx from the model endpoints is transient and worth retrying.
+        // Two distinct failures produce it, observed live:
+        //   1. The known upstream cache-read bug — HTTP 500 "cannot access
+        //      local variable 'glb_bytes'" raised on cache *hits* (the
+        //      cache-read branch is dead code). Fresh generation works.
+        //   2. An intermittent Cloudflare/tunnel "Bad Gateway" (HTTP 502
+        //      with an HTML error page) in front of the origin, while the
+        //      origin itself serves the request fine moments later.
+        // In both cases the origin answers a fresh request reliably, so we
+        // retry with a slightly perturbed lat/lng. The jitter changes the
+        // upstream cache key (dodging bug #1) and re-rolls the flaky edge
+        // (bug #2). Offsets are sub-metre — imperceptible against the
+        // scene's tens-of-metres radius. We retry on ANY 5xx rather than
+        // only the cache-bug signature so the Cloudflare 502 is covered too.
         if ((op === 'terrain' || op === 'building') && upstream && upstream.status >= 500) {
-            const text = await upstream.text().catch(() => '');
-            const isCacheBug =
-                /cannot access local variable/i.test(text) ||
-                /'glb_bytes'|'metadata'/i.test(text);
-
-            if (isCacheBug) {
-                const perturbations = [
-                    [0.000001, 0.000001],
-                    [-0.000001, 0.000001],
-                    [0.000002, -0.000002],
-                    // Last-resort jitter, near-guaranteed fresh key.
-                    [Math.random() * 0.000005, Math.random() * 0.000005],
-                ];
-                for (const [dLat, dLng] of perturbations) {
-                    const perturbed = {
-                        ...body,
-                        lat: Number(body.lat) + dLat,
-                        lng: Number(body.lng) + dLng,
-                    };
-                    upstream = await fetchUpstreamWithBusyRetry(
-                        `${CONTOOR_BASE}${upstreamPath}`,
-                        {
-                            method: 'POST',
-                            headers,
-                            body: JSON.stringify(perturbed),
-                            signal: controller.signal,
-                        },
-                    );
-                    if (!upstream || upstream.status < 500) break;
-                    // Keep trying if it's still the cache bug.
-                    const rt = await upstream.clone().text().catch(() => '');
-                    if (!/cannot access local variable|'glb_bytes'|'metadata'/i.test(rt)) {
-                        break;
-                    }
-                }
-            } else if (text) {
-                // Not the cache-hit bug — surface the original error.
-                sendJson(res, upstream.status >= 500 ? 502 : upstream.status, {
-                    error: `Upstream ${upstream.status}`,
-                    detail: text.slice(0, 400),
-                });
-                return;
+            const perturbations = [
+                [0.0000010, 0.0000010],
+                [-0.0000010, 0.0000010],
+                [0.0000020, -0.0000020],
+                [0.0000035, 0.0000035],
+            ];
+            for (const [dLat, dLng] of perturbations) {
+                const perturbed = {
+                    ...body,
+                    lat: Number(body.lat) + dLat,
+                    lng: Number(body.lng) + dLng,
+                };
+                upstream = await fetchUpstreamWithBusyRetry(
+                    `${CONTOOR_BASE}${upstreamPath}`,
+                    {
+                        method: 'POST',
+                        headers,
+                        body: JSON.stringify(perturbed),
+                        signal: controller.signal,
+                    },
+                );
+                if (!upstream || upstream.status < 500) break;
             }
+        }
+
+        if (!upstream) {
+            sendJson(res, 502, { error: 'three3d upstream unreachable' });
+            return;
         }
 
         if (!upstream.ok) {
