@@ -41,6 +41,22 @@ export const KIND_META = {
 
 export const RELEASES = [
     {
+        version: '0.8.3',
+        date: 'June 3, 2026',
+        codename: 'Fresh Key',
+        summary:
+            'Completes the v0.8.2 point-cloud "502" fix. The 3D upstream caches each GLB under an exact, full-precision coordinate key, and a bug makes it return a 500 (surfaced as a 502) on any cache HIT — i.e. the second and later times the same building is viewed. v0.8.2 retried with a few fixed coordinate nudges, but once used those fixed nudges get cached and poisoned too, so a repeatedly-viewed building kept failing. The retry now randomises the upstream cache key on every attempt — for the point cloud it nudges the request radius by a sub-centimetre random amount (keeping the centre exactly where you clicked), so every retry is a key the cache has never seen and regenerates cleanly. Verified against the live origin: a previously-failing coordinate now recovers on the first retry.',
+        highlight: false,
+        items: [
+            {
+                kind: 'fixed',
+                icon: 'refresh-cw',
+                text: 'Point cloud now recovers reliably from the upstream cache-hit 500/502, including on repeat views of the same building. The proxy retry randomises the upstream cache key each attempt (a sub-centimetre random radius nudge for terrain — centre stays exact — or a sub-metre lat/lng jitter for the building model) so it always lands on a fresh, never-poisoned cache entry instead of re-hitting the same broken one. Replaces v0.8.2\'s fixed nudges, which became poisoned after first use.',
+                prs: [],
+            },
+        ],
+    },
+    {
         version: '0.8.2',
         date: 'June 3, 2026',
         codename: 'No Bad Gateway',
