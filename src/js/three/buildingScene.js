@@ -11,12 +11,34 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 
-import { fetchTerrainGLB, fetchBuildingGLB } from './api3d.js';
+import { fetchTerrainGLB, fetchBuildingGLB, fetchFootprintsBBox } from './api3d.js';
 import { wgs84ToLV95 } from './swissCoords.js';
 
 // A quarter of the original 100 m so the point-cloud view loads a tight
 // zone (≈50 m across) focused on the building, not a wide neighbourhood.
 const SCENE_RADIUS_M = 25;
+
+// An incoming lat/lng (e.g. a similoo comparable's coordinate) can sit a
+// few metres off its building footprint — just outside the polygon — so
+// the upstream building-model's INTERSECTS misses entirely ("No features
+// returned from WFS", a 404). Snap to the nearest real footprint (its GWR
+// reference point, which reliably falls inside the polygon) so the model
+// resolves. We recenter the WHOLE scene on the snapped point so the
+// terrain slice and the building stay co-located; if no footprint is
+// found nearby, we keep the original coordinate and fall back gracefully
+// to a terrain-only view.
+async function resolveSceneCenter(lat, lng) {
+    try {
+        const fp = await fetchFootprintsBBox({ lat, lng, radius_m: 120 });
+        const nearest = fp?.buildings?.[0];
+        if (nearest && Number.isFinite(nearest.lat) && Number.isFinite(nearest.lng)) {
+            return { lat: nearest.lat, lng: nearest.lng };
+        }
+    } catch (err) {
+        console.warn('detail scene snap failed; using raw coordinate', err);
+    }
+    return { lat, lng };
+}
 
 export function createBuildingScene({ container }) {
     if (!container) throw new Error('createBuildingScene: container is required');
@@ -336,10 +358,15 @@ export function createBuildingScene({ container }) {
         terrainSolidObject = null;
         buildingObject = null;
 
-        const { easting: centerE, northing: centerN } = wgs84ToLV95(lng, lat);
+        // Snap to the nearest footprint so the building resolves and the
+        // terrain/building stay co-located on one real building.
+        const { lat: clat, lng: clng } = await resolveSceneCenter(lat, lng);
+        if (token !== loadToken) return;
+
+        const { easting: centerE, northing: centerN } = wgs84ToLV95(clng, clat);
 
         try {
-            const { blob } = await fetchTerrainGLB({ lat, lng, radius_m: SCENE_RADIUS_M });
+            const { blob } = await fetchTerrainGLB({ lat: clat, lng: clng, radius_m: SCENE_RADIUS_M });
             if (token !== loadToken) return;
             const gltf = await loadGLBBlob(blob);
             const terrain = gltf.scene;
@@ -359,7 +386,7 @@ export function createBuildingScene({ container }) {
         }
 
         try {
-            const { blob } = await fetchBuildingGLB({ lat, lng });
+            const { blob } = await fetchBuildingGLB({ lat: clat, lng: clng });
             if (token !== loadToken) return;
             const gltf = await loadGLBBlob(blob);
             const building = gltf.scene;
@@ -379,7 +406,7 @@ export function createBuildingScene({ container }) {
         if (token !== loadToken) return;
         setMode(mode);
         frameOnContent(sceneGroup);
-        return { label, lat, lng };
+        return { label, lat: clat, lng: clng };
     }
 
     function frameOnContent(group) {
