@@ -52,7 +52,7 @@ export const RELEASES = [
                 kind: 'fixed',
                 icon: 'refresh-cw',
                 text: 'Point cloud now recovers reliably from the upstream cache-hit 500/502, including on repeat views of the same building. The proxy retry randomises the upstream cache key each attempt (a sub-centimetre random radius nudge for terrain — centre stays exact — or a sub-metre lat/lng jitter for the building model) so it always lands on a fresh, never-poisoned cache entry instead of re-hitting the same broken one. Replaces v0.8.2\'s fixed nudges, which became poisoned after first use.',
-                prs: [],
+                prs: [26],
             },
         ],
     },
