@@ -375,6 +375,45 @@ const translations = {
     'detail.mode_solid': 'Solid model',
     'detail.loading': 'Loading 3D scene…',
     'detail.error': 'Could not load 3D scene.',
+
+    // ---------- methodology help ("?" modal) ----------
+    'help.button_aria': 'How comparable buildings are calculated',
+    'help.eyebrow': 'How it works',
+    'help.title': 'How comparables are calculated',
+    'help.subtitle':
+      'similoo ranks the buildings most similar to the one you searched — in three steps.',
+    'help.intro':
+      'When you search an address, similoo looks for buildings that are genuine peers of the one on your parcel — same planning zone, similar age, similar density — then ranks them by how closely they match. Here is exactly how that works.',
+    'help.step1_title': 'Pick the target parcel',
+    'help.step1_body':
+      'The address you search resolves to a parcel and its EGRID (the official Swiss parcel id). similoo reads that parcel\'s key figures from the building register (GWR): planning zone, parcel area, building volume, footprint, height, floors and construction year. Every candidate is then measured against this target.',
+    'help.step2_title': 'Filter down to true peers',
+    'help.step2_body':
+      'A candidate must clear two hard filters before it can be ranked at all:',
+    'help.filter_zone_title': 'Same zone',
+    'help.filter_zone_body':
+      'Only parcels in the same planning zone (cz_local) as the target qualify — the parcels washed green on the map. A villa zone is never compared against a city-centre core.',
+    'help.filter_year_title': 'Recent construction',
+    'help.filter_year_body':
+      'Only buildings built within the years window count — 10 years by default, adjustable from 1 to 30 with the slider in the sidebar. Widening it surfaces more, older comparables.',
+    'help.step3_title': 'Score and rank',
+    'help.step3_body':
+      'Each candidate that clears the filters gets a similarity score from 0–100 %. The score starts at 100 % and is reduced by how far the candidate sits from the target on three weighted axes:',
+    'help.factor_size': 'Parcel size',
+    'help.factor_ratiov': 'Volume density (ratioV)',
+    'help.factor_year': 'Construction year',
+    'help.step3_note':
+      'The closer a candidate\'s parcel size, ratioV and age are to the target, the higher its match. Cards are sorted by similarity by default, but you can re-sort them by ratioV, parcel size or year.',
+    'help.ratiov_title': 'What is ratioV?',
+    'help.ratiov_body':
+      'ratioV is the building volume divided by the parcel area — a measure of how densely a parcel is built up. It is similoo\'s headline metric because two buildings with a similar ratioV exploit their land in a similar way, even when their absolute size differs.',
+    'help.ratiov_formula': 'building volume (m³) ÷ parcel area (m²)',
+    'help.legend_title': 'Reading the map',
+    'help.legend_intro': 'The three highlight colours map onto the steps above:',
+    'help.data_body':
+      'Comparables are computed server-side from the Swiss Building & Dwelling Register (GWR) via the /score/similoo service. If that service is unreachable, the sidebar falls back to clearly-labelled demo data so the flow stays explorable — the “Demo data” / “Live” tag under the list tells you which one you are seeing.',
+    'help.footer': 'Adjust the years window or parcel-size range in the sidebar to refine the set.',
+    'help.close': 'Close',
   },
 
   fr: {
@@ -712,6 +751,45 @@ const translations = {
     'detail.mode_solid': 'Modèle solide',
     'detail.loading': 'Chargement de la scène 3D…',
     'detail.error': 'Impossible de charger la scène 3D.',
+
+    // ---------- methodology help ("?" modal) ----------
+    'help.button_aria': 'Comment les bâtiments comparables sont calculés',
+    'help.eyebrow': 'Comment ça marche',
+    'help.title': 'Comment les comparables sont calculés',
+    'help.subtitle':
+      'similoo classe les bâtiments les plus similaires à celui que vous avez recherché — en trois étapes.',
+    'help.intro':
+      'Lorsque vous recherchez une adresse, similoo cherche des bâtiments réellement comparables à celui de votre parcelle — même zone d\'affectation, âge similaire, densité similaire — puis les classe selon leur degré de correspondance. Voici exactement comment cela fonctionne.',
+    'help.step1_title': 'Choisir la parcelle cible',
+    'help.step1_body':
+      'L\'adresse recherchée est résolue en une parcelle et son EGRID (l\'identifiant officiel suisse de la parcelle). similoo lit les chiffres clés de cette parcelle dans le registre des bâtiments (RegBL) : zone d\'affectation, surface de parcelle, volume bâti, emprise, hauteur, étages et année de construction. Chaque candidat est ensuite mesuré par rapport à cette cible.',
+    'help.step2_title': 'Restreindre aux vrais pairs',
+    'help.step2_body':
+      'Un candidat doit franchir deux filtres stricts avant de pouvoir être classé :',
+    'help.filter_zone_title': 'Même zone',
+    'help.filter_zone_body':
+      'Seules les parcelles situées dans la même zone d\'affectation (cz_local) que la cible sont retenues — les parcelles teintées en vert sur la carte. Une zone de villas n\'est jamais comparée à un cœur de ville.',
+    'help.filter_year_title': 'Construction récente',
+    'help.filter_year_body':
+      'Seuls les bâtiments construits dans la fenêtre d\'années comptent — 10 ans par défaut, réglable de 1 à 30 avec le curseur de la barre latérale. L\'élargir fait apparaître davantage de comparables, plus anciens.',
+    'help.step3_title': 'Noter et classer',
+    'help.step3_body':
+      'Chaque candidat qui franchit les filtres reçoit un score de similarité de 0 à 100 %. Le score part de 100 % puis est réduit selon l\'écart du candidat par rapport à la cible sur trois axes pondérés :',
+    'help.factor_size': 'Surface de parcelle',
+    'help.factor_ratiov': 'Densité de volume (ratioV)',
+    'help.factor_year': 'Année de construction',
+    'help.step3_note':
+      'Plus la surface de parcelle, le ratioV et l\'âge d\'un candidat sont proches de la cible, plus sa correspondance est élevée. Les cartes sont triées par similarité par défaut, mais vous pouvez les retrier par ratioV, surface de parcelle ou année.',
+    'help.ratiov_title': 'Qu\'est-ce que le ratioV ?',
+    'help.ratiov_body':
+      'Le ratioV est le volume bâti divisé par la surface de la parcelle — une mesure de la densité de construction d\'une parcelle. C\'est la métrique phare de similoo, car deux bâtiments au ratioV similaire exploitent leur terrain de manière similaire, même si leur taille absolue diffère.',
+    'help.ratiov_formula': 'volume bâti (m³) ÷ surface de parcelle (m²)',
+    'help.legend_title': 'Lire la carte',
+    'help.legend_intro': 'Les trois couleurs de surbrillance correspondent aux étapes ci-dessus :',
+    'help.data_body':
+      'Les comparables sont calculés côté serveur à partir du Registre des bâtiments et des logements (RegBL) via le service /score/similoo. Si ce service est inaccessible, la barre latérale bascule sur des données de démonstration clairement étiquetées afin que le parcours reste explorable — l\'étiquette « Données démo » / « En direct » sous la liste indique laquelle vous voyez.',
+    'help.footer': 'Ajustez la fenêtre d\'années ou la plage de surface dans la barre latérale pour affiner l\'ensemble.',
+    'help.close': 'Fermer',
   },
 
   de: {
@@ -1049,6 +1127,45 @@ const translations = {
     'detail.mode_solid': 'Festkörpermodell',
     'detail.loading': '3D-Szene wird geladen…',
     'detail.error': '3D-Szene konnte nicht geladen werden.',
+
+    // ---------- methodology help ("?" modal) ----------
+    'help.button_aria': 'Wie vergleichbare Gebäude berechnet werden',
+    'help.eyebrow': 'So funktioniert\'s',
+    'help.title': 'Wie Vergleichsobjekte berechnet werden',
+    'help.subtitle':
+      'similoo reiht die Gebäude, die dem gesuchten am ähnlichsten sind — in drei Schritten.',
+    'help.intro':
+      'Wenn Sie eine Adresse suchen, sucht similoo nach Gebäuden, die echte Pendants zu dem auf Ihrer Parzelle sind — gleiche Nutzungszone, ähnliches Alter, ähnliche Dichte — und reiht sie danach, wie genau sie übereinstimmen. So funktioniert das genau.',
+    'help.step1_title': 'Zielparzelle bestimmen',
+    'help.step1_body':
+      'Die gesuchte Adresse wird zu einer Parzelle und ihrem EGRID (der offiziellen Schweizer Parzellen-ID) aufgelöst. similoo liest die Kennzahlen dieser Parzelle aus dem Gebäuderegister (GWR): Nutzungszone, Parzellenfläche, Gebäudevolumen, Grundfläche, Höhe, Geschosse und Baujahr. Jeder Kandidat wird dann an dieser Zielparzelle gemessen.',
+    'help.step2_title': 'Auf echte Pendants eingrenzen',
+    'help.step2_body':
+      'Ein Kandidat muss zwei harte Filter passieren, bevor er überhaupt eingereiht wird:',
+    'help.filter_zone_title': 'Gleiche Zone',
+    'help.filter_zone_body':
+      'Nur Parzellen in derselben Nutzungszone (cz_local) wie das Ziel kommen infrage — die auf der Karte grün eingefärbten Parzellen. Eine Villenzone wird nie mit einem Stadtzentrum verglichen.',
+    'help.filter_year_title': 'Neubau',
+    'help.filter_year_body':
+      'Nur Gebäude, die innerhalb des Jahresfensters gebaut wurden, zählen — standardmässig 10 Jahre, mit dem Regler in der Seitenleiste von 1 bis 30 einstellbar. Ein grösseres Fenster bringt mehr, ältere Vergleichsobjekte hervor.',
+    'help.step3_title': 'Bewerten und reihen',
+    'help.step3_body':
+      'Jeder Kandidat, der die Filter passiert, erhält einen Ähnlichkeitswert von 0–100 %. Der Wert beginnt bei 100 % und wird danach reduziert, wie weit der Kandidat auf drei gewichteten Achsen vom Ziel entfernt ist:',
+    'help.factor_size': 'Parzellenfläche',
+    'help.factor_ratiov': 'Volumendichte (ratioV)',
+    'help.factor_year': 'Baujahr',
+    'help.step3_note':
+      'Je näher Parzellenfläche, ratioV und Alter eines Kandidaten am Ziel liegen, desto höher seine Übereinstimmung. Die Karten sind standardmässig nach Ähnlichkeit sortiert, lassen sich aber nach ratioV, Parzellenfläche oder Baujahr neu sortieren.',
+    'help.ratiov_title': 'Was ist ratioV?',
+    'help.ratiov_body':
+      'ratioV ist das Gebäudevolumen geteilt durch die Parzellenfläche — ein Mass dafür, wie dicht eine Parzelle bebaut ist. Es ist similoos Leitkennzahl, weil zwei Gebäude mit ähnlichem ratioV ihr Land auf ähnliche Weise nutzen, selbst wenn ihre absolute Grösse abweicht.',
+    'help.ratiov_formula': 'Gebäudevolumen (m³) ÷ Parzellenfläche (m²)',
+    'help.legend_title': 'Die Karte lesen',
+    'help.legend_intro': 'Die drei Hervorhebungsfarben entsprechen den obigen Schritten:',
+    'help.data_body':
+      'Vergleichsobjekte werden serverseitig aus dem Eidgenössischen Gebäude- und Wohnungsregister (GWR) über den Dienst /score/similoo berechnet. Ist dieser Dienst nicht erreichbar, weicht die Seitenleiste auf klar gekennzeichnete Demodaten aus, damit der Ablauf erkundbar bleibt — die Markierung «Demodaten» / «Live» unter der Liste zeigt an, welche Sie gerade sehen.',
+    'help.footer': 'Passen Sie das Jahresfenster oder den Flächenbereich in der Seitenleiste an, um die Auswahl zu verfeinern.',
+    'help.close': 'Schliessen',
   },
 
   it: {
@@ -1385,6 +1502,45 @@ const translations = {
     'detail.mode_solid': 'Modello solido',
     'detail.loading': 'Caricamento scena 3D…',
     'detail.error': 'Impossibile caricare la scena 3D.',
+
+    // ---------- methodology help ("?" modal) ----------
+    'help.button_aria': 'Come vengono calcolati gli edifici comparabili',
+    'help.eyebrow': 'Come funziona',
+    'help.title': 'Come vengono calcolati i comparabili',
+    'help.subtitle':
+      'similoo classifica gli edifici più simili a quello che hai cercato — in tre passaggi.',
+    'help.intro':
+      'Quando cerchi un indirizzo, similoo cerca edifici realmente paragonabili a quello sulla tua particella — stessa zona di pianificazione, età simile, densità simile — e poi li classifica in base a quanto corrispondono. Ecco esattamente come funziona.',
+    'help.step1_title': 'Scegliere la particella di riferimento',
+    'help.step1_body':
+      'L\'indirizzo cercato viene risolto in una particella e nel suo EGRID (l\'identificativo ufficiale svizzero della particella). similoo legge i dati chiave di quella particella dal registro degli edifici (RegBL): zona di pianificazione, superficie della particella, volume edificato, impronta, altezza, piani e anno di costruzione. Ogni candidato viene poi confrontato con questo riferimento.',
+    'help.step2_title': 'Restringere ai veri simili',
+    'help.step2_body':
+      'Un candidato deve superare due filtri rigidi prima di poter essere classificato:',
+    'help.filter_zone_title': 'Stessa zona',
+    'help.filter_zone_body':
+      'Si qualificano solo le particelle nella stessa zona di pianificazione (cz_local) del riferimento — le particelle colorate di verde sulla mappa. Una zona di ville non viene mai confrontata con un centro cittadino.',
+    'help.filter_year_title': 'Costruzione recente',
+    'help.filter_year_body':
+      'Contano solo gli edifici costruiti entro la finestra di anni — 10 anni per impostazione predefinita, regolabile da 1 a 30 con il cursore nella barra laterale. Allargandola emergono comparabili più numerosi e più datati.',
+    'help.step3_title': 'Valutare e classificare',
+    'help.step3_body':
+      'Ogni candidato che supera i filtri riceve un punteggio di similarità da 0 a 100 %. Il punteggio parte da 100 % e viene ridotto in base a quanto il candidato si discosta dal riferimento su tre assi ponderati:',
+    'help.factor_size': 'Superficie della particella',
+    'help.factor_ratiov': 'Densità di volume (ratioV)',
+    'help.factor_year': 'Anno di costruzione',
+    'help.step3_note':
+      'Più la superficie della particella, il ratioV e l\'età di un candidato sono vicini al riferimento, più alta è la sua corrispondenza. Le schede sono ordinate per similarità per impostazione predefinita, ma puoi riordinarle per ratioV, superficie o anno.',
+    'help.ratiov_title': 'Che cos\'è il ratioV?',
+    'help.ratiov_body':
+      'Il ratioV è il volume edificato diviso per la superficie della particella — una misura di quanto densamente è edificata una particella. È la metrica di punta di similoo perché due edifici con ratioV simile sfruttano il terreno in modo simile, anche quando la loro dimensione assoluta è diversa.',
+    'help.ratiov_formula': 'volume edificato (m³) ÷ superficie particella (m²)',
+    'help.legend_title': 'Leggere la mappa',
+    'help.legend_intro': 'I tre colori di evidenziazione corrispondono ai passaggi qui sopra:',
+    'help.data_body':
+      'I comparabili sono calcolati lato server dal Registro federale degli edifici e delle abitazioni (RegBL) tramite il servizio /score/similoo. Se questo servizio non è raggiungibile, la barra laterale ripiega su dati dimostrativi chiaramente etichettati affinché il percorso resti esplorabile — l\'etichetta «Dati demo» / «Live» sotto l\'elenco indica quale stai vedendo.',
+    'help.footer': 'Regola la finestra di anni o l\'intervallo di superficie nella barra laterale per affinare l\'insieme.',
+    'help.close': 'Chiudi',
   },
 };
 

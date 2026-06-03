@@ -83,6 +83,7 @@
     <link rel="stylesheet" href="/src/css/comparison.css">
     <link rel="stylesheet" href="/src/css/map.css">
     <link rel="stylesheet" href="/src/css/buildingDetailModal.css">
+    <link rel="stylesheet" href="/src/css/methodologyHelp.css">
 </head>
 <body>
 <div class="navbar">
@@ -94,6 +95,12 @@
         <span class="logo-subtitle" data-i18n="nav.logo_subtitle">Comparable Buildings</span>
       </div>
       <div class="navbar-actions">
+        <button id="helpButton" class="nav-action-button" type="button"
+                aria-label="How comparable buildings are calculated"
+                title="How comparable buildings are calculated"
+                data-i18n-attr="aria-label:help.button_aria,title:help.button_aria">
+            <i data-lucide="help-circle"></i>
+        </button>
         <button id="themeToggleButton" class="theme-toggle-button" title="Toggle dark mode" aria-label="Toggle dark mode" aria-pressed="false">
             <svg class="theme-toggle-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                 <circle cx="12" cy="12" r="4"></circle>
