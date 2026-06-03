@@ -1,11 +1,10 @@
 // Building-detail popup.
 //
-// Opens an overlay that renders a 100 m LAS slice around a comparable
-// building in Three.js. Lazy-mounts the scene on first open, reuses the
-// renderer across opens, and exposes a mode toggle so users can flip
-// between the raw coloured point cloud (LAS classification colours)
-// and a derived solid mesh (Roofer building model on a grey terrain
-// extracted from the ground class).
+// Opens an overlay that renders a LAS slice around a comparable building
+// in Three.js. Lazy-mounts the scene on first open, reuses the renderer
+// across opens, and exposes three independent layer toggles — Point
+// cloud, Buildings, and an aerial Basemap drape — over an always-visible
+// solid terrain base. (Replaces the old two-tab point-cloud/solid switch.)
 //
 // Public API:
 //   const modal = createBuildingDetailModal();
@@ -24,8 +23,7 @@ export function createBuildingDetailModal() {
         title: root.querySelector('.bdm-title'),
         subtitle: root.querySelector('.bdm-subtitle'),
         closeBtn: root.querySelector('.bdm-close'),
-        modePointBtn: root.querySelector('.bdm-mode-point'),
-        modeSolidBtn: root.querySelector('.bdm-mode-solid'),
+        layerBtns: Array.from(root.querySelectorAll('.bdm-layer-btn')),
         canvas: root.querySelector('.bdm-canvas'),
         status: root.querySelector('.bdm-status'),
     };
@@ -40,19 +38,31 @@ export function createBuildingDetailModal() {
         if (e.key === 'Escape' && root.getAttribute('data-state') === 'visible') hide();
     });
 
-    els.modePointBtn.addEventListener('click', () => setMode('pointcloud'));
-    els.modeSolidBtn.addEventListener('click', () => setMode('solid'));
+    els.layerBtns.forEach((btn) => {
+        btn.addEventListener('click', () => toggleLayer(btn));
+    });
 
-    function setMode(next) {
+    // Each chip is an independent on/off toggle, not a radio. Flip its
+    // aria-pressed and route to the matching scene control: 'basemap'
+    // drives the orthophoto drape, the others drive layer visibility.
+    function toggleLayer(btn) {
         if (!scene) return;
-        scene.setMode(next);
-        syncModeButtons(next);
+        const layer = btn.dataset.layer;
+        const next = btn.getAttribute('aria-pressed') !== 'true';
+        btn.setAttribute('aria-pressed', next ? 'true' : 'false');
+        if (layer === 'basemap') scene.setBasemap(next);
+        else scene.setLayer(layer, next);
     }
 
-    function syncModeButtons(next) {
-        const point = next === 'pointcloud';
-        els.modePointBtn.setAttribute('aria-pressed', point ? 'true' : 'false');
-        els.modeSolidBtn.setAttribute('aria-pressed', point ? 'false' : 'true');
+    // Reflect the scene's current layer state onto the chips (called once
+    // the scene exists, so the buttons match its defaults).
+    function syncLayerButtons() {
+        if (!scene) return;
+        const active = { ...scene.getLayers(), basemap: scene.getBasemap() };
+        els.layerBtns.forEach((btn) => {
+            const on = !!active[btn.dataset.layer];
+            btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+        });
     }
 
     function setStatus(msg) {
@@ -73,7 +83,7 @@ export function createBuildingDetailModal() {
 
         if (!scene) {
             scene = createBuildingScene({ container: els.canvas });
-            syncModeButtons(scene.getMode());
+            syncLayerButtons();
         }
 
         const seq = ++openSeq;
@@ -96,10 +106,21 @@ export function createBuildingDetailModal() {
         openSeq++;
     }
 
+    const LAYER_LABEL_KEYS = {
+        pointcloud: 'detail.layer_pointcloud',
+        building: 'detail.layer_buildings',
+        basemap: 'detail.layer_basemap',
+    };
+
     function relabel() {
         root.querySelector('.bdm-close').setAttribute('aria-label', t('detail.close'));
-        els.modePointBtn.textContent = t('detail.mode_pointcloud');
-        els.modeSolidBtn.textContent = t('detail.mode_solid');
+        els.layerBtns.forEach((btn) => {
+            const key = LAYER_LABEL_KEYS[btn.dataset.layer];
+            if (!key) return;
+            const label = t(key);
+            btn.querySelector('.bdm-layer-label').textContent = label;
+            btn.setAttribute('title', label);
+        });
         if (currentTarget && root.getAttribute('data-state') === 'visible') {
             els.title.textContent = currentTarget.label || formatLatLng(currentTarget.lat, currentTarget.lng);
         }
@@ -134,9 +155,16 @@ function buildShell() {
                     <h2 class="bdm-title"></h2>
                     <div class="bdm-subtitle" hidden></div>
                 </div>
-                <div class="bdm-mode">
-                    <button type="button" class="bdm-mode-btn bdm-mode-point" aria-pressed="true"></button>
-                    <button type="button" class="bdm-mode-btn bdm-mode-solid" aria-pressed="false"></button>
+                <div class="bdm-layers" role="group">
+                    <button type="button" class="bdm-layer-btn bdm-layer-point" data-layer="pointcloud" aria-pressed="true">
+                        <span class="bdm-layer-dot" aria-hidden="true"></span><span class="bdm-layer-label"></span>
+                    </button>
+                    <button type="button" class="bdm-layer-btn bdm-layer-building" data-layer="building" aria-pressed="true">
+                        <span class="bdm-layer-dot" aria-hidden="true"></span><span class="bdm-layer-label"></span>
+                    </button>
+                    <button type="button" class="bdm-layer-btn bdm-layer-basemap" data-layer="basemap" aria-pressed="false">
+                        <span class="bdm-layer-dot" aria-hidden="true"></span><span class="bdm-layer-label"></span>
+                    </button>
                 </div>
                 <button class="bdm-close" type="button" aria-label="Close">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">

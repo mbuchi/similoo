@@ -371,8 +371,9 @@ const translations = {
 
     // ---------- building detail popup ----------
     'detail.close': 'Close 3D detail',
-    'detail.mode_pointcloud': 'Point cloud',
-    'detail.mode_solid': 'Solid model',
+    'detail.layer_pointcloud': 'Point cloud',
+    'detail.layer_buildings': 'Buildings',
+    'detail.layer_basemap': 'Aerial map',
     'detail.loading': 'Loading 3D scene…',
     'detail.error': 'Could not load 3D scene.',
 
@@ -747,8 +748,9 @@ const translations = {
     'legend.comparable': 'Bâtiments comparables',
 
     'detail.close': 'Fermer la vue 3D détaillée',
-    'detail.mode_pointcloud': 'Nuage de points',
-    'detail.mode_solid': 'Modèle solide',
+    'detail.layer_pointcloud': 'Nuage de points',
+    'detail.layer_buildings': 'Bâtiments',
+    'detail.layer_basemap': 'Vue aérienne',
     'detail.loading': 'Chargement de la scène 3D…',
     'detail.error': 'Impossible de charger la scène 3D.',
 
@@ -1123,8 +1125,9 @@ const translations = {
     'legend.comparable': 'Vergleichbare Gebäude',
 
     'detail.close': '3D-Detailansicht schliessen',
-    'detail.mode_pointcloud': 'Punktwolke',
-    'detail.mode_solid': 'Festkörpermodell',
+    'detail.layer_pointcloud': 'Punktwolke',
+    'detail.layer_buildings': 'Gebäude',
+    'detail.layer_basemap': 'Luftbild',
     'detail.loading': '3D-Szene wird geladen…',
     'detail.error': '3D-Szene konnte nicht geladen werden.',
 
@@ -1498,8 +1501,9 @@ const translations = {
     'legend.comparable': 'Edifici comparabili',
 
     'detail.close': 'Chiudi vista 3D dettagliata',
-    'detail.mode_pointcloud': 'Nuvola di punti',
-    'detail.mode_solid': 'Modello solido',
+    'detail.layer_pointcloud': 'Nuvola di punti',
+    'detail.layer_buildings': 'Edifici',
+    'detail.layer_basemap': 'Foto aerea',
     'detail.loading': 'Caricamento scena 3D…',
     'detail.error': 'Impossibile caricare la scena 3D.',
 
