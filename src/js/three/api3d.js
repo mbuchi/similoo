@@ -20,38 +20,76 @@
 // All endpoints are proxied to keep the optional X-API-Key server-side.
 
 import { getCached, setCached, TTL } from '../cache.js';
+import { cachedArrayBuffer } from './blobCache.js';
 
 const TERRAIN_ENDPOINT = '/api/three3d/terrain';
 const BUILDING_ENDPOINT = '/api/three3d/building';
 const FOOTPRINTS_ENDPOINT = '/api/three3d/footprints';
 const HEIGHT_VOLUME_ENDPOINT = '/api/three3d/height-volume';
 
+const META_HEADER = 'X-GLB-Metadata';
+
+// The terrain/building GLBs are the heaviest, most deterministic payloads the
+// app fetches (static per coordinate, already coordinate-keyed upstream), so
+// we front them with a dedicated IndexedDB blob cache. On a fresh hit this is
+// zero-network and re-opening a parcel is instant; on a miss it fetches, caches
+// the bytes, and returns them. The cache degrades silently to a plain fetch on
+// any IDB error (incognito/quota), so behaviour is identical when it's
+// unavailable. We keep the original { blob, metadata } return shape so the
+// GLTFLoader call-sites in buildingScene.js are unchanged.
 async function fetchGLBWithMeta(url, body) {
-    const res = await fetch(url, {
+    const init = {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
+    };
+
+    const result = await cachedArrayBuffer(url, init, {
+        extraHeaders: [META_HEADER],
+        // Only persist genuine GLB binaries. The upstream occasionally returns
+        // a small JSON "link" response instead of the mesh; caching that would
+        // poison the coordinate for the full TTL and replay the error on every
+        // future open. Such responses are returned but never stored.
+        shouldCache: (buffer) => hasGLBMagic(buffer),
     });
-    if (!res.ok) {
+
+    // Non-2xx from the network leg — surface the same error as before.
+    if (result.ok === false) {
+        const res = result.res;
         const text = await res.text().catch(() => '');
         throw new Error(`three3d ${res.status}: ${text.slice(0, 200)}`);
     }
-    const ct = res.headers.get('Content-Type') || '';
-    if (ct.includes('application/json')) {
-        // Upstream answered with the link JSON rather than the binary —
-        // can happen if return_data is silently dropped. Surface it as
-        // an explicit error rather than handing the loader a JSON blob.
-        const text = await res.text().catch(() => '');
-        throw new Error(`three3d expected GLB binary, got JSON: ${text.slice(0, 200)}`);
+
+    // Upstream answered with the link JSON rather than the binary — can happen
+    // if return_data is silently dropped. The metadata sidecar header is GLB-
+    // only, and a JSON link response is small, so detect it by sniffing the GLB
+    // magic ('glTF') at the start of the buffer rather than relying on a
+    // Content-Type we no longer hold on a cache hit.
+    const { buffer, headers } = result;
+    if (!hasGLBMagic(buffer)) {
+        const text = decodeUtf8(buffer).slice(0, 200);
+        throw new Error(`three3d expected GLB binary, got non-GLB: ${text}`);
     }
-    const blob = await res.blob();
-    const metaHeader = res.headers.get('X-GLB-Metadata');
+
     let metadata = null;
+    const metaHeader = headers?.[META_HEADER];
     if (metaHeader) {
         try { metadata = JSON.parse(metaHeader); }
         catch (e) { console.warn('three3d: malformed X-GLB-Metadata header', e); }
     }
-    return { blob, metadata };
+    return { blob: new Blob([buffer]), metadata };
+}
+
+// Binary glTF (.glb) files start with the 4-byte magic 'glTF' (0x46546C67 LE).
+function hasGLBMagic(buffer) {
+    if (!buffer || buffer.byteLength < 4) return false;
+    const b = new Uint8Array(buffer, 0, 4);
+    return b[0] === 0x67 && b[1] === 0x6c && b[2] === 0x54 && b[3] === 0x46;
+}
+
+function decodeUtf8(buffer) {
+    try { return new TextDecoder().decode(buffer); }
+    catch { return ''; }
 }
 
 export function fetchTerrainGLB({ lat, lng, radius_m = 100, classes = null }) {
