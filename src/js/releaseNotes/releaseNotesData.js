@@ -41,6 +41,22 @@ export const KIND_META = {
 
 export const RELEASES = [
     {
+        version: '0.9.2',
+        date: 'June 4, 2026',
+        codename: 'Blob Cache',
+        summary:
+            'Re-opening a parcel’s 3D detail view is now instant: the heavy terrain and building meshes are cached in the browser.',
+        highlight: false,
+        items: [
+            {
+                kind: 'improved',
+                icon: 'database',
+                text: 'Added a client-side IndexedDB blob cache (byte-budget LRU + 14-day TTL, ~150 MB cap) for the heavy 3D terrain/building GLB meshes streamed from the Contoor 3D API. Re-opening the same parcel — or a comparable that snaps to the same footprint — now serves the meshes from the browser instead of regenerating them upstream, so the detail viewer loads instantly and the 3D API load drops. The cache degrades silently to a plain network fetch in private-browsing or quota-limited contexts, and only genuine GLB binaries are stored so a transient upstream hiccup never poisons a coordinate.',
+                prs: [],
+            },
+        ],
+    },
+    {
         version: '0.9.1',
         date: 'June 3, 2026',
         codename: 'Hyphen Title',
