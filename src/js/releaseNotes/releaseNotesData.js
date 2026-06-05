@@ -434,7 +434,7 @@ export const RELEASES = [
             {
                 kind: 'improved',
                 icon: 'package',
-                text: 'Bumped @swissnovo/shared to v0.32.0 — release-notes button icon switched from Tag to CheckCircle.',
+                text: 'Bumped @aireon/shared to v0.32.0 — release-notes button icon switched from Tag to CheckCircle.',
                 prs: [],
             },
         ],

@@ -14,7 +14,7 @@
 // zero-network hit, and every cached open is one fewer expensive
 // point-cloud/GLB generation hitting the Contoor 3D API.
 //
-// Why a DEDICATED store and not @swissnovo/shared's IndexedDBCache:
+// Why a DEDICATED store and not @aireon/shared's IndexedDBCache:
 // that primitive byte-accounts its LRU budget with
 // `TextEncoder().encode(JSON.stringify(data)).length` — an ArrayBuffer or Blob
 // JSON-stringifies to `{}` (size 0), so its byte-budget eviction is blind to
