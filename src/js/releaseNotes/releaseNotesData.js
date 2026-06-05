@@ -41,6 +41,22 @@ export const KIND_META = {
 
 export const RELEASES = [
     {
+        version: '0.9.3',
+        date: 'June 5, 2026',
+        codename: 'One Sign-In',
+        summary:
+            'Sign in to any Aireon app once and similoo signs you in automatically — suite-wide single sign-on.',
+        highlight: false,
+        items: [
+            {
+                kind: 'improved',
+                icon: 'shield',
+                text: 'Cross-app single sign-on now works: if you are signed in to any Aireon app in this browser, similoo signs you in automatically on load via a brief, UI-less prompt=none check with the login service — no second password, and anonymous visitors are never sent to a login screen. The auth manager was also realigned with the shared @aireon/shared Cesium auth so it stays in lockstep with the rest of the suite.',
+                prs: [],
+            },
+        ],
+    },
+    {
         version: '0.9.2',
         date: 'June 4, 2026',
         codename: 'Blob Cache',

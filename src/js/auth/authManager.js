@@ -3,6 +3,26 @@ import { userManager } from './authConfig.js';
 const AUTO_LOGIN_FLAG = 'auth.autoLoginAttempted';
 const SIGNED_OUT_FLAG = 'auth.signedOut';
 
+// Fail-safe sessionStorage access for the SSO guard. If storage is blocked
+// (locked-down/private browser), autoLoginTried() reports `true` and
+// markAutoLogin() reports failure, so we never fire a prompt=none redirect we
+// can't guard — an un-guarded redirect would loop. The app degrades to anon.
+function autoLoginTried() {
+    try {
+        return sessionStorage.getItem(AUTO_LOGIN_FLAG) === 'true';
+    } catch {
+        return true;
+    }
+}
+function markAutoLogin() {
+    try {
+        sessionStorage.setItem(AUTO_LOGIN_FLAG, 'true');
+        return true;
+    } catch {
+        return false;
+    }
+}
+
 const listeners = new Set();
 let currentUser = null;
 let currentState = 'loading';
@@ -159,16 +179,26 @@ export async function initAuth() {
             } catch {}
         }
 
-        const autoTried = sessionStorage.getItem(AUTO_LOGIN_FLAG) === 'true';
-        const signedOut = localStorage.getItem(SIGNED_OUT_FLAG) === 'true';
+        let signedOut = false;
+        try {
+            signedOut = localStorage.getItem(SIGNED_OUT_FLAG) === 'true';
+        } catch {}
 
-        if (!autoTried && !signedOut) {
-            sessionStorage.setItem(AUTO_LOGIN_FLAG, 'true');
+        // Cross-app SSO: a top-level prompt=none redirect to Zitadel. First-party
+        // to the IdP, so the shared Zitadel session cookie is sent — if the user
+        // signed in to any Aireon app, Zitadel bounces back with a code and this
+        // app signs in silently; otherwise it returns error=login_required, which
+        // isErrorCallback() handles on the next load as "stay anonymous". Using
+        // prompt=none (not a plain signinRedirect) means an anonymous visitor is
+        // never forced onto the Zitadel login page — no UI is rendered, just two
+        // fast 3xx hops. Attempted at most once per tab so reloads don't bounce;
+        // markAutoLogin() must succeed before we redirect (see the helper).
+        if (!autoLoginTried() && !signedOut && markAutoLogin()) {
             try {
-                await userManager.signinRedirect();
+                await userManager.signinRedirect({ extraQueryParams: { prompt: 'none' } });
                 return;
             } catch (e) {
-                console.error('Auto-login redirect failed:', e);
+                console.error('Cross-app SSO redirect failed to start:', e);
             }
         }
 
