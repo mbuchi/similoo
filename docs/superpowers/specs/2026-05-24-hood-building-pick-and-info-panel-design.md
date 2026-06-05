@@ -661,7 +661,7 @@ Per the suite Publish Workflow:
 5. **Commit** to a feature branch like `feat/building-pick-and-info-panel`.
 6. **Open PR** + auto-merge per workflow.
 
-No changes to `@swissnovo/shared` (panel is hood-local). No toolbox change.
+No changes to `@aireon/shared` (panel is hood-local). No toolbox change.
 
 ## 11. Open questions / future work
 
