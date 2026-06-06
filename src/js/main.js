@@ -16,6 +16,7 @@ import { createComparableMarkers } from './viewer/comparableMarkers.js';
 import { createBuildingDetailModal } from './detail/buildingDetailModal.js';
 import { createMapLegend } from './viewer/mapLegend.js';
 import { initMethodologyHelp } from './help/methodologyPanel.js';
+import { setupAuth } from './auth/index.js';
 
 // Apply translations as soon as the static DOM is parsed.
 if (document.readyState === 'loading') {
@@ -29,6 +30,11 @@ function boot() {
     bindLocaleSelect('locale-select');
     setupThemeToggle();
     initMethodologyHelp();
+    // Wire authentication: injects the sign-in button / profile dropdown into
+    // the #authNav slot and runs the shared cross-app SSO probe (prompt=none).
+    // similoo forked the auth module from hood but never called setupAuth(), so
+    // it had no login UI and didn't participate in suite SSO until now.
+    setupAuth().catch((err) => console.error('Auth init failed:', err));
 
     const landingView = document.getElementById('landingView');
     const comparisonView = document.getElementById('comparisonView');
