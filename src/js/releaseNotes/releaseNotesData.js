@@ -41,6 +41,22 @@ export const KIND_META = {
 
 export const RELEASES = [
     {
+        version: '0.9.4',
+        date: 'June 6, 2026',
+        codename: 'Sign In, Wired',
+        summary:
+            'similoo now has a working sign-in button and participates in suite-wide single sign-on.',
+        highlight: false,
+        items: [
+            {
+                kind: 'fixed',
+                icon: 'log-in',
+                text: 'similoo had the account UI components but never actually initialised them — the navbar sign-in button was missing and similoo could not pick up your Aireon session. Auth is now wired up (setupAuth on load), so the sign-in / profile control appears and similoo joins cross-app single sign-on: signed in to any Aireon app, similoo signs you in automatically (a brief, UI-less prompt=none check). Anonymous visitors are unaffected.',
+                prs: [],
+            },
+        ],
+    },
+    {
         version: '0.9.3',
         date: 'June 5, 2026',
         codename: 'One Sign-In',
