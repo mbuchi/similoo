@@ -1,7 +1,7 @@
 {
-  "name": "Swissnovo Toolbox",
+  "name": "Aireon Toolbox",
   "short_name": "Toolbox",
-  "description": "Your professional Swiss real-estate tools, in one place. Search, filter, and launch every Swissnovo tool from a single dashboard.",
+  "description": "Your professional Swiss real-estate tools, in one place. Search, filter, and launch every Aireon tool from a single dashboard.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",

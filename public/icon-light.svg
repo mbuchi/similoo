@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
-  <title>Swissnovo Toolbox</title>
+  <title>Aireon Toolbox</title>
   <rect width="64" height="64" rx="14" fill="#ffffff"/>
   <g transform="translate(32 32)">
     <circle cx="-9" cy="0" r="9" fill="none" stroke="#dc2626" stroke-width="6"/>
