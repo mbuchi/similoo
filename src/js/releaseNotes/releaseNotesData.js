@@ -40,7 +40,23 @@ export const KIND_META = {
 };
 
 export const RELEASES = [
+
     {
+        version: '0.9.5',
+        date: 'June 9, 2026',
+        codename: 'Aligned Meta',
+        summary:
+            'The page metadata now uses the same description shown on the Aireon hub card.',
+        items: [
+            {
+                kind: 'improved',
+                icon: 'sparkles',
+                text: 'Updated the HTML meta, Open Graph and Twitter descriptions to match the Aireon hub card copy: "Find comparable buildings and check their metrics.".',
+                prs: [],
+            },
+        ],
+    },
+{
         version: '0.9.4',
         date: 'June 6, 2026',
         codename: 'Sign In, Wired',
