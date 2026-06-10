@@ -29,6 +29,7 @@ function boot() {
     applyTranslations(document);
     bindLocaleSelect('locale-select');
     setupThemeToggle();
+    setupOverflowMenu();
     initMethodologyHelp();
     // Wire authentication: injects the sign-in button / profile dropdown into
     // the #authNav slot and runs the shared cross-app SSO probe (prompt=none).
@@ -649,6 +650,72 @@ function pointInRings(lng, lat, rings) {
         if (pointInRing(lng, lat, ring)) return true;
     }
     return false;
+}
+
+// Mobile overflow (⋯) menu. Below 768px the secondary navbar actions (help,
+// theme, locale, sign-in) collapse into a dropdown toggled by the ⋯ button.
+// The actions themselves are the original elements with their original
+// handlers — this only toggles the .is-open class CSS uses to reveal the
+// panel, plus the outside-click / Escape / focus-return affordances. Desktop
+// (>=769px) keeps the toggle hidden and the actions inline, so it's a no-op.
+function setupOverflowMenu() {
+    const toggle = document.getElementById('navOverflowToggle');
+    const panel = document.getElementById('navbarActions');
+    if (!toggle || !panel) return;
+
+    const isOpen = () => panel.classList.contains('is-open');
+
+    function open() {
+        panel.classList.add('is-open');
+        toggle.setAttribute('aria-expanded', 'true');
+        document.addEventListener('click', onOutsideClick, true);
+        document.addEventListener('keydown', onKeydown);
+    }
+
+    function close({ returnFocus = false } = {}) {
+        if (!isOpen()) return;
+        panel.classList.remove('is-open');
+        toggle.setAttribute('aria-expanded', 'false');
+        document.removeEventListener('click', onOutsideClick, true);
+        document.removeEventListener('keydown', onKeydown);
+        if (returnFocus) toggle.focus();
+    }
+
+    function onOutsideClick(e) {
+        if (panel.contains(e.target) || toggle.contains(e.target)) return;
+        close();
+    }
+
+    function onKeydown(e) {
+        if (e.key === 'Escape') {
+            e.stopPropagation();
+            close({ returnFocus: true });
+        }
+    }
+
+    toggle.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (isOpen()) close({ returnFocus: true });
+        else open();
+    });
+
+    // Picking a language closes the menu (the select fires `change` on the
+    // original element, which keeps its existing locale handler).
+    const locale = panel.querySelector('#locale-select');
+    if (locale) locale.addEventListener('change', () => close());
+
+    // Opening the help modal from inside the menu should collapse the menu so
+    // it doesn't linger behind the dialog. The help button keeps its own
+    // initMethodologyHelp() handler; we only also close the overflow panel.
+    const help = panel.querySelector('#helpButton');
+    if (help) help.addEventListener('click', () => close());
+
+    // If the viewport grows back to desktop the panel must not stay stuck open
+    // (CSS hides it there, but the state/ARIA should reset cleanly).
+    const mq = window.matchMedia('(min-width: 769px)');
+    const onDesktop = (e) => { if (e.matches) close(); };
+    if (mq.addEventListener) mq.addEventListener('change', onDesktop);
+    else if (mq.addListener) mq.addListener(onDesktop);
 }
 
 // Minimal dark-mode toggle — mirrors the pre-paint bootstrap in index.html.

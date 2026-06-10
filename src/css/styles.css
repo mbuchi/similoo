@@ -219,11 +219,48 @@ html, body, #mapContainer {
     justify-content: space-between;
     height: 60px;
     width: 100%;
+    /* Positioning context for the mobile overflow (⋯) dropdown, which anchors
+       to the navbar's right edge below 768px. Inert on desktop. */
+    position: relative;
 }
 
 .navbar-brand {
     display: flex;
     align-items: center;
+}
+
+/* Mobile overflow (⋯) trigger. Hidden on desktop; shown below 768px where it
+   toggles the collapsed .navbar-actions dropdown. Sized to the same 40px row
+   as the action buttons it replaces. */
+.nav-overflow-toggle {
+    display: none;
+    width: 40px;
+    height: 40px;
+    margin-left: auto;
+    padding: 0;
+    border: 1px solid transparent;
+    border-radius: var(--hood-radius-sm);
+    background: var(--hood-surface-3);
+    color: var(--hood-text);
+    cursor: pointer;
+    align-items: center;
+    justify-content: center;
+    transition: background-color var(--hood-transition),
+                color var(--hood-transition);
+}
+
+.nav-overflow-toggle svg {
+    width: 22px;
+    height: 22px;
+}
+
+.nav-overflow-toggle:hover {
+    background-color: var(--hood-border);
+}
+
+.nav-overflow-toggle:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px var(--hood-blue-ring);
 }
 
 .mobile-menu-button {
@@ -601,6 +638,66 @@ html, body, #mapContainer {
     .help-link {
         font-size: 0.875rem;
         padding: 0.2rem 0.5rem;
+        width: 100%;
+    }
+}
+
+/* ── Mobile overflow (⋯) menu ─────────────────────────────────────────────
+   Below 768px the four secondary actions (help, theme, locale, sign-in) no
+   longer fit beside the wordmark, so they collapse into a ⋯ dropdown anchored
+   to the navbar's right edge. The SAME control elements (and their existing
+   handlers) are reused — only their layout changes — so nothing is duplicated.
+   Desktop (>=769px) is byte-identical: the toggle stays display:none and
+   .navbar-actions keeps its original inline flex from sidebar.css. */
+@media (max-width: 768px) {
+    .nav-overflow-toggle {
+        display: inline-flex;
+    }
+
+    .nav-overflow-toggle[aria-expanded="true"] {
+        background-color: var(--hood-border);
+        border-color: var(--hood-chrome-border);
+    }
+
+    /* Scoped to .navbar-desktop so it out-specifies the base
+       `.navbar-actions { display:flex }` rule in sidebar.css (which loads
+       after this file) without needing !important. */
+    .navbar-desktop .navbar-actions {
+        position: absolute;
+        top: calc(100% + 6px);
+        right: 0.5rem;
+        z-index: 1200;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.4rem;
+        min-width: 184px;
+        padding: 0.5rem;
+        background: var(--hood-chrome-bg);
+        border: 1px solid var(--hood-chrome-border);
+        border-radius: var(--hood-radius);
+        box-shadow: var(--hood-card-shadow);
+        /* Collapsed by default; the ⋯ toggle adds .is-open to reveal it. */
+        display: none;
+    }
+
+    .navbar-desktop .navbar-actions.is-open {
+        display: flex;
+    }
+
+    /* Make the collapsed controls fill the dropdown width so they read as a
+       menu rather than a cramped row. */
+    .navbar-actions .nav-action-button,
+    .navbar-actions .theme-toggle-button {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .navbar-actions .locale-select {
+        width: 100%;
+    }
+
+    .navbar-actions .auth-nav {
+        margin: 0;
         width: 100%;
     }
 }

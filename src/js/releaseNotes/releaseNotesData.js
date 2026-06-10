@@ -42,6 +42,21 @@ export const KIND_META = {
 export const RELEASES = [
 
     {
+        version: '0.9.7',
+        date: 'June 10, 2026',
+        codename: 'Tidy Top Bar',
+        summary:
+            'On phones the secondary navbar controls now collapse behind a ⋯ menu so nothing is clipped off-screen.',
+        items: [
+            {
+                kind: 'fixed',
+                icon: 'menu',
+                text: 'Below 768px the help, theme, language and sign-in controls collapse into a ⋯ "More" dropdown anchored to the navbar, instead of overflowing off the right edge where the language selector and sign-in button became unreachable. The menu opens on tap, closes on outside-click, Escape (returning focus to the ⋯ button) or after a selection. Desktop is unchanged.',
+                prs: [],
+            },
+        ],
+    },
+    {
         version: '0.9.6',
         date: 'June 10, 2026',
         codename: 'Dynamic Viewport',
