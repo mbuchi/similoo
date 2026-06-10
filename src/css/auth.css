@@ -249,6 +249,7 @@
     box-shadow: var(--hood-shadow-modal);
     overflow: hidden;
     max-height: calc(100vh - 2rem);
+    max-height: calc(100dvh - 2rem);
     overflow-y: auto;
 }
 
