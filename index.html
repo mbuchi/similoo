@@ -95,7 +95,20 @@
         </a>
         <span class="logo-subtitle" data-i18n="nav.logo_subtitle">Comparable Buildings</span>
       </div>
-      <div class="navbar-actions">
+      <!-- Mobile overflow trigger: collapses the secondary actions (help,
+           theme, locale, sign-in) behind a ⋯ menu below 768px. Hidden on
+           desktop, where the actions sit inline in their original places. -->
+      <button id="navOverflowToggle" class="nav-overflow-toggle" type="button"
+              aria-haspopup="true" aria-expanded="false" aria-controls="navbarActions"
+              aria-label="More options" title="More options"
+              data-i18n-attr="aria-label:nav.more_aria,title:nav.more_aria">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="5" cy="12" r="1.4"></circle>
+            <circle cx="12" cy="12" r="1.4"></circle>
+            <circle cx="19" cy="12" r="1.4"></circle>
+        </svg>
+      </button>
+      <div class="navbar-actions" id="navbarActions">
         <button id="helpButton" class="nav-action-button" type="button"
                 aria-label="How comparable buildings are calculated"
                 title="How comparable buildings are calculated"
