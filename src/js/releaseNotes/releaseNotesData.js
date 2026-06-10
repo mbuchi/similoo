@@ -42,6 +42,21 @@ export const KIND_META = {
 export const RELEASES = [
 
     {
+        version: '0.9.6',
+        date: 'June 10, 2026',
+        codename: 'Dynamic Viewport',
+        summary:
+            'Full-height surfaces now respect the mobile browser chrome so nothing hides off-screen.',
+        items: [
+            {
+                kind: 'fixed',
+                icon: 'smartphone',
+                text: 'Switched the map, help modal, sidebar dropdown and account dialog from static 100vh to dynamic-viewport (100dvh) sizing, keeping 100vh as a fallback. On phones the bottom map scale control and the last rows of tall panels no longer sit behind the dynamic URL bar.',
+                prs: [],
+            },
+        ],
+    },
+    {
         version: '0.9.5',
         date: 'June 9, 2026',
         codename: 'Aligned Meta',
