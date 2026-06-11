@@ -38,6 +38,11 @@
  *   meta.*            - <title>, og:title, og:description, etc.
  */
 
+import {
+  registerI18n,
+  setLocale as setSharedLocale,
+} from '@aireon/shared/cesium-app/i18n/engine.js';
+
 export const SUPPORTED_LOCALES = ['en', 'fr', 'de', 'it'];
 const STORAGE_KEY = 'similoo:locale';
 const subscribers = new Set();
@@ -1554,6 +1559,12 @@ const translations = {
 
 // ---------- runtime --------------------------------------------------
 
+registerI18n({
+  catalog: translations,
+  storageKey: STORAGE_KEY,
+  supportedLocales: SUPPORTED_LOCALES,
+});
+
 function detectInitialLocale() {
   try {
     const stored = localStorage.getItem(STORAGE_KEY);
@@ -1650,6 +1661,11 @@ export function setLocale(locale) {
   }
   document.documentElement.lang = locale;
   applyTranslations(document);
+  try {
+    setSharedLocale(locale);
+  } catch {
+    /* shared auth i18n may be unavailable in tests */
+  }
   subscribers.forEach((cb) => {
     try {
       cb(locale);
