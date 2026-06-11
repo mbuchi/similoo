@@ -1,4 +1,5 @@
 import './i18n.js';
+import '@aireon/shared/cesium-app/css/auth.css';
 
 import {
     initializeViewer,
@@ -31,10 +32,8 @@ function boot() {
     setupThemeToggle();
     setupOverflowMenu();
     initMethodologyHelp();
-    // Wire authentication: injects the sign-in button / profile dropdown into
-    // the #authNav slot and runs the shared cross-app SSO probe (prompt=none).
-    // similoo forked the auth module from hood but never called setupAuth(), so
-    // it had no login UI and didn't participate in suite SSO until now.
+    // Shared auth injects the sign-in/profile dropdown into #authNav and runs
+    // the cross-app SSO probe (prompt=none).
     setupAuth().catch((err) => console.error('Auth init failed:', err));
 
     const landingView = document.getElementById('landingView');

@@ -42,6 +42,22 @@ export const KIND_META = {
 export const RELEASES = [
 
     {
+        version: '0.9.8',
+        date: 'June 11, 2026',
+        codename: 'Shared Avatar Picker',
+        summary:
+            'The account menu now comes from shared Aireon auth, with the same avatar picker used across the suite.',
+        items: [
+            {
+                kind: 'improved',
+                icon: 'user',
+                text: 'Removed similoo’s copied auth/profile files and switched the app to @aireon/shared/cesium-app/auth. The profile avatar picker is now the shared three-row horizontal rail, selection updates the header immediately, saves without pressing the profile Save button and shows the compact "Avatar updated" confirmation pill.',
+                prs: [],
+            },
+        ],
+    },
+
+    {
         version: '0.9.7',
         date: 'June 10, 2026',
         codename: 'Tidy Top Bar',
