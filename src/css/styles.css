@@ -236,18 +236,16 @@ html, body, #mapContainer {
     height: 36px;
     align-items: center;
     justify-content: center;
-    border: 1px solid color-mix(in srgb, var(--hood-ink) 10%, transparent);
+    border: 0;
     border-radius: var(--hood-radius-sm);
     background: transparent;
-    opacity: 0.75;
-    transition: opacity var(--hood-transition), background-color var(--hood-transition), border-color var(--hood-transition);
+    color: var(--hood-ink);
+    opacity: 1;
+    transition: opacity var(--hood-transition);
 }
 
-.aireon-hub-link:hover,
-.aireon-hub-link:focus-visible {
-    opacity: 1;
-    background: color-mix(in srgb, var(--hood-ink) 8%, transparent);
-    border-color: color-mix(in srgb, var(--hood-ink) 18%, transparent);
+.aireon-hub-link:hover {
+    opacity: 0.75;
 }
 
 .aireon-hub-link:focus-visible {
@@ -255,10 +253,13 @@ html, body, #mapContainer {
     box-shadow: 0 0 0 2px var(--hood-surface), 0 0 0 4px var(--hood-red);
 }
 
-.aireon-hub-link img {
+.aireon-hub-mark {
     width: 24px;
     height: 24px;
     display: block;
+    background: currentColor;
+    -webkit-mask: url("https://hub.aireon.ch/brand/aireon-mark.svg") center / contain no-repeat;
+    mask: url("https://hub.aireon.ch/brand/aireon-mark.svg") center / contain no-repeat;
 }
 
 .aireon-hub-divider {

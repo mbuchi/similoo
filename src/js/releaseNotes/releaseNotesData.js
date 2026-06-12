@@ -40,6 +40,22 @@ export const KIND_META = {
 };
 
 export const RELEASES = [
+  {
+    version: '0.9.10',
+    date: 'June 12, 2026',
+    codename: 'Theme-Aware Hub Mark',
+    summary:
+      'The top-left Aireon hub shortcut now renders as a transparent monochrome mark that follows light and dark themes.',
+    items: [
+      {
+        kind: 'improved',
+        icon: 'sparkles',
+        text: 'Updated the top-left Aireon hub shortcut to use the hub-hosted transparent Aireon mark. It renders black on light themes and white on dark themes, while the browser favicon stays red on white.',
+        prs: [],
+      },
+    ],
+  },
+
 
     {
         version: '0.9.9',
