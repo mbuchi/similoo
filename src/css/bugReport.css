@@ -1,0 +1,288 @@
+.aireon-bug-launcher {
+    position: fixed;
+    right: max(16px, env(safe-area-inset-right));
+    bottom: max(16px, env(safe-area-inset-bottom));
+    z-index: 2147483000;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border: 1px solid rgba(220, 38, 38, 0.25);
+    border-radius: 999px;
+    background: var(--hood-surface, #ffffff);
+    color: var(--hood-red, #dc2626);
+    box-shadow: 0 16px 40px rgba(15, 23, 42, 0.18);
+    cursor: pointer;
+    transition: transform 160ms ease, background 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
+}
+
+.aireon-bug-launcher:hover {
+    transform: translateY(-1px);
+    background: rgba(254, 242, 242, 0.98);
+    border-color: rgba(220, 38, 38, 0.45);
+    box-shadow: 0 18px 46px rgba(15, 23, 42, 0.22);
+}
+
+.aireon-bug-launcher:focus-visible,
+.aireon-bug-close:focus-visible,
+.aireon-bug-type button:focus-visible,
+.aireon-bug-submit:focus-visible,
+.aireon-bug-field textarea:focus-visible,
+.aireon-bug-field input:focus-visible {
+    outline: 2px solid rgba(220, 38, 38, 0.7);
+    outline-offset: 2px;
+}
+
+.aireon-bug-launcher svg,
+.aireon-bug-close svg,
+.aireon-bug-submit svg,
+.aireon-bug-head-icon svg {
+    width: 18px;
+    height: 18px;
+    stroke-width: 2.25;
+}
+
+.aireon-bug-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 2147483600;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    padding: 16px;
+    background: rgba(15, 23, 42, 0.42);
+}
+
+.aireon-bug-overlay[hidden] {
+    display: none !important;
+}
+
+.aireon-bug-dialog {
+    position: relative;
+    width: min(100%, 430px);
+    border: 1px solid var(--hood-border, rgba(148, 163, 184, 0.35));
+    border-radius: 8px;
+    background: var(--hood-surface, #ffffff);
+    color: var(--hood-text, #0f172a);
+    box-shadow: 0 24px 70px rgba(15, 23, 42, 0.3);
+    padding: 18px;
+}
+
+.aireon-bug-close {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--hood-muted, #64748b);
+    cursor: pointer;
+}
+
+.aireon-bug-close:hover {
+    background: rgba(148, 163, 184, 0.14);
+}
+
+.aireon-bug-head {
+    display: flex;
+    gap: 12px;
+    padding-right: 34px;
+}
+
+.aireon-bug-head-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    background: rgba(254, 226, 226, 0.95);
+    color: var(--hood-red, #dc2626);
+}
+
+.aireon-bug-head h2 {
+    margin: 0;
+    font-size: 17px;
+    line-height: 1.25;
+    font-weight: 700;
+    letter-spacing: 0;
+}
+
+.aireon-bug-head p {
+    margin: 5px 0 0;
+    color: var(--hood-muted, #64748b);
+    font-size: 13px;
+    line-height: 1.45;
+}
+
+.aireon-bug-type {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4px;
+    margin-top: 16px;
+    padding: 4px;
+    border-radius: 8px;
+    background: rgba(148, 163, 184, 0.14);
+}
+
+.aireon-bug-type button {
+    min-height: 36px;
+    border: 0;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--hood-muted, #64748b);
+    font: inherit;
+    font-size: 13px;
+    font-weight: 650;
+    cursor: pointer;
+}
+
+.aireon-bug-type button.is-active {
+    background: var(--hood-surface, #ffffff);
+    color: var(--hood-red, #dc2626);
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.12);
+}
+
+.aireon-bug-field {
+    display: grid;
+    gap: 6px;
+    margin-top: 14px;
+}
+
+.aireon-bug-field span {
+    color: var(--hood-muted, #64748b);
+    font-size: 12px;
+    font-weight: 650;
+}
+
+.aireon-bug-field textarea,
+.aireon-bug-field input {
+    width: 100%;
+    box-sizing: border-box;
+    border: 1px solid var(--hood-border, rgba(148, 163, 184, 0.45));
+    border-radius: 8px;
+    background: var(--hood-surface, #ffffff);
+    color: var(--hood-text, #0f172a);
+    font: inherit;
+    font-size: 14px;
+}
+
+.aireon-bug-field textarea {
+    resize: vertical;
+    min-height: 112px;
+    padding: 10px 11px;
+}
+
+.aireon-bug-field input {
+    min-height: 40px;
+    padding: 8px 11px;
+}
+
+.aireon-bug-field textarea::placeholder,
+.aireon-bug-field input::placeholder {
+    color: rgba(100, 116, 139, 0.72);
+}
+
+.aireon-bug-status {
+    min-height: 20px;
+    margin: 10px 0 0;
+    color: var(--hood-muted, #64748b);
+    font-size: 13px;
+    line-height: 1.35;
+}
+
+.aireon-bug-status[data-mode='success'] {
+    color: #047857;
+}
+
+.aireon-bug-status[data-mode='error'] {
+    color: #dc2626;
+}
+
+.aireon-bug-submit {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    min-height: 44px;
+    margin-top: 8px;
+    border: 0;
+    border-radius: 8px;
+    background: var(--hood-red, #dc2626);
+    color: #ffffff;
+    font: inherit;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 160ms ease, opacity 160ms ease;
+}
+
+.aireon-bug-submit:hover:not(:disabled) {
+    background: var(--hood-red-dark, #b91c1c);
+}
+
+.aireon-bug-submit:disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
+}
+
+[data-theme='dark'] .aireon-bug-launcher,
+[data-theme='dark'] .aireon-bug-dialog,
+[data-theme='dark'] .aireon-bug-type button.is-active,
+[data-theme='dark'] .aireon-bug-field textarea,
+[data-theme='dark'] .aireon-bug-field input {
+    background: var(--hood-surface, #111827);
+}
+
+[data-theme='dark'] .aireon-bug-launcher {
+    border-color: rgba(248, 113, 113, 0.32);
+    color: #fca5a5;
+}
+
+[data-theme='dark'] .aireon-bug-launcher:hover {
+    background: rgba(127, 29, 29, 0.42);
+}
+
+[data-theme='dark'] .aireon-bug-dialog {
+    border-color: rgba(255, 255, 255, 0.12);
+    color: #f8fafc;
+}
+
+[data-theme='dark'] .aireon-bug-head-icon {
+    background: rgba(248, 113, 113, 0.14);
+    color: #fca5a5;
+}
+
+[data-theme='dark'] .aireon-bug-type {
+    background: rgba(15, 23, 42, 0.72);
+}
+
+[data-theme='dark'] .aireon-bug-field textarea,
+[data-theme='dark'] .aireon-bug-field input {
+    border-color: rgba(255, 255, 255, 0.14);
+    color: #f8fafc;
+}
+
+@media (min-width: 640px) {
+    .aireon-bug-overlay {
+        align-items: center;
+    }
+}
+
+@media (max-width: 520px) {
+    .aireon-bug-overlay {
+        padding: 10px;
+    }
+
+    .aireon-bug-dialog {
+        padding: 16px;
+    }
+}
