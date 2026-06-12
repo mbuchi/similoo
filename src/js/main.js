@@ -1,5 +1,6 @@
 import './i18n.js';
 import '@aireon/shared/cesium-app/css/auth.css';
+import '../css/bugReport.css';
 
 import {
     initializeViewer,
@@ -18,6 +19,7 @@ import { createBuildingDetailModal } from './detail/buildingDetailModal.js';
 import { createMapLegend } from './viewer/mapLegend.js';
 import { initMethodologyHelp } from './help/methodologyPanel.js';
 import { setupAuth } from './auth/index.js';
+import { setupBugReport } from './bugReport.js';
 
 // Apply translations as soon as the static DOM is parsed.
 if (document.readyState === 'loading') {
@@ -32,6 +34,7 @@ function boot() {
     setupThemeToggle();
     setupOverflowMenu();
     initMethodologyHelp();
+    setupBugReport({ appName: 'similoo' });
     // Shared auth injects the sign-in/profile dropdown into #authNav and runs
     // the cross-app SSO probe (prompt=none).
     setupAuth().catch((err) => console.error('Auth init failed:', err));

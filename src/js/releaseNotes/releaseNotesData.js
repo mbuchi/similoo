@@ -42,6 +42,22 @@ export const KIND_META = {
 export const RELEASES = [
 
     {
+        version: '0.9.9',
+        date: 'June 12, 2026',
+        codename: 'Bug Report Button',
+        summary:
+            'A small bug icon now lets users report bugs or feedback without leaving similoo.',
+        items: [
+            {
+                kind: 'new',
+                icon: 'bug',
+                text: 'Added a compact bug-report button with a modal form for bugs and feedback. Submissions go through the suite errorlog proxy with page URL, browser context and optional email, while leaving empty numeric fields out of the payload.',
+                prs: [],
+            },
+        ],
+    },
+
+    {
         version: '0.9.8',
         date: 'June 11, 2026',
         codename: 'Shared Avatar Picker',
