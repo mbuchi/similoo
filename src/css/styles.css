@@ -227,6 +227,45 @@ html, body, #mapContainer {
 .navbar-brand {
     display: flex;
     align-items: center;
+    gap: 0.5rem;
+}
+
+.aireon-hub-link {
+    display: inline-flex;
+    width: 36px;
+    height: 36px;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid color-mix(in srgb, var(--hood-ink) 10%, transparent);
+    border-radius: var(--hood-radius-sm);
+    background: transparent;
+    opacity: 0.75;
+    transition: opacity var(--hood-transition), background-color var(--hood-transition), border-color var(--hood-transition);
+}
+
+.aireon-hub-link:hover,
+.aireon-hub-link:focus-visible {
+    opacity: 1;
+    background: color-mix(in srgb, var(--hood-ink) 8%, transparent);
+    border-color: color-mix(in srgb, var(--hood-ink) 18%, transparent);
+}
+
+.aireon-hub-link:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 2px var(--hood-surface), 0 0 0 4px var(--hood-red);
+}
+
+.aireon-hub-link img {
+    width: 24px;
+    height: 24px;
+    display: block;
+}
+
+.aireon-hub-divider {
+    width: 1px;
+    height: 20px;
+    background: var(--hood-ink);
+    opacity: 0.2;
 }
 
 /* Mobile overflow (⋯) trigger. Hidden on desktop; shown below 768px where it
