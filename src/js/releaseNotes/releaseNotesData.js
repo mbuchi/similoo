@@ -41,6 +41,22 @@ export const KIND_META = {
 
 export const RELEASES = [
   {
+    version: '0.9.12',
+    date: 'June 13, 2026',
+    codename: 'Cached Footprints',
+    summary:
+      'Building footprints are now cached in the browser, so panning back to an area you have already viewed no longer re-queries the 3D API.',
+    items: [
+      {
+        kind: 'improved',
+        icon: 'database',
+        text: 'The building-footprint lookup that drives the 3D detail viewer is now cached client-side (localStorage, keyed by rounded coordinates + radius, 7-day TTL) — the same as the per-building height/volume metrics already were. Panning or zooming back to an area you have already opened reuses the cached footprints instead of re-hitting the Contoor 3D API, so it responds instantly and the upstream load drops. Only non-empty results are cached so a transient miss never gets pinned, and the cache degrades silently to a plain network fetch in private-browsing or quota-limited contexts.',
+        prs: [],
+      },
+    ],
+  },
+
+  {
     version: '0.9.11',
     date: 'June 13, 2026',
     codename: 'Accessible Detail View',

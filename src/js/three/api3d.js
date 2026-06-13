@@ -123,6 +123,15 @@ export function fetchBuildingGLB({ lat, lng }) {
 }
 
 export async function fetchFootprintsBBox({ lat, lng, radius_m = 100 }) {
+    // The footprint list is deterministic per (centre, radius) — the same
+    // bbox always returns the same buildings — so a pan/zoom back to an area
+    // need not re-hit the upstream. Round to 5 decimals (~1 m) so clicks near
+    // the same centre share a cache entry, and key on the radius too since a
+    // wider radius is a different (superset) bbox. Mirrors fetchBuildingHeightVolume.
+    const cacheKey = `footprints:${lat.toFixed(5)},${lng.toFixed(5)},r${radius_m}`;
+    const cached = getCached(cacheKey);
+    if (cached) return cached;
+
     const res = await fetch(FOOTPRINTS_ENDPOINT, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -132,7 +141,15 @@ export async function fetchFootprintsBBox({ lat, lng, radius_m = 100 }) {
         const text = await res.text().catch(() => '');
         throw new Error(`footprints ${res.status}: ${text.slice(0, 200)}`);
     }
-    return res.json();
+    const payload = await res.json();
+    // Only cache a non-empty footprint list — an empty/absent result might be
+    // a transient upstream miss (tiles not yet generated) we don't want to
+    // pin for the full TTL. getCached/setCached already degrade silently on
+    // any storage error, so this is a no-op when localStorage is unavailable.
+    if (Array.isArray(payload) ? payload.length : payload && Object.keys(payload).length) {
+        setCached(cacheKey, payload, TTL.footprints);
+    }
+    return payload;
 }
 
 // Combined height + volume metrics for the building footprint at
