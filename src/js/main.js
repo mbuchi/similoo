@@ -23,14 +23,18 @@ import { initReleaseNotes } from './releaseNotes/releaseNotesPanel.js';
 import { setupAuth } from './auth/index.js';
 import { setupBugReport } from './bugReport.js';
 
-// Apply translations as soon as the static DOM is parsed.
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', boot);
-} else {
-    boot();
-}
-
-function boot() {
+// similoo's imperative engine entry point.
+//
+// This module owns the full app behaviour: map setup, the Three.js building
+// scene, the comparison sidebar + panels, address search, deep-linking,
+// theme/locale/overflow navbar wiring, auth and the bug-report widget. It was
+// the vanilla `<script type="module">` entry; in the React shell it is invoked
+// once from a useEffect after App.tsx has rendered the static DOM scaffold
+// (navbar / landing view / comparison view) with the same ids/classes the
+// vanilla index.html had — so every getElementById / querySelector below
+// resolves exactly as before. The shell is React; the engine is preserved
+// verbatim. `boot()` is idempotent-guarded by the caller.
+export function boot() {
     applyTranslations(document);
     bindLocaleSelect('locale-select');
     setupThemeToggle();

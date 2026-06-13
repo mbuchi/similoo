@@ -41,6 +41,34 @@ export const KIND_META = {
 
 export const RELEASES = [
   {
+    version: '0.10.0',
+    date: 'June 13, 2026',
+    codename: 'React Shell',
+    summary:
+      'similoo is now a React 18 + TypeScript + Vite app, aligning it with the rest of the Aireon suite. The whole interface is visually and functionally unchanged — the MapLibre map, the Three.js building viewer, the comparable-buildings sidebar, the address search, the help and release-notes panels and the deep-linking all behave exactly as before. Only the app shell was rebuilt: the imperative engine was preserved verbatim and is now mounted by a thin React layer.',
+    items: [
+      {
+        kind: 'improved',
+        icon: 'atom',
+        text: 'Rewrote similoo from a vanilla-JS Vite app to React 18 + TypeScript. The top bar, landing view and comparison surface are now React components (same markup, ids and CSS, so they render byte-for-byte identically), and a single useEffect boots the existing engine against them.',
+        prs: [],
+      },
+      {
+        kind: 'improved',
+        icon: 'box',
+        text: 'Preserved the MapLibre viewer (zone painting, building extrusion highlights, parcel/feature-state logic) and the Three.js LOD-2.5 building scene + 3D detail modal exactly as they were — no 3D or map math was reimplemented. The comparison sidebar, comparable markers, map legend, methodology help, release notes, address geocoding, bug report and cross-app SSO auth are all the same modules as before.',
+        prs: [],
+      },
+      {
+        kind: 'docs',
+        icon: 'package',
+        text: 'Adopted the suite-standard React/Vite toolchain (@vitejs/plugin-react, TypeScript, react/react-dom 18) and bumped @aireon/shared to v1.18.2.',
+        prs: [],
+      },
+    ],
+  },
+
+  {
     version: '0.9.13',
     date: 'June 13, 2026',
     codename: 'Dead Weight',

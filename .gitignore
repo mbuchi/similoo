@@ -26,3 +26,4 @@ dist-ssr
 # Local tooling & OS junk
 .claude/
 .env
+.vercel
