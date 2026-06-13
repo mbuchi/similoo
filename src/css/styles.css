@@ -774,70 +774,12 @@ html, body, #mapContainer {
     padding-top: 70px;
 }
 
-/* ---------- Cesium navigation compass widget ---------- */
-/* The viewerCesiumNavigationMixin injects its own base CSS; these overrides
-   position the compass + zoom ring tastefully below the fixed navbar and
-   keep it clear of the Cesium timeline/fullscreen controls. */
-.cesium-widget-cesiumNavigationContainer {
-    z-index: 500; /* above the canvas, below the navbar (1000) and sidebar (999) */
-}
-
-.cesium-widget-cesiumNavigationContainer .compass {
-    top: 86px;
-    right: 18px;
-    /* Subtle card-style backing so the compass reads cleanly against the
-       map without clashing with the fixed navbar above it. */
-    filter: drop-shadow(0 2px 8px rgba(15, 23, 42, 0.18));
-}
-
-.cesium-widget-cesiumNavigationContainer .navigation-controls {
-    top: 190px;
-    right: 47px;
-    filter: drop-shadow(0 2px 6px rgba(15, 23, 42, 0.15));
-}
-
-.camera-monitor {
-    position: fixed;
-    bottom: 20px;
-    left: calc(var(--rail-w) + 20px);
-    background: rgba(255, 255, 255, 0.95);
-    border: 1px solid var(--hood-border);
-    padding: 10px;
-    border-radius: var(--hood-radius-sm);
-    font-family: var(--hood-mono);
-    font-size: 12px;
-    z-index: 1000;
-    box-shadow: var(--hood-card-shadow);
-    max-width: 300px;
-    white-space: pre-wrap;
-}
-
-@media (max-width: 768px) {
-    .camera-monitor {
-        left: 20px;
-    }
-}
-
-.cesium-geocoder-input {
-    width: 390px !important;
-    touch-action: manipulation;
-    -webkit-touch-callout: none;
-    -webkit-user-select: none;
-    user-select: none;
-    font-size: 16px !important;
-}
-
 /* Prevent iOS zoom on input focus */
-@media screen and (-webkit-min-device-pixel-ratio: 0) { 
+@media screen and (-webkit-min-device-pixel-ratio: 0) {
     select,
     textarea,
     input {
         font-size: 16px;
-    }
-    
-    .cesium-geocoder-input {
-        font-size: 18px !important;
-        width: 370px !important;
     }
 }
 
