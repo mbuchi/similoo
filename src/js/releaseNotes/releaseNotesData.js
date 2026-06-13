@@ -41,6 +41,40 @@ export const KIND_META = {
 
 export const RELEASES = [
   {
+    version: '0.9.11',
+    date: 'June 13, 2026',
+    codename: 'Accessible Detail View',
+    summary:
+      'Pinch-zoom is back, this release-notes panel is now reachable, and the 3D detail popup manages keyboard focus.',
+    items: [
+      {
+        kind: 'fixed',
+        icon: 'accessibility',
+        text: 'Removed the viewport lock that disabled pinch-zoom, so low-vision users can magnify the map, sidebar metrics and modals again.',
+        prs: [],
+      },
+      {
+        kind: 'new',
+        icon: 'tag',
+        text: 'Wired up the version badge next to the wordmark — clicking it opens this release-notes timeline. It was being maintained every release but had no entry point.',
+        prs: [],
+      },
+      {
+        kind: 'fixed',
+        icon: 'keyboard',
+        text: 'The 3D building-detail popup now moves focus to its close button on open and restores focus when it closes, and exposes its title to screen readers via aria-labelledby.',
+        prs: [],
+      },
+      {
+        kind: 'improved',
+        icon: 'package',
+        text: 'Pinned the Lucide icon library to a fixed version and deferred it, so an upstream change can no longer break icons in production or block first paint.',
+        prs: [],
+      },
+    ],
+  },
+
+  {
     version: '0.9.10',
     date: 'June 12, 2026',
     codename: 'Theme-Aware Hub Mark',

@@ -31,6 +31,7 @@ export function createBuildingDetailModal() {
     let scene = null;
     let openSeq = 0;
     let currentTarget = null;
+    let lastFocus = null;
 
     els.closeBtn.addEventListener('click', hide);
     els.backdrop.addEventListener('click', hide);
@@ -77,9 +78,11 @@ export function createBuildingDetailModal() {
         els.subtitle.textContent = subtitle || '';
         els.subtitle.hidden = !subtitle;
 
+        lastFocus = document.activeElement;
         root.setAttribute('data-state', 'visible');
         root.setAttribute('aria-hidden', 'false');
         document.body.classList.add('bdm-open');
+        els.closeBtn.focus();
 
         if (!scene) {
             scene = createBuildingScene({ container: els.canvas });
@@ -104,6 +107,8 @@ export function createBuildingDetailModal() {
         root.setAttribute('aria-hidden', 'true');
         document.body.classList.remove('bdm-open');
         openSeq++;
+        try { lastFocus?.focus?.(); } catch { /* element gone */ }
+        lastFocus = null;
     }
 
     const LAYER_LABEL_KEYS = {
@@ -147,12 +152,13 @@ function buildShell() {
     root.setAttribute('aria-hidden', 'true');
     root.setAttribute('role', 'dialog');
     root.setAttribute('aria-modal', 'true');
+    root.setAttribute('aria-labelledby', 'bdm-title');
     root.innerHTML = `
         <div class="bdm-backdrop"></div>
         <div class="bdm-panel" role="document">
             <header class="bdm-header">
                 <div class="bdm-titles">
-                    <h2 class="bdm-title"></h2>
+                    <h2 class="bdm-title" id="bdm-title"></h2>
                     <div class="bdm-subtitle" hidden></div>
                 </div>
                 <div class="bdm-layers" role="group">
