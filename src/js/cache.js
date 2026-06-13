@@ -95,4 +95,5 @@ export const TTL = {
     parcel: 24 * 60 * 60 * 1000,            // 24 h — parcel/EGRID is essentially static
     similoo: 7 * 24 * 60 * 60 * 1000,       // 7 d — matches the RES /score/similoo Redis TTL
     heightVolume: 7 * 24 * 60 * 60 * 1000,  // 7 d — derived from static LIDAR
+    footprints: 7 * 24 * 60 * 60 * 1000,    // 7 d — building footprints are static per bbox
 };
