@@ -77,99 +77,13 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Varela+Round&display=swap" rel="stylesheet">
     <script defer src="https://unpkg.com/lucide@0.358.0"></script>
-    <link rel="stylesheet" href="/src/css/styles.css">
-    <link rel="stylesheet" href="/src/css/landing.css">
-    <link rel="stylesheet" href="/src/css/sidebar.css">
-    <link rel="stylesheet" href="/src/css/comparison.css">
-    <link rel="stylesheet" href="/src/css/map.css">
-    <link rel="stylesheet" href="/src/css/buildingDetailModal.css">
-    <link rel="stylesheet" href="/src/css/methodologyHelp.css">
 </head>
 <body>
-<div class="navbar">
-    <div class="navbar-desktop">
-      <div class="navbar-brand">
-        <a href="https://hub.aireon.ch/" class="aireon-hub-link" aria-label="Aireon hub" title="Aireon hub">
-          <span class="aireon-hub-mark" aria-hidden="true"></span>
-        </a>
-        <span class="aireon-hub-divider" aria-hidden="true"></span>
-        <a href="/" class="logo">
-            <span class="logo-first">simil</span><span class="logo-second">oo</span>
-        </a>
-        <span class="logo-subtitle" data-i18n="nav.logo_subtitle">Comparable Buildings</span>
-      </div>
-      <!-- Mobile overflow trigger: collapses the secondary actions (help,
-           theme, locale, sign-in) behind a ⋯ menu below 768px. Hidden on
-           desktop, where the actions sit inline in their original places. -->
-      <button id="navOverflowToggle" class="nav-overflow-toggle" type="button"
-              aria-haspopup="true" aria-expanded="false" aria-controls="navbarActions"
-              aria-label="More options" title="More options"
-              data-i18n-attr="aria-label:nav.more_aria,title:nav.more_aria">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <circle cx="5" cy="12" r="1.4"></circle>
-            <circle cx="12" cy="12" r="1.4"></circle>
-            <circle cx="19" cy="12" r="1.4"></circle>
-        </svg>
-      </button>
-      <div class="navbar-actions" id="navbarActions">
-        <button id="helpButton" class="nav-action-button" type="button"
-                aria-label="How comparable buildings are calculated"
-                title="How comparable buildings are calculated"
-                data-i18n-attr="aria-label:help.button_aria,title:help.button_aria">
-            <i data-lucide="help-circle"></i>
-        </button>
-        <button id="themeToggleButton" class="theme-toggle-button" title="Toggle dark mode" aria-label="Toggle dark mode" aria-pressed="false">
-            <svg class="theme-toggle-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <circle cx="12" cy="12" r="4"></circle>
-                <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path>
-            </svg>
-            <svg class="theme-toggle-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-            </svg>
-        </button>
-        <select id="locale-select" class="locale-select" aria-label="Select language"
-                data-i18n-attr="aria-label:nav.select_language,title:nav.select_language" title="Select language">
-            <option value="en">EN</option>
-            <option value="fr">FR</option>
-            <option value="de">DE</option>
-            <option value="it">IT</option>
-        </select>
-        <div id="authNav" class="auth-nav" aria-live="polite"></div>
-      </div>
-    </div>
-</div>
-
-<!-- Landing: address search (shown first; hidden once an address is picked) -->
-<section id="landingView" class="landing-view">
-    <div class="landing-card">
-        <h1 class="landing-title" data-i18n="landing.title">Type a Swiss address.</h1>
-        <p class="landing-subtitle" data-i18n="landing.subtitle">similoo finds buildings comparable to the one at this address — same zone, recent construction — and shows them as LOD 2.5 cubes on the map plus a detailed 3D inspection on demand.</p>
-        <form class="landing-search" id="landingSearchForm" role="search" autocomplete="off">
-            <input type="search" id="landingSearchInput" class="landing-search-input"
-                   placeholder="e.g. Bahnhofstrasse 10, Zürich"
-                   aria-label="Search address"
-                   data-i18n-attr="placeholder:landing.search_placeholder,aria-label:landing.search_aria" />
-            <ul class="landing-results" id="landingResults" role="listbox" hidden></ul>
-            <p class="landing-hint" data-i18n="landing.hint">Pick a result to load the comparison.</p>
-        </form>
-    </div>
-</section>
-
-<!-- Comparison surface: split-screen map + sidebar (shown after address pick) -->
-<section id="comparisonView" class="comparison-view" hidden>
-    <div id="comparisonHeader" class="comparison-header">
-        <button id="backToSearch" class="comparison-back" type="button" aria-label="Back to search">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <line x1="19" y1="12" x2="5" y2="12"></line>
-                <polyline points="12 19 5 12 12 5"></polyline>
-            </svg>
-            <span data-i18n="comparison.back">Search again</span>
-        </button>
-        <div class="comparison-address" id="comparisonAddress"></div>
-    </div>
-    <div id="mapContainer" class="comparison-map"></div>
-</section>
-
-<script type="module" src="/src/js/main.js"></script>
+<!-- React mounts the navbar / landing / comparison shell here, then a useEffect
+     boots the preserved imperative engine (src/js/main.js) against it. The shell
+     renders the same ids/classes the vanilla index.html used so the engine and
+     bespoke CSS attach unchanged. -->
+<div id="root"></div>
+<script type="module" src="/src/main.tsx"></script>
 </body>
 </html>
