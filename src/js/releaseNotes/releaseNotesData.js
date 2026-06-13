@@ -41,6 +41,22 @@ export const KIND_META = {
 
 export const RELEASES = [
   {
+    version: '0.9.13',
+    date: 'June 13, 2026',
+    codename: 'Dead Weight',
+    summary:
+      'Removed the unused Cesium-era code that was left behind after the move to the MapLibre + Three.js viewer. No user-facing behaviour changes — just a leaner, cleaner codebase.',
+    items: [
+      {
+        kind: 'fixed',
+        icon: 'trash-2',
+        text: 'Deleted ~5,000 lines of dead Cesium-era source (35 unreachable JS modules under src/js/controls, src/js/screenshots, the old viewer providers/basemap/shadow/picker/camera helpers, plus their two orphaned stylesheets) that were never imported by the live entry graph and so were already tree-shaken out of the shipped bundle. This also clears a stale swissnovo-showroom.vercel.app URL and the obsolete Cesium navigation/geocoder CSS overrides. The build output is byte-for-byte equivalent; this is purely housekeeping.',
+        prs: [],
+      },
+    ],
+  },
+
+  {
     version: '0.9.12',
     date: 'June 13, 2026',
     codename: 'Cached Footprints',

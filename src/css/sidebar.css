@@ -243,11 +243,6 @@
     transform: rotate(-90deg);
 }
 
-/* Hide Cesium's on-map geocoder widget — the navbar input drives it */
-.cesium-viewer-geocoderContainer {
-    display: none !important;
-}
-
 /* ---------- Navbar action buttons (Views / Day-tour / Settings) ---------- */
 /* Generic icon-button used by every direct-action navbar control + by the
    dropdown triggers (Views, Settings). Mirrors .screenshot-nav-button +
