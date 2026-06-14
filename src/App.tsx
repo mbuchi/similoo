@@ -42,7 +42,7 @@ export default function App() {
     <>
       <AppNavbar
         appName="similoo"
-        position="fixed top-0 left-0 right-0 z-40"
+        position="fixed top-0 left-0 right-0 z-40 md:z-[60]"
         actionsExtra={
           <>
             {/* Release-notes injection anchor: the engine looks up

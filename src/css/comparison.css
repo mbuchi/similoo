@@ -6,7 +6,7 @@
 
 .cmp {
     position: fixed;
-    top: 60px;
+    top: 56px;
     right: 0;
     bottom: 0;
     width: 400px;
@@ -416,7 +416,7 @@ body.cmp-shifted .basemap-selector {
 @media (max-width: 640px) {
     .cmp {
         width: 100%;
-        top: 60px;
+        top: 56px;
     }
     body.cmp-shifted .basemap-selector {
         transform: translateX(0);
