@@ -230,6 +230,15 @@ html, body, #mapContainer {
     gap: 0.5rem;
 }
 
+/* Release-notes injection host. The shared <AppNavbar> owns the real brand
+   markup, so similoo carries a tiny .navbar-brand/.logo-subtitle anchor into the
+   navbar actions slot purely so initReleaseNotes() can keep finding its mount
+   point and insert the version (tag) button before the (hidden) subtitle. This
+   host contributes only that injected button to the action cluster. */
+.rn-version-host.navbar-brand {
+    gap: 0;
+}
+
 .aireon-hub-link {
     display: inline-flex;
     width: 36px;
