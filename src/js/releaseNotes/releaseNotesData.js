@@ -41,6 +41,21 @@ export const KIND_META = {
 
 export const RELEASES = [
   {
+    version: '0.10.1',
+    date: 'June 14, 2026',
+    codename: 'Shared Navbar',
+    summary:
+      'similoo now uses the suite-shared AppNavbar from @aireon/shared for its top bar, so the hub badge and the simil/red-oo wordmark are rendered by the same component every Aireon app shares. The interface is otherwise unchanged: the app keeps all of its own navbar controls (help, theme toggle, language selector, release notes and the sign-in / profile menu) — they were simply relocated into the shared bar with their behaviour intact.',
+    items: [
+      {
+        kind: 'improved',
+        icon: 'layout',
+        text: 'Adopted the suite-shared AppNavbar for the top bar. The shared component supplies the Aireon hub badge, the simil/red-oo wordmark and the bar shell, while similoo’s existing help, theme, language, release-notes and account controls are carried into its slots unchanged — so the imperative engine keeps wiring them exactly as before. Bumped @aireon/shared to v1.19.1.',
+        prs: [],
+      },
+    ],
+  },
+  {
     version: '0.10.0',
     date: 'June 13, 2026',
     codename: 'React Shell',
