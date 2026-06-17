@@ -41,6 +41,49 @@ export const KIND_META = {
 
 export const RELEASES = [
   {
+    version: '0.10.3',
+    date: 'June 17, 2026',
+    codename: 'Canonical Navbar',
+    summary:
+      'The top-bar controls now match the rest of the Aireon suite exactly — monochrome icons with no coloured fills or rings. The help, theme-toggle, language and "⋯" overflow buttons dropped their filled grey backgrounds and blue focus rings for the canonical transparent, muted-grey look with a neutral focus ring, and the address search now focuses red like every other Aireon app.',
+    highlight: true,
+    items: [
+      {
+        kind: 'improved',
+        icon: 'palette',
+        text: 'Navbar icon buttons (.nav-action-button / .theme-toggle-button / .locale-select / .nav-overflow-toggle) now render the canonical @aireon/shared .aireon-navbtn look — transparent at rest, muted grey (--hood-muted) brightening to --hood-ink on hover, 36px, with a neutral ink focus ring — instead of the previous filled --hood-surface-3 background and blue (--hood-blue-ring) focus ring.',
+        prs: [],
+      },
+      {
+        kind: 'fixed',
+        icon: 'search',
+        text: 'The address-search field focuses red (red-400 border + red-500/25 ring) instead of blue, and the search icon no longer turns blue on focus — matching the suite AddressSearch styling.',
+        prs: [],
+      },
+      {
+        kind: 'fixed',
+        icon: 'ruler',
+        text: 'Corrected the navbar height token (--navbar-h) and the #mapContainer top offset from 60/70px to the canonical 56px so the map sits flush under the bar.',
+        prs: [],
+      },
+    ],
+  },
+  {
+    version: '0.10.2',
+    date: 'June 16, 2026',
+    codename: 'Panel Stacking',
+    summary:
+      'Right-hand panels now sit flush under the navbar with the account menu always layered on top, and the shared AppNavbar background was made fully opaque so the bar colour is identical across the suite in any theme.',
+    items: [
+      {
+        kind: 'fixed',
+        icon: 'layers',
+        text: 'Flushed the comparison/detail panel under the navbar and fixed the account-menu stacking order; bumped @aireon/shared to v1.32.0 for the opaque AppNavbar background.',
+        prs: [45],
+      },
+    ],
+  },
+  {
     version: '0.10.1',
     date: 'June 14, 2026',
     codename: 'Shared Navbar',

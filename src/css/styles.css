@@ -91,7 +91,7 @@
     --hood-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, 'Cascadia Code', Consolas, monospace;
 
     /* Layout metrics */
-    --navbar-h: 60px;
+    --navbar-h: 56px;
     --rail-w: 56px;
     --panel-w: 280px;
 }
@@ -283,14 +283,14 @@ html, body, #mapContainer {
    as the action buttons it replaces. */
 .nav-overflow-toggle {
     display: none;
-    width: 40px;
-    height: 40px;
+    width: 36px;
+    height: 36px;
     margin-left: auto;
     padding: 0;
     border: 1px solid transparent;
     border-radius: var(--hood-radius-sm);
-    background: var(--hood-surface-3);
-    color: var(--hood-text);
+    background: transparent;
+    color: var(--hood-muted);
     cursor: pointer;
     align-items: center;
     justify-content: center;
@@ -304,12 +304,12 @@ html, body, #mapContainer {
 }
 
 .nav-overflow-toggle:hover {
-    background-color: var(--hood-border);
+    color: var(--hood-ink);
 }
 
 .nav-overflow-toggle:focus-visible {
     outline: none;
-    box-shadow: 0 0 0 3px var(--hood-blue-ring);
+    box-shadow: 0 0 0 2px rgba(17, 24, 39, 0.5);
 }
 
 .mobile-menu-button {
@@ -677,7 +677,7 @@ html, body, #mapContainer {
     }
 
     #mapContainer {
-        padding-top: 60px;
+        padding-top: 56px;
     }
 
     .logo {
@@ -780,7 +780,7 @@ html, body, #mapContainer {
 }
 
 #mapContainer {
-    padding-top: 70px;
+    padding-top: 56px;
 }
 
 /* Prevent iOS zoom on input focus */

@@ -59,12 +59,12 @@
 .navbar-search-input:focus {
     outline: none;
     background: var(--hood-surface);
-    border-color: var(--hood-blue);
-    box-shadow: 0 0 0 3px var(--hood-blue-ring);
+    border-color: rgb(248 113 113);
+    box-shadow: 0 0 0 2px rgb(239 68 68 / 0.25);
 }
 
 .navbar-search:focus-within .navbar-search-icon {
-    color: var(--hood-blue);
+    color: var(--hood-muted);
 }
 
 /* Autocomplete suggestions dropdown — sits absolutely below the input,
@@ -142,12 +142,12 @@
    navbar buttons so it doesn't break the rhythm of the action cluster.
    Mirrors the styling of .nav-action-button (chrome tokens, focus ring). */
 .locale-select {
-    height: 40px;
+    height: 36px;
     padding: 0 0.55rem;
     border-radius: var(--hood-radius-sm);
     border: 1px solid transparent;
-    background: var(--hood-surface-3);
-    color: var(--hood-text);
+    background: transparent;
+    color: var(--hood-muted);
     font-family: var(--hood-font);
     font-size: 0.78rem;
     font-weight: 600;
@@ -167,12 +167,12 @@
 }
 
 .locale-select:hover {
-    background-color: var(--hood-border);
+    color: var(--hood-ink);
 }
 
 .locale-select:focus-visible {
     outline: none;
-    box-shadow: 0 0 0 3px var(--hood-blue-ring);
+    box-shadow: 0 0 0 2px rgba(17, 24, 39, 0.5);
 }
 
 [data-theme="dark"] .locale-select {
@@ -185,12 +185,12 @@
    inside `.theme-toggle-button` via position: absolute. */
 .theme-toggle-button {
     position: relative;
-    width: 40px;
-    height: 40px;
+    width: 36px;
+    height: 36px;
     border-radius: var(--hood-radius-sm);
     border: 1px solid transparent;
-    background: var(--hood-surface-3);
-    color: var(--hood-text);
+    background: transparent;
+    color: var(--hood-muted);
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -203,12 +203,12 @@
 }
 
 .theme-toggle-button:hover {
-    background: var(--hood-border);
+    color: var(--hood-ink);
 }
 
 .theme-toggle-button:focus-visible {
     outline: none;
-    box-shadow: 0 0 0 3px var(--hood-blue-ring);
+    box-shadow: 0 0 0 2px rgba(17, 24, 39, 0.5);
 }
 
 .theme-toggle-button:active {
@@ -236,7 +236,6 @@
 [data-theme="dark"] .theme-toggle-sun {
     opacity: 1;
     transform: rotate(0deg);
-    color: #fbbf24;
 }
 [data-theme="dark"] .theme-toggle-moon {
     opacity: 0;
@@ -249,16 +248,16 @@
    .theme-toggle-button sizing so the whole right-hand row reads as one
    set. */
 .nav-action-button {
-    width: 40px;
-    height: 40px;
+    width: 36px;
+    height: 36px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 2px;
     border: 1px solid transparent;
     border-radius: var(--hood-radius-sm);
-    background: var(--hood-surface-3);
-    color: var(--hood-text);
+    background: transparent;
+    color: var(--hood-muted);
     cursor: pointer;
     transition: background-color var(--hood-transition),
                 color var(--hood-transition),
@@ -269,12 +268,12 @@
 }
 
 .nav-action-button:hover {
-    background: var(--hood-border);
+    color: var(--hood-ink);
 }
 
 .nav-action-button:focus-visible {
     outline: none;
-    box-shadow: 0 0 0 3px var(--hood-blue-ring);
+    box-shadow: 0 0 0 2px rgba(17, 24, 39, 0.5);
 }
 
 .nav-action-button:active {
@@ -282,8 +281,17 @@
 }
 
 .nav-action-button[aria-expanded="true"] {
-    background: var(--hood-red-soft);
-    color: var(--hood-red);
+    background: var(--hood-surface-3);
+    color: var(--hood-ink);
+}
+
+/* Canonical ink focus ring in dark theme — matches @aireon/shared .aireon-navbtn
+   (light ring set per-rule above). Suite nav controls never use a coloured ring. */
+[data-theme="dark"] .nav-action-button:focus-visible,
+[data-theme="dark"] .theme-toggle-button:focus-visible,
+[data-theme="dark"] .locale-select:focus-visible,
+[data-theme="dark"] .nav-overflow-toggle:focus-visible {
+    box-shadow: 0 0 0 2px rgba(148, 163, 184, 0.7);
 }
 
 .nav-action-button i,
