@@ -41,6 +41,27 @@ export const KIND_META = {
 
 export const RELEASES = [
   {
+    version: '0.11.0',
+    date: 'June 18, 2026',
+    codename: 'Liquid Glass',
+    summary:
+      'New “Glass effect” appearance setting (Off · Frosted · Liquid) under the navbar settings gear — translucent, frosted comparison panel, building modal and on-map legend that float over the map. Your choice syncs across every Aireon app.',
+    items: [
+      {
+        kind: 'new',
+        icon: 'sparkles',
+        text: 'Added a Glass effect appearance picker (Off · Frosted · Liquid) under the navbar settings gear. Frosted and Liquid give the comparison panel, the building detail view, the methodology panel and the on-map legend a translucent, blurred glass look over the map; Off keeps the original solid surfaces.',
+        prs: [],
+      },
+      {
+        kind: 'improved',
+        icon: 'settings',
+        text: 'Your Glass effect choice is remembered and shared across all Aireon apps, and adapts automatically to light and dark themes.',
+        prs: [],
+      },
+    ],
+  },
+  {
     version: '0.10.4',
     date: 'June 18, 2026',
     codename: 'Suite Parity',
