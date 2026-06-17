@@ -41,6 +41,21 @@ export const KIND_META = {
 
 export const RELEASES = [
   {
+    version: '0.10.4',
+    date: 'June 18, 2026',
+    codename: 'Suite Parity',
+    summary:
+      'Updated to the latest shared library (v1.36.2) for exact navbar parity across the Aireon suite.',
+    items: [
+      {
+        kind: 'improved',
+        icon: 'package',
+        text: 'Updated @aireon/shared to v1.36.2 — the latest shared navbar tokens and opaque navbar background, keeping similoo visually identical to the rest of the Aireon suite.',
+        prs: [],
+      },
+    ],
+  },
+  {
     version: '0.10.3',
     date: 'June 17, 2026',
     codename: 'Canonical Navbar',
