@@ -50,6 +50,12 @@ export const RELEASES = [
     items: [
       {
         kind: 'improved',
+        icon: 'search',
+        text: 'SEO: add canonical URL + JSON-LD structured data (WebApplication/SoftwareApplication) to the page head.',
+        prs: [],
+      },
+      {
+        kind: 'improved',
         icon: 'palette',
         text: 'Navbar icon buttons (.nav-action-button / .theme-toggle-button / .locale-select / .nav-overflow-toggle) now render the canonical @aireon/shared .aireon-navbtn look — transparent at rest, muted grey (--hood-muted) brightening to --hood-ink on hover, 36px, with a neutral ink focus ring — instead of the previous filled --hood-surface-3 background and blue (--hood-blue-ring) focus ring.',
         prs: [],
