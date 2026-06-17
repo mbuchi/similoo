@@ -1,0 +1,80 @@
+/* similoo — Liquid Glass surface opt-in.
+ *
+ * The shared engine (`@aireon/shared/glass.css`) seeds the `--glass-*` design
+ * tokens per appearance level — set by GlassProvider and stamped onto <html> as
+ * `data-glass` (0 Off · 1 Frosted · 2 Liquid) by App.tsx. That file styles the
+ * shared `.glass-surface` / `.glass-control` classes and the shared account
+ * menu, but similoo renders its floating UI imperatively with bespoke `.cmp-*`,
+ * `.bdm-*`, `.mh-*` and `.map-legend` classes, so we opt those specific
+ * surfaces into the same tokens here.
+ *
+ * Gating: every rule is scoped to `[data-glass='1']` / `[data-glass='2']` only.
+ * At Off (`data-glass='0'` or, pre-mount, unset) nothing below matches, so the
+ * default solid/■ look is byte-identical to before this feature.
+ *
+ * Theme: the shared tokens carry their own light vs dark values
+ * (`.dark[data-glass='N']`). App.tsx mirrors a `.dark` class onto <html>
+ * whenever `data-theme="dark"`, so the dark tokens resolve here too. We
+ * therefore never need to branch on the theme ourselves — one rule covers both.
+ *
+ * Accessibility/perf: "Reduce transparency", "Reduce motion" and the mobile
+ * blur cap are all honoured by the shared token layer, so they apply to these
+ * surfaces automatically.
+ */
+
+/* ---- Reading surfaces: the comparison panel + the two modals --------------
+ * Full-strength glass (like the shared `.glass-surface`). The specular sheen
+ * paints behind content via background-image so it never veils text. */
+[data-glass='1'] .cmp,
+[data-glass='2'] .cmp,
+[data-glass='1'] .bdm-panel,
+[data-glass='2'] .bdm-panel,
+[data-glass='1'] .mh-panel,
+[data-glass='2'] .mh-panel {
+    background-color: var(--glass-bg);
+    background-image: var(--glass-specular);
+    border-color: var(--glass-border);
+    box-shadow: var(--glass-shadow), var(--glass-inset);
+    text-shadow: var(--glass-text-shadow);
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate))
+        brightness(var(--glass-brightness));
+    backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate))
+        brightness(var(--glass-brightness));
+    transition: background-color 0.25s ease, box-shadow 0.25s ease,
+        border-color 0.25s ease, -webkit-backdrop-filter 0.25s ease,
+        backdrop-filter 0.25s ease;
+}
+
+/* `.cmp` already paints `background: var(--hood-panel-bg)` (a shorthand) and a
+ * left border; the longhand overrides above win, but make the side border
+ * adopt the glass tint too so the panel edge matches. */
+[data-glass='1'] .cmp,
+[data-glass='2'] .cmp {
+    border-left-color: var(--glass-border);
+}
+
+/* The comparison panel keeps its slide-in transform animation; merge the glass
+ * fades in without dropping it. (`.cmp` sets `transition: transform/opacity`.) */
+[data-glass='1'] .cmp,
+[data-glass='2'] .cmp {
+    transition: transform 220ms ease, opacity 220ms ease,
+        background-color 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease,
+        -webkit-backdrop-filter 0.25s ease, backdrop-filter 0.25s ease;
+}
+
+/* ---- On-map chrome: the bottom-left legend -------------------------------
+ * Lighter blur (~0.6×) so the map doesn't smear behind small chrome — mirrors
+ * the shared `.glass-control`. */
+[data-glass='1'] .map-legend,
+[data-glass='2'] .map-legend {
+    background: var(--glass-bg);
+    background-image: var(--glass-specular);
+    border-color: var(--glass-border);
+    box-shadow: var(--glass-shadow), var(--glass-inset);
+    -webkit-backdrop-filter: blur(calc(var(--glass-blur) * 0.6)) saturate(var(--glass-saturate))
+        brightness(var(--glass-brightness));
+    backdrop-filter: blur(calc(var(--glass-blur) * 0.6)) saturate(var(--glass-saturate))
+        brightness(var(--glass-brightness));
+    transition: background-color 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease,
+        -webkit-backdrop-filter 0.25s ease, backdrop-filter 0.25s ease;
+}

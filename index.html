@@ -46,6 +46,13 @@
                         ? 'dark'
                         : 'light');
                 document.documentElement.setAttribute('data-theme', resolved);
+                // Mirror a `.dark` class for the shared Liquid Glass tokens
+                // (@aireon/shared/glass.css keys its dark variants on
+                // `.dark[data-glass]`). Applied pre-paint so glassed surfaces
+                // never flash light on reload; App.tsx keeps it in sync after
+                // runtime theme toggles. Inert for similoo's own CSS, which
+                // keys on [data-theme="dark"].
+                document.documentElement.classList.toggle('dark', resolved === 'dark');
             } catch (e) {
                 document.documentElement.setAttribute('data-theme', 'light');
             }
