@@ -41,6 +41,21 @@ export const KIND_META = {
 
 export const RELEASES = [
   {
+    version: '0.11.2',
+    date: 'June 18, 2026',
+    codename: 'Lean Entry',
+    summary:
+      'Faster first load — the heavy map and 3D libraries (MapLibre and Three.js) are now code-split into their own bundles so the app shell loads and renders before the big chunks finish downloading.',
+    items: [
+      {
+        kind: 'improved',
+        icon: 'zap',
+        text: 'Performance: code-split the heavy MapLibre and Three.js libraries out of the entry bundle into separate chunks, shrinking the eager bundle the browser has to parse before the UI appears.',
+        prs: [],
+      },
+    ],
+  },
+  {
     version: '0.11.1',
     date: 'June 18, 2026',
     codename: 'Share This View',
