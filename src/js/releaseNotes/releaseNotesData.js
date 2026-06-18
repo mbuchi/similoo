@@ -41,6 +41,21 @@ export const KIND_META = {
 
 export const RELEASES = [
   {
+    version: '0.11.3',
+    date: 'June 18, 2026',
+    codename: 'Official Address Search',
+    summary:
+      'Landing-page address autocomplete now uses the shared geo.admin.ch provider instead of the Mapbox token path.',
+    items: [
+      {
+        kind: 'improved',
+        icon: 'globe',
+        text: 'Replaced the local Mapbox forward-geocoder with the shared @aireon/shared geo.admin.ch helper. The landing search keeps the same keyboard and click workflow, but address results are now tokenless, Swiss-official and cached through the shared provider.',
+        prs: [],
+      },
+    ],
+  },
+  {
     version: '0.11.2',
     date: 'June 18, 2026',
     codename: 'Lean Entry',
