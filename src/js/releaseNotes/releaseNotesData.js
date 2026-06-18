@@ -41,6 +41,21 @@ export const KIND_META = {
 
 export const RELEASES = [
   {
+    version: '0.11.1',
+    date: 'June 18, 2026',
+    codename: 'Share This View',
+    summary:
+      'Added a "Share this view" button to the navbar — copies the current URL to the clipboard and confirms with a "Link copied to clipboard" pill.',
+    items: [
+      {
+        kind: 'new',
+        icon: 'share-2',
+        text: 'Added a "Share this view" button to the navbar — it copies a link to the current view and confirms with a "Link copied to clipboard" pill.',
+        prs: [],
+      },
+    ],
+  },
+  {
     version: '0.11.0',
     date: 'June 18, 2026',
     codename: 'Liquid Glass',
