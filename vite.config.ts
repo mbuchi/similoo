@@ -9,8 +9,20 @@ export default defineConfig({
   plugins: [react()],
   build: {
     // The bundle is dominated by maplibre-gl + three; the previous vanilla
-    // build already exceeded the 500 kB default warning. Keep the build quiet
-    // (behaviour-preserving — this is the same single-bundle output as before).
+    // build already exceeded the 500 kB default warning. Keep the build quiet.
     chunkSizeWarningLimit: 2000,
+    rollupOptions: {
+      output: {
+        // Conservative code-splitting: bucket ONLY specific heavy third-party
+        // packages into their own chunks so they don't bloat the eager entry
+        // bundle. App code (and react) is deliberately NOT chunked here —
+        // splitting app code risks circular-dependency TDZ white-screens.
+        manualChunks(id) {
+          if (id.includes('node_modules/maplibre-gl')) return 'maplibre';
+          if (id.includes('node_modules/three')) return 'three';
+          return undefined;
+        },
+      },
+    },
   },
 });
