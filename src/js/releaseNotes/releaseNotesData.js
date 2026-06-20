@@ -41,6 +41,21 @@ export const KIND_META = {
 
 export const RELEASES = [
   {
+    version: '0.11.4',
+    date: 'June 20, 2026',
+    codename: 'Theme Follows You',
+    summary:
+      'Your light/dark choice now carries across every Aireon app — and across your devices when signed in.',
+    items: [
+      {
+        kind: 'improved',
+        icon: 'palette',
+        text: 'Your light/dark choice now carries across every Aireon app — and across your devices when signed in.',
+        prs: [],
+      },
+    ],
+  },
+  {
     version: '0.11.3',
     date: 'June 18, 2026',
     codename: 'Official Address Search',
