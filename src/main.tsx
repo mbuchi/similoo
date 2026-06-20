@@ -2,6 +2,17 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { GlassProvider } from '@aireon/shared';
 import App from './App';
+import { initTheme } from './js/theme.js';
+
+// Cross-app / cross-device theme. initTheme resolves the suite-shared
+// `aireon_theme` cookie (scoped to .aireon.ch, shared by every *.aireon.ch app)
+// → localStorage mirror → OS preference → app default, then stamps both
+// `<html data-theme>` (similoo's own CSS) and the `.dark` class (shared glass
+// tokens). similoo's historical default is OS-pref with a light fallback, which
+// `initTheme('light')` reproduces exactly. The inline pre-paint bootstrap in
+// index.html already applied the same resolution (incl. the cross-app cookie)
+// before first paint; this re-affirms it once the bundle loads.
+initTheme('light');
 
 // --- App stylesheets (the visual source of truth) -------------------------
 // Previously linked from index.html as /src/css/*.css; now bundled by Vite via

@@ -39,7 +39,11 @@
         // applied so users on dark mode don't see a white flash on load.
         (function () {
             try {
-                var stored = localStorage.getItem('similoo-theme');
+                // Cross-app theme: prefer the suite-shared `aireon_theme` cookie
+                // (scoped to .aireon.ch, written by @aireon/shared setTheme), then
+                // fall back to the legacy local `similoo-theme` mirror, then OS pref.
+                var cm = document.cookie.match(/(?:^|; )aireon_theme=([^;]*)/);
+                var stored = cm ? decodeURIComponent(cm[1]) : localStorage.getItem('similoo-theme');
                 var resolved = stored === 'light' || stored === 'dark'
                     ? stored
                     : (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches

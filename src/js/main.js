@@ -1,4 +1,5 @@
 import './i18n.js';
+import { setTheme } from './theme.js';
 import '@aireon/shared/cesium-app/css/auth.css';
 import '../css/bugReport.css';
 import '../css/releaseNotes.css';
@@ -739,9 +740,11 @@ function setupThemeToggle() {
     btn.addEventListener('click', () => {
         const next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
         root.setAttribute('data-theme', next);
-        try {
-            localStorage.setItem('similoo-theme', next);
-        } catch {}
+        // Persist via the cross-app store: writes the suite-shared `aireon_theme`
+        // cookie (.aireon.ch) + the localStorage mirror + the `.dark` class, so
+        // the choice now carries across every Aireon app. Replaces the old
+        // localStorage.setItem('similoo-theme', …).
+        setTheme(next);
         sync();
     });
     sync();
