@@ -105,6 +105,7 @@ const translations = {
     'nav.theme_to_dark': 'Switch to dark mode',
     'nav.theme_to_light': 'Switch to light mode',
     'nav.theme_toggle': 'Toggle dark mode',
+    'nav.open_with': 'Open with',
 
     // ---------- views dropdown ----------
     'views.button': 'Views',
@@ -502,6 +503,7 @@ const translations = {
     'nav.theme_to_dark': 'Passer en mode sombre',
     'nav.theme_to_light': 'Passer en mode clair',
     'nav.theme_toggle': 'Basculer le mode sombre',
+    'nav.open_with': 'Ouvrir avec',
 
     // ---------- views dropdown ----------
     'views.button': 'Vues',
@@ -900,6 +902,7 @@ const translations = {
     'nav.theme_to_dark': 'Zum dunklen Modus wechseln',
     'nav.theme_to_light': 'Zum hellen Modus wechseln',
     'nav.theme_toggle': 'Dunkelmodus umschalten',
+    'nav.open_with': 'Öffnen mit',
 
     // ---------- views dropdown ----------
     'views.button': 'Ansichten',
@@ -1300,6 +1303,7 @@ const translations = {
     'nav.theme_to_dark': 'Passa al tema scuro',
     'nav.theme_to_light': 'Passa al tema chiaro',
     'nav.theme_toggle': 'Attiva/disattiva tema scuro',
+    'nav.open_with': 'Apri con',
 
     // ---------- views dropdown ----------
     'views.button': 'Viste',
