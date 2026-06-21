@@ -1,7 +1,18 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
-import { AuthProvider, GlassProvider } from '@aireon/shared';
+import { AuthProvider, GlassProvider, initTheme } from '@aireon/shared';
 import App from './App';
+
+// Cross-app theme ("theme follows you"). The shared initTheme resolves the suite
+// `aireon_theme` cookie (scoped to .aireon.ch, shared by every *.aireon.ch app)
+// → OS preference → 'light' and applies the `.dark` class. Now that similoo is
+// on @aireon/shared v1.59 the suite theme store is available directly, replacing
+// the earlier inline theme.js workaround (same cookie, so behaviour is
+// unchanged). The pre-paint bootstrap in index.html already applied the same
+// resolution — incl. `<html data-theme>` for similoo's bespoke CSS — before
+// first paint; this re-affirms it once the bundle loads. App.tsx owns the toggle
+// and keeps both `.dark` and `data-theme` in sync afterward.
+initTheme('light');
 
 // Tailwind layers + suite font tokens. MUST be first so Tailwind's preflight
 // (base reset) lands at the bottom of the cascade — the bespoke design-token

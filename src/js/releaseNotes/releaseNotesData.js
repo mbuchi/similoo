@@ -62,13 +62,58 @@ export const RELEASES = [
       {
         kind: 'improved',
         icon: 'palette',
-        text: 'Retuned dark mode to the suite slate palette and moved the interface onto Tailwind, so every surface matches the other Aireon apps. Your light/dark choice now follows you across the suite.',
+        text: 'Retuned dark mode to the suite slate palette and moved the interface onto Tailwind, so every surface matches the other Aireon apps.',
         prs: [],
       },
       {
         kind: 'improved',
         icon: 'sparkles',
         text: 'What’s new and About now use the shared suite panels, and the bug-report form moved into the account menu (“Report a problem”).',
+        prs: [],
+      },
+    ],
+  },
+  {
+    version: '0.11.4',
+    date: 'June 20, 2026',
+    codename: 'Theme Follows You',
+    summary:
+      'Your light/dark choice now carries across every Aireon app — and across your devices when signed in.',
+    items: [
+      {
+        kind: 'improved',
+        icon: 'palette',
+        text: 'Your light/dark choice now carries across every Aireon app — and across your devices when signed in.',
+        prs: [],
+      },
+    ],
+  },
+  {
+    version: '0.11.3',
+    date: 'June 18, 2026',
+    codename: 'Official Address Search',
+    summary:
+      'Landing-page address autocomplete now uses the shared geo.admin.ch provider instead of the Mapbox token path.',
+    items: [
+      {
+        kind: 'improved',
+        icon: 'globe',
+        text: 'Replaced the local Mapbox forward-geocoder with the shared @aireon/shared geo.admin.ch helper. The landing search keeps the same keyboard and click workflow, but address results are now tokenless, Swiss-official and cached through the shared provider.',
+        prs: [],
+      },
+    ],
+  },
+  {
+    version: '0.11.2',
+    date: 'June 18, 2026',
+    codename: 'Lean Entry',
+    summary:
+      'Faster first load — the heavy map and 3D libraries (MapLibre and Three.js) are now code-split into their own bundles so the app shell loads and renders before the big chunks finish downloading.',
+    items: [
+      {
+        kind: 'improved',
+        icon: 'zap',
+        text: 'Performance: code-split the heavy MapLibre and Three.js libraries out of the entry bundle into separate chunks, shrinking the eager bundle the browser has to parse before the UI appears.',
         prs: [],
       },
     ],

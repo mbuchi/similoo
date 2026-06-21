@@ -1,51 +1,19 @@
-// Mapbox forward-geocoding for the landing search — vanilla-JS port of
-// doorway's geocode.ts. Restricted to Switzerland; returns up to 5 ranked
-// matches with WGS84 coordinates.
-//
-// The Mapbox token is supplied at build time via VITE_MAPBOX_TOKEN. It is
-// a public (pk.*) token, safe to ship client-side, but we keep it out of
-// the repo so secret scanners stay happy. Set it in Vercel env vars and
-// in a local .env file (see .env.example).
+import { searchGeoAdminAddresses } from '@aireon/shared/geoadmin';
 
-const TOKEN = import.meta.env?.VITE_MAPBOX_TOKEN || '';
+// geo.admin.ch forward geocoding for the landing search. The shared helper is
+// tokenless, CH-official, and returns the same `{label, lat, lng}` contract the
+// landing search already consumes.
 const DEBOUNCE_MS = 200;
-
-if (!TOKEN && typeof window !== 'undefined') {
-    console.warn(
-        'addressSearch: VITE_MAPBOX_TOKEN is not set — geocoding will fail. ' +
-        'Set it in your Vercel env or local .env file.',
-    );
-}
 
 export async function geocodeAddress(query, signal) {
     const trimmed = (query || '').trim();
     if (trimmed.length < 3) return [];
 
-    const url = new URL('https://api.mapbox.com/search/geocode/v6/forward');
-    url.searchParams.set('q', trimmed);
-    url.searchParams.set('country', 'ch');
-    url.searchParams.set('limit', '5');
-    url.searchParams.set('types', 'address,street,place');
-    url.searchParams.set('access_token', TOKEN);
-
-    const res = await fetch(url.toString(), { signal });
-    if (!res.ok) throw new Error(`Geocoding failed: ${res.status}`);
-    const data = await res.json();
-
-    return (data.features || [])
-        .map((f) => {
-            const coords = f?.geometry?.coordinates;
-            if (!Array.isArray(coords) || coords.length < 2) return null;
-            const [lng, lat] = coords;
-            if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
-            return {
-                id: String(f.id ?? `${lat},${lng}`),
-                label: f.properties?.full_address || f.properties?.name || `${lat}, ${lng}`,
-                lat,
-                lng,
-            };
-        })
-        .filter(Boolean);
+    return searchGeoAdminAddresses(trimmed, {
+        signal,
+        limit: 5,
+        lang: 'en',
+    });
 }
 
 // Wires a <input> + <ul> pair into a debounced live geocoder. Calls
