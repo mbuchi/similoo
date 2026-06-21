@@ -17,6 +17,7 @@ import {
   type Locale,
   type PrmLocale,
   type MapUserMenuAction,
+  type AddressSearchResult,
 } from '@aireon/shared';
 import { HelpCircle, Info, Share2, Sun, Moon, Tag } from 'lucide-react';
 import LandingView from './components/LandingView';
@@ -41,6 +42,36 @@ export default function App() {
     if (booted.current) return;
     booted.current = true;
     boot();
+  }, []);
+
+  // --- Navbar address search ↔ engine bridge ------------------------------
+  // similoo now uses the shared navbar address search (the suite standard) in
+  // place of the old in-view "Search again" bar. Two tiny window-event hops keep
+  // the imperative engine and this React shell in sync without coupling them:
+  //   • engine → React: `similoo:address` carries the active parcel's label so
+  //     the search box can surface it (as placeholder text) once a parcel loads.
+  //   • React → engine: a navbar pick dispatches `similoo:search` with the
+  //     {lat,lng,label}, which boot()'s handler feeds straight into handlePick —
+  //     the same flow the landing search drives.
+  const [currentAddress, setCurrentAddress] = useState('');
+  useEffect(() => {
+    // Catch up on an address the engine may have set before this listener
+    // attached (e.g. a ?lat/?lng deep-link resolved during boot()).
+    const seeded = (window as { __similooAddress?: string }).__similooAddress;
+    if (seeded) setCurrentAddress(seeded);
+    const onAddress = (e: Event) => {
+      const label = (e as CustomEvent<{ label?: string }>).detail?.label ?? '';
+      setCurrentAddress(label);
+    };
+    window.addEventListener('similoo:address', onAddress);
+    return () => window.removeEventListener('similoo:address', onAddress);
+  }, []);
+  const handleNavSearch = useCallback((r: AddressSearchResult) => {
+    window.dispatchEvent(
+      new CustomEvent('similoo:search', {
+        detail: { lat: r.lat, lng: r.lng, label: r.label },
+      }),
+    );
   }, []);
 
   // --- Theme bridge -------------------------------------------------------
@@ -160,6 +191,22 @@ export default function App() {
         appName="similoo"
         dark={isDark}
         position="fixed top-0 left-0 right-0 z-40 md:z-[60]"
+        // Suite-standard navbar address search (replaces the old in-view "Search
+        // again" bar). A pick drives the engine's comparison flow via the
+        // window-event bridge above; once a parcel is loaded its address shows as
+        // the box's placeholder so the user can see — and re-search from — it.
+        search={{
+          locale,
+          onSelect: handleNavSearch,
+          onError: (err) => errorLogger.capture(err, { severity: 'warning', source: 'navbar-search' }),
+          labels: {
+            placeholder: currentAddress || t('nav.search_placeholder'),
+            loading: t('nav.search_loading'),
+            noResults: t('nav.search_no_results'),
+            clear: t('nav.clear_search'),
+            resultsCount: (n) => t('nav.search_results_count', { count: n }),
+          },
+        }}
         // Map action cluster: similoo has no save-image / locate, so only the
         // Settings gear (Liquid Glass picker) + Language switcher render — the
         // other actions auto-hide when their handlers are omitted.
