@@ -19,54 +19,6 @@
     display: none;
 }
 
-.comparison-header {
-    display: flex;
-    align-items: center;
-    gap: var(--hood-space-3, 12px);
-    padding: 8px 14px;
-    border-bottom: 1px solid var(--hood-border, #e5e7eb);
-    background: var(--hood-chrome-bg, rgba(255, 255, 255, 0.98));
-    z-index: 2;
-}
-
-.comparison-back {
-    appearance: none;
-    border: 1px solid var(--hood-border, #e5e7eb);
-    background: var(--hood-surface-2, #f9fafb);
-    color: var(--hood-text, #374151);
-    font: inherit;
-    font-size: 13px;
-    font-weight: 500;
-    padding: 6px 12px;
-    border-radius: var(--hood-radius-pill, 999px);
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    cursor: pointer;
-    transition: background var(--hood-transition, 0.15s), border-color var(--hood-transition, 0.15s);
-}
-
-.comparison-back:hover {
-    background: var(--hood-surface-3, #f3f4f6);
-    border-color: var(--hood-border-strong, #d1d5db);
-}
-
-.comparison-back svg {
-    width: 14px;
-    height: 14px;
-}
-
-.comparison-address {
-    flex: 1;
-    min-width: 0;
-    font-size: 14px;
-    color: var(--hood-ink, #111827);
-    font-weight: 500;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
 .comparison-map {
     flex: 1;
     min-height: 0;
@@ -202,26 +154,6 @@ body.cmp-shifted #mapContainer .maplibregl-ctrl-top-right {
 html[data-theme='dark'] .comparison-view,
 html[data-theme='dark'] .comparison-map {
     background: #0b1220;
-}
-
-html[data-theme='dark'] .comparison-header {
-    background: rgba(15, 23, 42, 0.95);
-    border-bottom-color: rgba(255, 255, 255, 0.08);
-}
-
-html[data-theme='dark'] .comparison-back {
-    background: rgba(255, 255, 255, 0.04);
-    border-color: rgba(255, 255, 255, 0.08);
-    color: #cbd5e1;
-}
-
-html[data-theme='dark'] .comparison-back:hover {
-    background: rgba(255, 255, 255, 0.08);
-    color: #f1f5f9;
-}
-
-html[data-theme='dark'] .comparison-address {
-    color: #f1f5f9;
 }
 
 /* On-map legend (src/js/viewer/mapLegend.js) — suite-standard bottom-left

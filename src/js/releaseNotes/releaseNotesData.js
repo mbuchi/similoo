@@ -41,6 +41,27 @@ export const KIND_META = {
 
 export const RELEASES = [
   {
+    version: '0.12.1',
+    date: 'June 21, 2026',
+    codename: 'One Search Bar',
+    summary:
+      'Searching now works the same way as valoo. The standard Aireon address search lives in the top navbar: it shows the address you looked up and lets you jump straight to another one — so the separate in-map “Search again” strip is gone.',
+    items: [
+      {
+        kind: 'improved',
+        icon: 'search',
+        text: 'Moved address search into the navbar, the suite-standard place for it. The parcel you are comparing now shows as the search text, and you can look up a new address right there — no stepping back to the landing screen first.',
+        prs: [],
+      },
+      {
+        kind: 'improved',
+        icon: 'layout',
+        text: 'Removed the separate “Search again” bar that sat above the comparison map. The 3D map now fills the full height beneath the navbar.',
+        prs: [],
+      },
+    ],
+  },
+  {
     version: '0.12.0',
     date: 'June 21, 2026',
     codename: 'Suite Parity',

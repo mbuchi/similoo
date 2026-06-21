@@ -38,10 +38,19 @@ export function boot() {
 
     const landingView = document.getElementById('landingView');
     const comparisonView = document.getElementById('comparisonView');
-    const comparisonAddress = document.getElementById('comparisonAddress');
-    const backBtn = document.getElementById('backToSearch');
     const input = document.getElementById('landingSearchInput');
     const list = document.getElementById('landingResults');
+
+    // Mirror the active parcel's address up to the React navbar (its address
+    // search box surfaces it). The old in-view "Search again" bar that used to
+    // render the label is gone — the navbar search is the single search surface.
+    function emitAddress(label) {
+        const value = label || '';
+        try {
+            window.__similooAddress = value;
+            window.dispatchEvent(new CustomEvent('similoo:address', { detail: { label: value } }));
+        } catch { /* no CustomEvent (very old engine host) — non-fatal */ }
+    }
 
     let map = null;
     let sidebar = null;
@@ -168,38 +177,23 @@ export function boot() {
     async function showComparison(label) {
         landingView.hidden = true;
         comparisonView.hidden = false;
-        comparisonAddress.textContent = label;
+        emitAddress(label);
         await ensureMap();
         ensureSidebar();
         ensureMarkers();
         if (window.lucide?.createIcons) window.lucide.createIcons();
     }
 
-    function showLanding() {
-        comparisonView.hidden = true;
-        landingView.hidden = false;
-        clearTargetHighlight();
-        clearZoneHighlight();
-        clearComparableHighlights();
-        markers?.clear();
-        if (sidebar) {
-            sidebar.hide();
-            document.body.classList.remove('cmp-shifted');
-        }
-        if (input) {
-            input.value = '';
-            setTimeout(() => input.focus(), 50);
-        }
-        try {
-            const url = new URL(window.location.href);
-            url.searchParams.delete('lat');
-            url.searchParams.delete('lng');
-            url.searchParams.delete('label');
-            window.history.replaceState({}, '', url.toString());
-        } catch {}
-    }
-
-    backBtn?.addEventListener('click', showLanding);
+    // The React shell's navbar address search (the suite-standard search surface,
+    // which replaced the old in-view "Search again" bar) drives the same flow as
+    // the landing search: a pick dispatches `similoo:search` with {lat,lng,label},
+    // which we feed straight into handlePick. handlePick now resets the previous
+    // search's highlights up front, so re-searching from here — without the old
+    // trip back through the landing view — leaves nothing stale behind.
+    window.addEventListener('similoo:search', (e) => {
+        const r = e?.detail;
+        if (r && Number.isFinite(r.lat) && Number.isFinite(r.lng)) handlePick(r);
+    });
 
     // Probe the building vector tile under (lng, lat) and return the rendered
     // footprint feature whose centroid sits nearest the point. MapLibre can
@@ -463,6 +457,19 @@ export function boot() {
     async function handlePick(result) {
         if (!result || !Number.isFinite(result.lat) || !Number.isFinite(result.lng)) return;
         const seq = ++pickSeq;
+
+        // Re-searching from the navbar reaches handlePick directly (the old
+        // "Search again" bar used to clear state on the way back to landing).
+        // Wipe the previous search's highlights, comparable pins and sidebar
+        // before loading the new parcel. `map` is null on the very first search,
+        // when there is nothing to clear.
+        if (map) {
+            clearTargetHighlight();
+            clearZoneHighlight();
+            clearComparableHighlights();
+            markers?.clear();
+            sidebar?.hide();
+        }
 
         await showComparison(result.label || formatLatLng(result.lat, result.lng));
         syncDeepLink(result);
