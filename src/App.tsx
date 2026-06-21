@@ -1,233 +1,264 @@
-import { useEffect, useRef, useState } from 'react';
-import { AppNavbar, SettingsMenu, useGlass, buildGlassSettingsItem } from '@aireon/shared';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import {
+  AppNavbar,
+  MapUserMenu,
+  NavIconButton,
+  AboutModal,
+  ReleaseNotesPanel,
+  ShareCopiedToast,
+  useGlass,
+  buildGlassSettingsItem,
+  useReleaseNotes,
+  getReleaseNotesStrings,
+  getShareStrings,
+  createErrorLogger,
+  useAuth,
+  setTheme,
+  type Locale,
+  type PrmLocale,
+  type MapUserMenuAction,
+} from '@aireon/shared';
+import { HelpCircle, Info, Share2, Sun, Moon, Tag } from 'lucide-react';
 import LandingView from './components/LandingView';
 import ComparisonView from './components/ComparisonView';
-import { getLocale, onLocaleChange, t } from './js/i18n.js';
+import { getLocale, onLocaleChange, setLocale, applyTranslations, t } from './js/i18n.js';
+// Methodology ("how comparable buildings are calculated") help panel. The
+// engine still owns its Esc/hash/deep-link wiring via initMethodologyHelp();
+// the navbar Help button opens it through this exported handle.
+import { open as openMethodology } from './js/help/methodologyPanel.js';
+// Release history, mapped to the shared <ReleaseNotesPanel> shape.
+import { releases, CURRENT_VERSION, REPO_URL } from './data/releaseNotes';
 // The preserved imperative engine. boot() owns all behaviour (map, Three.js
-// scene, comparison sidebar/panels, address search, deep-linking, theme/locale/
-// overflow navbar wiring, auth, bug report). It binds to the static DOM that the
-// components below render — same ids/classes as the old vanilla index.html.
+// scene, comparison sidebar/panels, address search, deep-linking). The navbar,
+// theme, locale, auth, release notes and bug report are now React-owned via the
+// shared suite chrome below; boot() no longer wires those.
 import { boot } from './js/main.js';
 
 export default function App() {
-  // Run the engine exactly once, after the scaffold is committed to the DOM.
-  // React 18 StrictMode double-invokes effects in dev; the ref guard keeps the
-  // imperative engine from booting twice (it isn't idempotent on its own).
+  // Run the imperative engine exactly once, after the React scaffold commits.
   const booted = useRef(false);
-
-  // Liquid Glass appearance level (0 Off · 1 Frosted · 2 Liquid), persisted
-  // suite-wide via the shared cookie by GlassProvider in main.tsx.
-  const { level: glassLevel, setLevel: setGlassLevel } = useGlass();
-
-  // Mirror the imperative i18n locale into React so the glass picker's labels
-  // localise and re-render when the language switches.
-  const [locale, setLocaleState] = useState(getLocale());
-
-  // Track the current theme so the settings-gear popover renders dark in dark
-  // mode. similoo flips `<html data-theme="dark|light">` imperatively
-  // (setupThemeToggle in src/js/main.js); we observe that attribute.
-  const [isDark, setIsDark] = useState(
-    () => document.documentElement.getAttribute('data-theme') === 'dark',
-  );
-
   useEffect(() => {
     if (booted.current) return;
     booted.current = true;
     boot();
   }, []);
 
-  // Keep the React-side locale in sync with the imperative i18n engine (the
-  // navbar's <select id="locale-select"> drives setLocale() in src/js/i18n.js).
-  // `onLocaleChange` returns an unsubscribe fn; wrap it so the effect cleanup
-  // returns void (the raw unsubscribe returns Set.delete's boolean).
+  // --- Theme bridge -------------------------------------------------------
+  // The suite chrome themes off the `.dark` class; similoo's bespoke CSS +
+  // engine theme off `[data-theme="dark"]`. React owns the toggle and mirrors
+  // BOTH so they always flip together. Seeded from the pre-paint bootstrap in
+  // index.html (which reads the `similoo-theme` choice and sets data-theme).
+  const [isDark, setIsDark] = useState(
+    () => document.documentElement.getAttribute('data-theme') === 'dark',
+  );
   useEffect(() => {
-    const unsubscribe = onLocaleChange((next: string) => setLocaleState(next));
-    return () => {
-      unsubscribe();
-    };
-  }, []);
+    const root = document.documentElement;
+    root.setAttribute('data-theme', isDark ? 'dark' : 'light');
+    root.classList.toggle('dark', isDark);
+    try {
+      localStorage.setItem('similoo-theme', isDark ? 'dark' : 'light');
+    } catch {
+      /* private mode — ignore */
+    }
+    // Also persist into the suite-wide theme cookie so the choice roams across
+    // Aireon apps (the shared chrome's standard behaviour).
+    try {
+      setTheme(isDark ? 'dark' : 'light');
+    } catch {
+      /* no-op */
+    }
+  }, [isDark]);
+  const toggleTheme = useCallback(() => setIsDark((v) => !v), []);
 
-  // Stamp the glass level onto <html> — the SAME element that carries the theme.
-  // The shared glass.css resolves its `--glass-*` tokens off `data-glass`
-  // (and `.dark[data-glass]` for the dark variants), so panels that render
-  // outside the React tree (the imperative comparison panel/modals) and any
-  // portalled chrome all pick the tokens up. No-op visual at level 0.
+  // --- Liquid Glass appearance level (0 Off · 1 Frosted · 2 Liquid) -------
+  const { level: glassLevel, setLevel: setGlassLevel } = useGlass();
   useEffect(() => {
     document.documentElement.setAttribute('data-glass', String(glassLevel));
   }, [glassLevel]);
 
-  // similoo themes via `<html data-theme>`, but the shared glass.css keys its
-  // dark tokens on a `.dark` class (`.dark[data-glass='N']`). Mirror a `.dark`
-  // class onto <html> whenever the theme is dark so those tokens resolve, and
-  // keep the gear popover's `dark` state in sync. The class is inert for
-  // similoo's own CSS (which keys on `[data-theme="dark"]`); only glass.css
-  // reads it. The pre-paint bootstrap in index.html applies it before first
-  // paint, so glassed surfaces never flash light on reload. This observer keeps
-  // it correct after every runtime theme toggle.
+  // --- Locale bridge ------------------------------------------------------
+  // Mirror the imperative i18n locale into React so the shared chrome's labels
+  // re-render on language change; driving the toolbar's switcher calls back into
+  // the engine's setLocale() + re-translates the engine-owned DOM.
+  const [locale, setLocaleState] = useState<Locale>(getLocale() as Locale);
   useEffect(() => {
-    const root = document.documentElement;
-    const sync = () => {
-      const dark = root.getAttribute('data-theme') === 'dark';
-      root.classList.toggle('dark', dark);
-      setIsDark(dark);
+    const unsubscribe = onLocaleChange((next: string) => setLocaleState(next as Locale));
+    return () => {
+      unsubscribe();
     };
-    sync();
-    const mo = new MutationObserver(sync);
-    mo.observe(root, { attributes: true, attributeFilter: ['data-theme'] });
-    return () => mo.disconnect();
+  }, []);
+  const changeLocale = useCallback((next: Locale) => {
+    setLocale(next);
+    applyTranslations(document);
   }, []);
 
-  // The Glass-effect picker for the navbar settings gear (Off · Frosted ·
-  // Liquid). Localised via the React-mirrored locale.
-  const glassSettingsItem = buildGlassSettingsItem({
-    level: glassLevel,
-    setLevel: setGlassLevel,
-    locale,
+  // --- Account / chrome state --------------------------------------------
+  const { email } = useAuth();
+  const errorLogger = useMemo(() => createErrorLogger({ appName: 'similoo' }), []);
+  const rn = useReleaseNotes({
+    currentVersion: CURRENT_VERSION,
+    storageKey: 'similoo:lastSeenReleaseVersion',
   });
+  const [showAbout, setShowAbout] = useState(false);
 
-  // similoo's top bar is the suite-shared <AppNavbar> (hub badge + simil/red-oo
-  // wordmark + the bar shell). AppNavbar renders ONLY the brand and shell; the
-  // app's own id-bearing controls are carried into its slots with their ids,
-  // classes and data-i18n attributes INTACT, so the preserved imperative engine
-  // keeps binding to them by getElementById/querySelector exactly as before:
-  //   * actionsExtra → the ⋯ overflow toggle (#navOverflowToggle) + the action
-  //     cluster (#navbarActions) containing help (#helpButton), theme
-  //     (#themeToggleButton) and locale (#locale-select). setupOverflowMenu()
-  //     and setupThemeToggle() in src/js/main.js still find them by id.
-  //   * actionsExtra also hosts a stable .navbar-brand / .logo-subtitle anchor
-  //     so initReleaseNotes() (which does document.querySelector('.navbar-brand')
-  //     and inserts its version button before .logo-subtitle) keeps working now
-  //     that AppNavbar owns the real brand markup.
-  //   * userMenu → the #authNav mount, into which shared auth injects the
-  //     sign-in / profile dropdown (document.getElementById('authNav')).
-  // The address search lives in the landing view, not the navbar, so no
-  // centerSlot is used. The map / Three.js scene, comparison sidebar and legend
-  // are untouched.
+  // "Share this view" — copy the URL, flash the suite "Link copied" pill.
+  const [shareCopied, setShareCopied] = useState(false);
+  const handleShare = useCallback(() => {
+    const flash = () => {
+      setShareCopied(true);
+      window.setTimeout(() => setShareCopied(false), 1800);
+    };
+    const url = window.location.href;
+    if (navigator.clipboard?.writeText) {
+      navigator.clipboard.writeText(url).then(flash).catch(flash);
+    } else {
+      flash();
+    }
+  }, []);
+
+  const shareStrings = getShareStrings(locale);
+  const glassSettingsItem = buildGlassSettingsItem({ level: glassLevel, setLevel: setGlassLevel, locale });
+
+  // Account-menu "More tools" — Share · Theme · What's new · About, the suite
+  // declutter pattern (these moved OUT of the navbar into the account menu).
+  const toolbarItems: MapUserMenuAction[] = [
+    {
+      key: 'share',
+      label: shareStrings.share,
+      icon: <Share2 size={16} aria-hidden="true" />,
+      onClick: handleShare,
+      signedOut: true,
+    },
+    {
+      key: 'theme',
+      label: isDark ? t('nav.theme_to_light') : t('nav.theme_to_dark'),
+      icon: isDark ? <Sun size={16} aria-hidden="true" /> : <Moon size={16} aria-hidden="true" />,
+      onClick: toggleTheme,
+      signedOut: true,
+      keepOpenOnClick: true,
+    },
+    {
+      key: 'changes',
+      label: getReleaseNotesStrings(locale).whatsNew,
+      icon: <Tag size={16} aria-hidden="true" />,
+      dot: rn.hasUnread,
+      onClick: rn.openPanel,
+      signedOut: true,
+    },
+    {
+      key: 'about',
+      label: t('about.menu'),
+      icon: <Info size={16} aria-hidden="true" />,
+      onClick: () => setShowAbout(true),
+      signedOut: true,
+    },
+  ];
+
   return (
     <>
       <AppNavbar
         appName="similoo"
+        dark={isDark}
         position="fixed top-0 left-0 right-0 z-40 md:z-[60]"
-        share={{ locale }}
+        // Map action cluster: similoo has no save-image / locate, so only the
+        // Settings gear (Liquid Glass picker) + Language switcher render — the
+        // other actions auto-hide when their handlers are omitted.
+        toolbar={{
+          locale,
+          onLocaleChange: changeLocale,
+          settingsItems: [glassSettingsItem],
+          labels: {
+            saveImage: t('screenshot.save'),
+            myImages: t('screenshot.my_exports'),
+            toggleLight: t('nav.theme_to_light'),
+            toggleDark: t('nav.theme_to_dark'),
+            locateMe: t('nav.locate_me'),
+            settings: t('nav.settings'),
+            settingsComingSoon: t('nav.settings_coming_soon'),
+            selectLanguage: t('nav.select_language'),
+            more: t('menu.more_tools'),
+          },
+        }}
         actionsExtra={
-          <>
-            {/* Release-notes injection anchor: the engine looks up
-                .navbar-brand then inserts its version (tag) button before
-                .logo-subtitle. We keep that exact structure here so the button
-                still mounts; the subtitle text itself stays visually hidden
-                (AppNavbar renders the real wordmark). */}
-            <span className="navbar-brand rn-version-host">
-              <span className="logo-subtitle" data-i18n="nav.logo_subtitle" hidden />
-            </span>
-
-            {/* Mobile overflow trigger: collapses the secondary actions (help,
-                theme, locale) behind a ⋯ menu below 768px. Hidden on desktop,
-                where the actions sit inline. */}
-            <button
-              id="navOverflowToggle"
-              className="nav-overflow-toggle"
-              type="button"
-              aria-haspopup="true"
-              aria-expanded="false"
-              aria-controls="navbarActions"
-              aria-label="More options"
-              title="More options"
-              data-i18n-attr="aria-label:nav.more_aria,title:nav.more_aria"
-            >
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                aria-hidden="true"
-              >
-                <circle cx="5" cy="12" r="1.4" />
-                <circle cx="12" cy="12" r="1.4" />
-                <circle cx="19" cy="12" r="1.4" />
-              </svg>
-            </button>
-
-            <div className="navbar-actions" id="navbarActions">
-              <button
-                id="helpButton"
-                className="nav-action-button"
-                type="button"
-                aria-label="How comparable buildings are calculated"
-                title="How comparable buildings are calculated"
-                data-i18n-attr="aria-label:help.button_aria,title:help.button_aria"
-              >
-                <i data-lucide="help-circle" />
-              </button>
-              <button
-                id="themeToggleButton"
-                className="theme-toggle-button"
-                title="Toggle dark mode"
-                aria-label="Toggle dark mode"
-                aria-pressed="false"
-              >
-                <svg
-                  className="theme-toggle-sun"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  aria-hidden="true"
-                >
-                  <circle cx="12" cy="12" r="4" />
-                  <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41" />
-                </svg>
-                <svg
-                  className="theme-toggle-moon"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  aria-hidden="true"
-                >
-                  <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
-                </svg>
-              </button>
-              <select
-                id="locale-select"
-                className="locale-select"
-                aria-label="Select language"
-                data-i18n-attr="aria-label:nav.select_language,title:nav.select_language"
-                title="Select language"
-                defaultValue="en"
-              >
-                <option value="en">EN</option>
-                <option value="fr">FR</option>
-                <option value="de">DE</option>
-                <option value="it">IT</option>
-              </select>
-
-              {/* Settings gear — the suite-shared <SettingsMenu>, here hosting
-                  only the Liquid Glass appearance picker (Off · Frosted ·
-                  Liquid). It reuses the shared `.aireon-navbtn` look so it
-                  matches the canonical navbar icons; collapsing behind the ⋯
-                  overflow on mobile comes for free as it sits inside
-                  #navbarActions. Re-renders (and re-localises) on locale/glass
-                  change via the `locale`/`glassLevel` state above. */}
-              <SettingsMenu
-                dark={isDark}
-                label={t('settings.button')}
-                menuLabel={t('settings.button')}
-                emptyLabel={t('settings.button')}
-                items={[glassSettingsItem]}
-              />
-            </div>
-          </>
+          <div className="flex items-center gap-2 sm:gap-3">
+            <NavIconButton
+              icon={<HelpCircle size={18} aria-hidden="true" />}
+              label={t('help.button_aria')}
+              onClick={openMethodology}
+              dark={isDark}
+            />
+            <NavIconButton
+              icon={<Info size={18} aria-hidden="true" />}
+              label={t('about.menu')}
+              onClick={() => setShowAbout(true)}
+              dark={isDark}
+            />
+          </div>
         }
-        userMenu={<div id="authNav" className="auth-nav" aria-live="polite" />}
+        userMenu={
+          <MapUserMenu
+            dark={isDark}
+            locale={locale as PrmLocale}
+            // similoo is a comparison tool — no saved-parcels / search-history
+            // surfaces, so suppress those built-in rows.
+            showSavedParcels={false}
+            showSearchHistory={false}
+            toolbarItems={toolbarItems}
+            toolbarLabel={t('menu.more_tools')}
+            bugReport={{ logger: errorLogger, email: email ?? undefined, metaData: { rollout: 'suite-ui-parity' } }}
+            labels={{
+              signIn: t('auth.sign_in'),
+              userMenu: t('auth.account'),
+              viewProfile: t('auth.view_profile'),
+              savedParcels: t('menu.saved_parcels'),
+              signOut: t('auth.sign_out'),
+              active: t('menu.active'),
+              fallbackUser: t('menu.user'),
+            }}
+          />
+        }
       />
+
       <LandingView />
-      <ComparisonView />
+      <ComparisonView dark={isDark} locale={locale} />
+
+      {showAbout && (
+        <AboutModal
+          wordmark={
+            <>
+              simil<span className="text-red-600">oo</span>
+            </>
+          }
+          description={t('about.description')}
+          credits={[
+            // Basemap is the ArcGIS World Imagery satellite mosaic (see
+            // viewerConfig.js ARCGIS_ATTRIBUTION) — credit Esri here since the
+            // on-map attribution control is now off.
+            { label: t('about.map_data'), name: '© Esri · Maxar · Earthstar Geographics', href: 'https://www.esri.com/' },
+            { label: t('about.renderer'), name: 'MapLibre GL · Three.js', href: 'https://maplibre.org' },
+            { label: t('about.data'), name: 'Parcels © swisstopo · Buildings GWR', href: 'https://www.housing-stat.ch' },
+          ]}
+          closeLabel={t('common.close')}
+          glassLevel={glassLevel}
+          dark={isDark}
+          onClose={() => setShowAbout(false)}
+        />
+      )}
+
+      {rn.isOpen && (
+        <ReleaseNotesPanel
+          onClose={rn.closePanel}
+          locale={locale}
+          releases={releases}
+          repoUrl={REPO_URL}
+          brandPrefix="simil"
+          brandSuffix=""
+          dark={isDark}
+          glassLevel={glassLevel}
+        />
+      )}
+
+      <ShareCopiedToast show={shareCopied} label={shareStrings.copied} dark={isDark} />
     </>
   );
 }

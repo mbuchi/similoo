@@ -110,9 +110,11 @@
     --hood-faint: #64748b;
     --hood-border: rgba(255, 255, 255, 0.08);
     --hood-border-strong: rgba(255, 255, 255, 0.16);
-    --hood-surface: #0b0f1a;
-    --hood-surface-2: #11172a;
-    --hood-surface-3: #1a2138;
+    /* Suite slate ramp (slate-900 / 800 / 700) — matches the shared chrome,
+       glass ZoomControl and panels across the rest of the Aireon suite. */
+    --hood-surface: #0f172a;
+    --hood-surface-2: #1e293b;
+    --hood-surface-3: #334155;
 
     /* Brand variants need a touch more saturation against dark surfaces */
     --hood-red-soft: rgba(220, 38, 38, 0.14);
@@ -128,11 +130,11 @@
     --hood-shadow-modal: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
 
     /* Chrome */
-    --hood-chrome-bg: rgba(11, 15, 26, 0.96);
+    --hood-chrome-bg: rgba(15, 23, 42, 0.96);
     --hood-chrome-border: rgba(255, 255, 255, 0.08);
 
-    /* Building info panel — restore the original glassy-dark look */
-    --hood-panel-bg: rgba(11, 15, 26, 0.95);
+    /* Building info panel — suite slate-900 glassy-dark surface */
+    --hood-panel-bg: rgba(15, 23, 42, 0.95);
     --hood-panel-text: #e5e7eb;
     --hood-panel-title: #ffffff;
     --hood-panel-muted: #94a3b8;

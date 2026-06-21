@@ -1,3 +1,12 @@
+import ZoomControl from './ZoomControl';
+
+interface ComparisonViewProps {
+  /** Mirrors the suite `.dark` / similoo `data-theme` so the glass zoom control themes correctly. */
+  dark: boolean;
+  /** Drives the zoom control's localized aria-labels/tooltips. */
+  locale: string;
+}
+
 // Comparison surface — split-screen map + (engine-injected) sidebar, revealed
 // by the engine after an address pick. 1:1 port of the vanilla index.html markup
 // so src/css/comparison.css + map.css render identically and boot() in
@@ -5,7 +14,11 @@
 // MapLibre viewer into #mapContainer. The "Comparable Buildings" sidebar,
 // building-detail modal, comparable markers and map legend are created
 // imperatively by the engine and appended to the body / map container.
-export default function ComparisonView() {
+//
+// The suite-standard glass <ZoomControl> overlays the map bottom-right (it lives
+// inside this section, so it's hidden with it on the landing view); it replaces
+// the bespoke maplibre NavigationControl the engine used to mount top-right.
+export default function ComparisonView({ dark, locale }: ComparisonViewProps) {
   return (
     <section id="comparisonView" className="comparison-view" hidden>
       <div id="comparisonHeader" className="comparison-header">
@@ -32,6 +45,7 @@ export default function ComparisonView() {
         <div className="comparison-address" id="comparisonAddress" />
       </div>
       <div id="mapContainer" className="comparison-map" />
+      <ZoomControl dark={dark} locale={locale} className="bottom-8 right-4" />
     </section>
   );
 }
