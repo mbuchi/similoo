@@ -1,6 +1,6 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
-import { AuthProvider, GlassProvider, initTheme } from '@aireon/shared';
+import { AppAccessGate, AuthProvider, GlassProvider, initTheme } from '@aireon/shared';
 import App from './App';
 
 // Cross-app theme ("theme follows you"). The shared initTheme resolves the suite
@@ -58,9 +58,16 @@ createRoot(document.getElementById('root')!).render(
         { label: 'Saved searches & exports across the suite', locked: true },
       ]}
     >
-      <GlassProvider>
-        <App />
-      </GlassProvider>
+      {/* AppAccessGate enforces the per-app access policy admins set in the
+          hub's App Manager. similoo defaults to `public`, so this is a no-op
+          unless an admin restricts it (member-only → sign-in prompt;
+          admin-only / under construction → short notice). It must sit inside
+          the shared AuthProvider so it can read the OIDC session via useAuth(). */}
+      <AppAccessGate appId="similoo" defaultAccess="public">
+        <GlassProvider>
+          <App />
+        </GlassProvider>
+      </AppAccessGate>
     </AuthProvider>
   </StrictMode>,
 );

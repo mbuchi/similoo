@@ -41,6 +41,21 @@ export const KIND_META = {
 
 export const RELEASES = [
   {
+    version: '0.12.2',
+    date: 'June 21, 2026',
+    codename: 'Access, Honoured',
+    summary:
+      'similoo now respects the access level and launch status set for it in the hub’s App Manager: member-only asks you to sign in, admin-only or under construction shows a short notice. Public apps — the default — are unaffected.',
+    items: [
+      {
+        kind: 'improved',
+        icon: 'shield',
+        text: 'similoo now respects the access level and launch status set for it in the hub’s App Manager: member-only asks you to sign in, admin-only or under construction shows a short notice. Public apps — the default — are unaffected.',
+        prs: [],
+      },
+    ],
+  },
+  {
     version: '0.12.1',
     date: 'June 21, 2026',
     codename: 'One Search Bar',
