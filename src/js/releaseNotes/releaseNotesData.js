@@ -41,6 +41,39 @@ export const KIND_META = {
 
 export const RELEASES = [
   {
+    version: '0.12.0',
+    date: 'June 21, 2026',
+    codename: 'Suite Parity',
+    summary:
+      'similoo now wears the standard Aireon map-first design — the shared navbar and account menu, the glass zoom control, Liquid Glass and the suite slate theme used across valoo, roofs and contoor.',
+    items: [
+      {
+        kind: 'improved',
+        icon: 'layout',
+        text: 'Rebuilt the top bar on the shared Aireon navbar. The old cluttered icon row is now one tidy account menu — Share this view, dark/light, What’s new, About and Report a problem — beside the language and appearance controls, identical to the rest of the suite.',
+        prs: [],
+      },
+      {
+        kind: 'new',
+        icon: 'plus',
+        text: 'Added the suite glass zoom control (zoom in, zoom out, reset bearing to north) at the bottom-right of the map, replacing the default zoom buttons.',
+        prs: [],
+      },
+      {
+        kind: 'improved',
+        icon: 'palette',
+        text: 'Retuned dark mode to the suite slate palette and moved the interface onto Tailwind, so every surface matches the other Aireon apps. Your light/dark choice now follows you across the suite.',
+        prs: [],
+      },
+      {
+        kind: 'improved',
+        icon: 'sparkles',
+        text: 'What’s new and About now use the shared suite panels, and the bug-report form moved into the account menu (“Report a problem”).',
+        prs: [],
+      },
+    ],
+  },
+  {
     version: '0.11.1',
     date: 'June 18, 2026',
     codename: 'Share This View',
