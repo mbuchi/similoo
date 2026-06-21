@@ -41,6 +41,21 @@ export const KIND_META = {
 
 export const RELEASES = [
   {
+    version: '0.13.0',
+    date: 'June 21, 2026',
+    codename: 'The Full Height',
+    summary:
+      'Comparable cards now show each building’s height and number of floors next to parcel size and volume — so you can size up a match at a glance, not just by area and volume.',
+    items: [
+      {
+        kind: 'improved',
+        icon: 'ruler',
+        text: 'Comparable cards now show building height and floor count alongside parcel size and volume.',
+        prs: [],
+      },
+    ],
+  },
+  {
     version: '0.12.2',
     date: 'June 21, 2026',
     codename: 'Access, Honoured',

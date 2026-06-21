@@ -365,8 +365,8 @@
 }
 .cmp-card-foot {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 6px;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 4px;
     font-size: 10.5px;
 }
 .cmp-card-foot-cell {
@@ -378,8 +378,11 @@
 .cmp-card-foot-key {
     color: var(--hood-panel-muted);
     text-transform: uppercase;
-    letter-spacing: 0.05em;
-    font-size: 9px;
+    letter-spacing: 0.03em;
+    font-size: 8.5px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 .cmp-card-foot-val {
     color: var(--hood-panel-text);

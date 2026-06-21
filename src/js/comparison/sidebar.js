@@ -226,6 +226,14 @@ export function createComparisonSidebar({ map, onClose, onFlyTo, onSelectCompara
                         <span class="cmp-card-foot-val">${escapeHtml(formatM3(c.building_volume_m3))}</span>
                     </span>
                     <span class="cmp-card-foot-cell">
+                        <span class="cmp-card-foot-key">${escapeHtml(t('comparison.metric_height_short'))}</span>
+                        <span class="cmp-card-foot-val">${escapeHtml(formatM(c.height_m))}</span>
+                    </span>
+                    <span class="cmp-card-foot-cell">
+                        <span class="cmp-card-foot-key">${escapeHtml(t('comparison.metric_floors_short'))}</span>
+                        <span class="cmp-card-foot-val">${c.floors != null ? escapeHtml(String(c.floors)) : dash()}</span>
+                    </span>
+                    <span class="cmp-card-foot-cell">
                         <span class="cmp-card-foot-key">${escapeHtml(t('comparison.metric_similarity_short'))}</span>
                         <span class="cmp-card-foot-val">${formatPct(c.similarity_score)}</span>
                     </span>
