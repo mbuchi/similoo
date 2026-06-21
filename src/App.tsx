@@ -6,6 +6,7 @@ import {
   AboutModal,
   ReleaseNotesPanel,
   ShareCopiedToast,
+  OpenWithMenu,
   useGlass,
   buildGlassSettingsItem,
   useReleaseNotes,
@@ -54,14 +55,20 @@ export default function App() {
   //     {lat,lng,label}, which boot()'s handler feeds straight into handlePick —
   //     the same flow the landing search drives.
   const [currentAddress, setCurrentAddress] = useState('');
+  const [openWithLocation, setOpenWithLocation] = useState<{ lat: number; lng: number } | null>(null);
   useEffect(() => {
     // Catch up on an address the engine may have set before this listener
     // attached (e.g. a ?lat/?lng deep-link resolved during boot()).
     const seeded = (window as { __similooAddress?: string }).__similooAddress;
     if (seeded) setCurrentAddress(seeded);
     const onAddress = (e: Event) => {
-      const label = (e as CustomEvent<{ label?: string }>).detail?.label ?? '';
+      const detail = (e as CustomEvent<{ label?: string; lat?: number; lng?: number }>).detail;
+      const label = detail?.label ?? '';
       setCurrentAddress(label);
+      // Track lat/lng for the "Open with" menu whenever the engine picks a location.
+      if (Number.isFinite(detail?.lat) && Number.isFinite(detail?.lng)) {
+        setOpenWithLocation({ lat: detail!.lat!, lng: detail!.lng! });
+      }
     };
     window.addEventListener('similoo:address', onAddress);
     return () => window.removeEventListener('similoo:address', onAddress);
@@ -228,6 +235,14 @@ export default function App() {
         }}
         actionsExtra={
           <div className="flex items-center gap-2 sm:gap-3">
+            {openWithLocation && (
+              <OpenWithMenu
+                location={openWithLocation}
+                currentAppId="similoo"
+                dark={isDark}
+                label={t('nav.open_with')}
+              />
+            )}
             <NavIconButton
               icon={<HelpCircle size={18} aria-hidden="true" />}
               label={t('help.button_aria')}

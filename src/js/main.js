@@ -44,11 +44,12 @@ export function boot() {
     // Mirror the active parcel's address up to the React navbar (its address
     // search box surfaces it). The old in-view "Search again" bar that used to
     // render the label is gone — the navbar search is the single search surface.
-    function emitAddress(label) {
+    // lat/lng are also forwarded so the React shell can power the "Open with" menu.
+    function emitAddress(label, lat, lng) {
         const value = label || '';
         try {
             window.__similooAddress = value;
-            window.dispatchEvent(new CustomEvent('similoo:address', { detail: { label: value } }));
+            window.dispatchEvent(new CustomEvent('similoo:address', { detail: { label: value, lat, lng } }));
         } catch { /* no CustomEvent (very old engine host) — non-fatal */ }
     }
 
@@ -174,10 +175,10 @@ export function boot() {
         return markers;
     }
 
-    async function showComparison(label) {
+    async function showComparison(label, lat, lng) {
         landingView.hidden = true;
         comparisonView.hidden = false;
-        emitAddress(label);
+        emitAddress(label, lat, lng);
         await ensureMap();
         ensureSidebar();
         ensureMarkers();
@@ -471,7 +472,7 @@ export function boot() {
             sidebar?.hide();
         }
 
-        await showComparison(result.label || formatLatLng(result.lat, result.lng));
+        await showComparison(result.label || formatLatLng(result.lat, result.lng), result.lat, result.lng);
         syncDeepLink(result);
         document.body.classList.add('cmp-shifted');
 

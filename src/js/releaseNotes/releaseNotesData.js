@@ -41,6 +41,21 @@ export const KIND_META = {
 
 export const RELEASES = [
   {
+    version: '0.13.1',
+    date: 'June 22, 2026',
+    codename: 'Open Sesame',
+    summary:
+      'Added an "Open with" menu in the navbar — open the current location in another Aireon app with one click.',
+    items: [
+      {
+        kind: 'new',
+        icon: 'external-link',
+        text: 'Added an "Open with" menu in the navbar — open the current location in another Aireon app with one click.',
+        prs: [],
+      },
+    ],
+  },
+  {
     version: '0.13.0',
     date: 'June 21, 2026',
     codename: 'The Full Height',
