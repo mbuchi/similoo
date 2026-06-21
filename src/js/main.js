@@ -1,7 +1,4 @@
 import './i18n.js';
-import '@aireon/shared/cesium-app/css/auth.css';
-import '../css/bugReport.css';
-import '../css/releaseNotes.css';
 
 import {
     initializeViewer,
@@ -11,7 +8,7 @@ import {
     PARCEL_FILL_LAYER,
     applyZoneHighlight,
 } from './viewer/viewerConfig.js';
-import { applyTranslations, bindLocaleSelect, t } from './i18n.js';
+import { applyTranslations, t } from './i18n.js';
 import { createComparisonSidebar } from './comparison/sidebar.js';
 import { resolveEgridFromLngLat, normaliseEgrid } from './comparison/parcelLookup.js';
 import { bindLandingSearch } from './landing/addressSearch.js';
@@ -19,9 +16,6 @@ import { createComparableMarkers } from './viewer/comparableMarkers.js';
 import { createBuildingDetailModal } from './detail/buildingDetailModal.js';
 import { createMapLegend } from './viewer/mapLegend.js';
 import { initMethodologyHelp } from './help/methodologyPanel.js';
-import { initReleaseNotes } from './releaseNotes/releaseNotesPanel.js';
-import { setupAuth } from './auth/index.js';
-import { setupBugReport } from './bugReport.js';
 
 // similoo's imperative engine entry point.
 //
@@ -36,15 +30,11 @@ import { setupBugReport } from './bugReport.js';
 // verbatim. `boot()` is idempotent-guarded by the caller.
 export function boot() {
     applyTranslations(document);
-    bindLocaleSelect('locale-select');
-    setupThemeToggle();
-    setupOverflowMenu();
+    // Methodology help keeps its Esc / hash / deep-link handling here; its open
+    // trigger is the React navbar Help button (see App.tsx). The navbar, theme,
+    // locale switch, account menu, release notes and bug report are now owned by
+    // the shared suite chrome in the React shell — boot() no longer wires them.
     initMethodologyHelp();
-    initReleaseNotes();
-    setupBugReport({ appName: 'similoo' });
-    // Shared auth injects the sign-in/profile dropdown into #authNav and runs
-    // the cross-app SSO probe (prompt=none).
-    setupAuth().catch((err) => console.error('Auth init failed:', err));
 
     const landingView = document.getElementById('landingView');
     const comparisonView = document.getElementById('comparisonView');
@@ -661,88 +651,7 @@ function pointInRings(lng, lat, rings) {
     return false;
 }
 
-// Mobile overflow (⋯) menu. Below 768px the secondary navbar actions (help,
-// theme, locale, sign-in) collapse into a dropdown toggled by the ⋯ button.
-// The actions themselves are the original elements with their original
-// handlers — this only toggles the .is-open class CSS uses to reveal the
-// panel, plus the outside-click / Escape / focus-return affordances. Desktop
-// (>=769px) keeps the toggle hidden and the actions inline, so it's a no-op.
-function setupOverflowMenu() {
-    const toggle = document.getElementById('navOverflowToggle');
-    const panel = document.getElementById('navbarActions');
-    if (!toggle || !panel) return;
-
-    const isOpen = () => panel.classList.contains('is-open');
-
-    function open() {
-        panel.classList.add('is-open');
-        toggle.setAttribute('aria-expanded', 'true');
-        document.addEventListener('click', onOutsideClick, true);
-        document.addEventListener('keydown', onKeydown);
-    }
-
-    function close({ returnFocus = false } = {}) {
-        if (!isOpen()) return;
-        panel.classList.remove('is-open');
-        toggle.setAttribute('aria-expanded', 'false');
-        document.removeEventListener('click', onOutsideClick, true);
-        document.removeEventListener('keydown', onKeydown);
-        if (returnFocus) toggle.focus();
-    }
-
-    function onOutsideClick(e) {
-        if (panel.contains(e.target) || toggle.contains(e.target)) return;
-        close();
-    }
-
-    function onKeydown(e) {
-        if (e.key === 'Escape') {
-            e.stopPropagation();
-            close({ returnFocus: true });
-        }
-    }
-
-    toggle.addEventListener('click', (e) => {
-        e.stopPropagation();
-        if (isOpen()) close({ returnFocus: true });
-        else open();
-    });
-
-    // Picking a language closes the menu (the select fires `change` on the
-    // original element, which keeps its existing locale handler).
-    const locale = panel.querySelector('#locale-select');
-    if (locale) locale.addEventListener('change', () => close());
-
-    // Opening the help modal from inside the menu should collapse the menu so
-    // it doesn't linger behind the dialog. The help button keeps its own
-    // initMethodologyHelp() handler; we only also close the overflow panel.
-    const help = panel.querySelector('#helpButton');
-    if (help) help.addEventListener('click', () => close());
-
-    // If the viewport grows back to desktop the panel must not stay stuck open
-    // (CSS hides it there, but the state/ARIA should reset cleanly).
-    const mq = window.matchMedia('(min-width: 769px)');
-    const onDesktop = (e) => { if (e.matches) close(); };
-    if (mq.addEventListener) mq.addEventListener('change', onDesktop);
-    else if (mq.addListener) mq.addListener(onDesktop);
-}
-
-// Minimal dark-mode toggle — mirrors the pre-paint bootstrap in index.html.
-function setupThemeToggle() {
-    const btn = document.getElementById('themeToggleButton');
-    if (!btn) return;
-    const root = document.documentElement;
-    const sync = () => {
-        const isDark = root.getAttribute('data-theme') === 'dark';
-        btn.setAttribute('aria-pressed', isDark ? 'true' : 'false');
-    };
-    btn.addEventListener('click', () => {
-        const next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
-        root.setAttribute('data-theme', next);
-        try {
-            localStorage.setItem('similoo-theme', next);
-        } catch {}
-        sync();
-    });
-    sync();
-}
+// The mobile-overflow (⋯) menu and the imperative dark-mode toggle that used to
+// live here were removed when the navbar moved to the shared suite chrome: the
+// MapToolbar collapses into its own ⋯ menu below 768px, and the theme toggle is
+// now a React control (App.tsx) that drives both `.dark` and `data-theme`.

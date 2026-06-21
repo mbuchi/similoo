@@ -73,10 +73,15 @@ export async function initializeViewer(containerId) {
         pitch: DEFAULT_PITCH,
         bearing: DEFAULT_BEARING,
         hash: false,
-        attributionControl: { compact: true },
+        // No on-map attribution control — suite policy keeps the map canvas
+        // clean. The required basemap credit (Esri World Imagery) is surfaced
+        // in the About panel instead (see App.tsx <AboutModal> credits).
+        attributionControl: false,
     });
 
-    map.addControl(new maplibregl.NavigationControl({ visualizePitch: true }), 'top-right');
+    // Zoom / bearing is the shared suite glass <ZoomControl> (React, mounted
+    // bottom-right over the map in ComparisonView), so no maplibre
+    // NavigationControl here. Keep the metric scale bar bottom-left.
     map.addControl(new maplibregl.ScaleControl({ unit: 'metric' }), 'bottom-left');
 
     await new Promise((resolve, reject) => {
