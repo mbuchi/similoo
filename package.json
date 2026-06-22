@@ -1,9 +1,9 @@
 {
   "name": "similoo",
   "private": true,
-  "version": "0.13.2",
+  "version": "0.13.3",
   "type": "module",
-  "description": "similoo — comparable-buildings explorer: find buildings comparable to a Swiss address (same zone, recent construction) and inspect them as LOD 2.5 cubes plus a detailed Three.js 3D view.",
+  "description": "similoo - comparable-buildings explorer: find buildings comparable to a Swiss address (same zone, recent construction) and inspect them as LOD 2.5 cubes plus a detailed Three.js 3D view.",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/mbuchi/similoo.git"

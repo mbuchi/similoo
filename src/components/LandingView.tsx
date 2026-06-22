@@ -11,8 +11,8 @@ export default function LandingView() {
           Type a Swiss address.
         </h1>
         <p className="landing-subtitle" data-i18n="landing.subtitle">
-          similoo finds buildings comparable to the one at this address — same
-          zone, recent construction — and shows them as LOD 2.5 cubes on the map
+          similoo finds buildings comparable to the one at this address - same
+          zone, recent construction - and shows them as LOD 2.5 cubes on the map
           plus a detailed 3D inspection on demand.
         </p>
         <form

@@ -41,16 +41,31 @@ export const KIND_META = {
 
 export const RELEASES = [
   {
+    version: '0.13.3',
+    date: 'June 22, 2026',
+    codename: 'Hyphens, not em-dashes',
+    summary:
+      'Tidied the wording across the app so every dash is a plain hyphen - the page title, social-share text, landing copy, methodology help and comparison panel now read consistently with the rest of the suite.',
+    items: [
+      {
+        kind: 'improved',
+        icon: 'type',
+        text: 'Replaced the long em-dash with a plain hyphen everywhere it showed in the interface - meta and social-share text, the landing subtitle, the About and methodology descriptions, the demo zone labels and the empty-value placeholders in the comparison sidebar - so the punctuation matches the rest of the Aireon suite.',
+        prs: [],
+      },
+    ],
+  },
+  {
     version: '0.13.2',
     date: 'June 22, 2026',
     codename: 'Skeletons, not spinners',
     summary:
-      'Comparable buildings now load with skeleton placeholders instead of a bare "Loading…" line — the panel shows the shape of the results while they fetch, so the layout no longer jumps when they arrive.',
+      'Comparable buildings now load with skeleton placeholders instead of a bare "Loading…" line - the panel shows the shape of the results while they fetch, so the layout no longer jumps when they arrive.',
     items: [
       {
         kind: 'improved',
         icon: 'layers',
-        text: 'While comparables load, the target metrics block and the result cards now render as skeleton placeholders shaped like the real content (the suite standard — never a spinner), in both light and dark themes. They clear cleanly when results arrive, are empty, or error out.',
+        text: 'While comparables load, the target metrics block and the result cards now render as skeleton placeholders shaped like the real content (the suite standard - never a spinner), in both light and dark themes. They clear cleanly when results arrive, are empty, or error out.',
         prs: [],
       },
     ],
@@ -60,12 +75,12 @@ export const RELEASES = [
     date: 'June 22, 2026',
     codename: 'Open Sesame',
     summary:
-      'Added an "Open with" menu in the navbar — open the current location in another Aireon app with one click.',
+      'Added an "Open with" menu in the navbar - open the current location in another Aireon app with one click.',
     items: [
       {
         kind: 'new',
         icon: 'external-link',
-        text: 'Added an "Open with" menu in the navbar — open the current location in another Aireon app with one click.',
+        text: 'Added an "Open with" menu in the navbar - open the current location in another Aireon app with one click.',
         prs: [],
       },
     ],
@@ -75,7 +90,7 @@ export const RELEASES = [
     date: 'June 21, 2026',
     codename: 'The Full Height',
     summary:
-      'Comparable cards now show each building’s height and number of floors next to parcel size and volume — so you can size up a match at a glance, not just by area and volume.',
+      'Comparable cards now show each building’s height and number of floors next to parcel size and volume - so you can size up a match at a glance, not just by area and volume.',
     items: [
       {
         kind: 'improved',
@@ -90,12 +105,12 @@ export const RELEASES = [
     date: 'June 21, 2026',
     codename: 'Access, Honoured',
     summary:
-      'similoo now respects the access level and launch status set for it in the hub’s App Manager: member-only asks you to sign in, admin-only or under construction shows a short notice. Public apps — the default — are unaffected.',
+      'similoo now respects the access level and launch status set for it in the hub’s App Manager: member-only asks you to sign in, admin-only or under construction shows a short notice. Public apps - the default - are unaffected.',
     items: [
       {
         kind: 'improved',
         icon: 'shield',
-        text: 'similoo now respects the access level and launch status set for it in the hub’s App Manager: member-only asks you to sign in, admin-only or under construction shows a short notice. Public apps — the default — are unaffected.',
+        text: 'similoo now respects the access level and launch status set for it in the hub’s App Manager: member-only asks you to sign in, admin-only or under construction shows a short notice. Public apps - the default - are unaffected.',
         prs: [],
       },
     ],
@@ -105,12 +120,12 @@ export const RELEASES = [
     date: 'June 21, 2026',
     codename: 'One Search Bar',
     summary:
-      'Searching now works the same way as valoo. The standard Aireon address search lives in the top navbar: it shows the address you looked up and lets you jump straight to another one — so the separate in-map “Search again” strip is gone.',
+      'Searching now works the same way as valoo. The standard Aireon address search lives in the top navbar: it shows the address you looked up and lets you jump straight to another one - so the separate in-map “Search again” strip is gone.',
     items: [
       {
         kind: 'improved',
         icon: 'search',
-        text: 'Moved address search into the navbar, the suite-standard place for it. The parcel you are comparing now shows as the search text, and you can look up a new address right there — no stepping back to the landing screen first.',
+        text: 'Moved address search into the navbar, the suite-standard place for it. The parcel you are comparing now shows as the search text, and you can look up a new address right there - no stepping back to the landing screen first.',
         prs: [],
       },
       {
@@ -126,12 +141,12 @@ export const RELEASES = [
     date: 'June 21, 2026',
     codename: 'Suite Parity',
     summary:
-      'similoo now wears the standard Aireon map-first design — the shared navbar and account menu, the glass zoom control, Liquid Glass and the suite slate theme used across valoo, roofs and contoor.',
+      'similoo now wears the standard Aireon map-first design - the shared navbar and account menu, the glass zoom control, Liquid Glass and the suite slate theme used across valoo, roofs and contoor.',
     items: [
       {
         kind: 'improved',
         icon: 'layout',
-        text: 'Rebuilt the top bar on the shared Aireon navbar. The old cluttered icon row is now one tidy account menu — Share this view, dark/light, What’s new, About and Report a problem — beside the language and appearance controls, identical to the rest of the suite.',
+        text: 'Rebuilt the top bar on the shared Aireon navbar. The old cluttered icon row is now one tidy account menu - Share this view, dark/light, What’s new, About and Report a problem - beside the language and appearance controls, identical to the rest of the suite.',
         prs: [],
       },
       {
@@ -159,12 +174,12 @@ export const RELEASES = [
     date: 'June 20, 2026',
     codename: 'Theme Follows You',
     summary:
-      'Your light/dark choice now carries across every Aireon app — and across your devices when signed in.',
+      'Your light/dark choice now carries across every Aireon app - and across your devices when signed in.',
     items: [
       {
         kind: 'improved',
         icon: 'palette',
-        text: 'Your light/dark choice now carries across every Aireon app — and across your devices when signed in.',
+        text: 'Your light/dark choice now carries across every Aireon app - and across your devices when signed in.',
         prs: [],
       },
     ],
@@ -189,7 +204,7 @@ export const RELEASES = [
     date: 'June 18, 2026',
     codename: 'Lean Entry',
     summary:
-      'Faster first load — the heavy map and 3D libraries (MapLibre and Three.js) are now code-split into their own bundles so the app shell loads and renders before the big chunks finish downloading.',
+      'Faster first load - the heavy map and 3D libraries (MapLibre and Three.js) are now code-split into their own bundles so the app shell loads and renders before the big chunks finish downloading.',
     items: [
       {
         kind: 'improved',
@@ -204,12 +219,12 @@ export const RELEASES = [
     date: 'June 18, 2026',
     codename: 'Share This View',
     summary:
-      'Added a "Share this view" button to the navbar — copies the current URL to the clipboard and confirms with a "Link copied to clipboard" pill.',
+      'Added a "Share this view" button to the navbar - copies the current URL to the clipboard and confirms with a "Link copied to clipboard" pill.',
     items: [
       {
         kind: 'new',
         icon: 'share-2',
-        text: 'Added a "Share this view" button to the navbar — it copies a link to the current view and confirms with a "Link copied to clipboard" pill.',
+        text: 'Added a "Share this view" button to the navbar - it copies a link to the current view and confirms with a "Link copied to clipboard" pill.',
         prs: [],
       },
     ],
@@ -219,7 +234,7 @@ export const RELEASES = [
     date: 'June 18, 2026',
     codename: 'Liquid Glass',
     summary:
-      'New “Glass effect” appearance setting (Off · Frosted · Liquid) under the navbar settings gear — translucent, frosted comparison panel, building modal and on-map legend that float over the map. Your choice syncs across every Aireon app.',
+      'New “Glass effect” appearance setting (Off · Frosted · Liquid) under the navbar settings gear - translucent, frosted comparison panel, building modal and on-map legend that float over the map. Your choice syncs across every Aireon app.',
     items: [
       {
         kind: 'new',
@@ -245,7 +260,7 @@ export const RELEASES = [
       {
         kind: 'improved',
         icon: 'package',
-        text: 'Updated @aireon/shared to v1.36.2 — the latest shared navbar tokens and opaque navbar background, keeping similoo visually identical to the rest of the Aireon suite.',
+        text: 'Updated @aireon/shared to v1.36.2 - the latest shared navbar tokens and opaque navbar background, keeping similoo visually identical to the rest of the Aireon suite.',
         prs: [],
       },
     ],
@@ -255,7 +270,7 @@ export const RELEASES = [
     date: 'June 17, 2026',
     codename: 'Canonical Navbar',
     summary:
-      'The top-bar controls now match the rest of the Aireon suite exactly — monochrome icons with no coloured fills or rings. The help, theme-toggle, language and "⋯" overflow buttons dropped their filled grey backgrounds and blue focus rings for the canonical transparent, muted-grey look with a neutral focus ring, and the address search now focuses red like every other Aireon app.',
+      'The top-bar controls now match the rest of the Aireon suite exactly - monochrome icons with no coloured fills or rings. The help, theme-toggle, language and "⋯" overflow buttons dropped their filled grey backgrounds and blue focus rings for the canonical transparent, muted-grey look with a neutral focus ring, and the address search now focuses red like every other Aireon app.',
     highlight: true,
     items: [
       {
@@ -267,13 +282,13 @@ export const RELEASES = [
       {
         kind: 'improved',
         icon: 'palette',
-        text: 'Navbar icon buttons (.nav-action-button / .theme-toggle-button / .locale-select / .nav-overflow-toggle) now render the canonical @aireon/shared .aireon-navbtn look — transparent at rest, muted grey (--hood-muted) brightening to --hood-ink on hover, 36px, with a neutral ink focus ring — instead of the previous filled --hood-surface-3 background and blue (--hood-blue-ring) focus ring.',
+        text: 'Navbar icon buttons (.nav-action-button / .theme-toggle-button / .locale-select / .nav-overflow-toggle) now render the canonical @aireon/shared .aireon-navbtn look - transparent at rest, muted grey (--hood-muted) brightening to --hood-ink on hover, 36px, with a neutral ink focus ring - instead of the previous filled --hood-surface-3 background and blue (--hood-blue-ring) focus ring.',
         prs: [],
       },
       {
         kind: 'fixed',
         icon: 'search',
-        text: 'The address-search field focuses red (red-400 border + red-500/25 ring) instead of blue, and the search icon no longer turns blue on focus — matching the suite AddressSearch styling.',
+        text: 'The address-search field focuses red (red-400 border + red-500/25 ring) instead of blue, and the search icon no longer turns blue on focus - matching the suite AddressSearch styling.',
         prs: [],
       },
       {
@@ -304,12 +319,12 @@ export const RELEASES = [
     date: 'June 14, 2026',
     codename: 'Shared Navbar',
     summary:
-      'similoo now uses the suite-shared AppNavbar from @aireon/shared for its top bar, so the hub badge and the simil/red-oo wordmark are rendered by the same component every Aireon app shares. The interface is otherwise unchanged: the app keeps all of its own navbar controls (help, theme toggle, language selector, release notes and the sign-in / profile menu) — they were simply relocated into the shared bar with their behaviour intact.',
+      'similoo now uses the suite-shared AppNavbar from @aireon/shared for its top bar, so the hub badge and the simil/red-oo wordmark are rendered by the same component every Aireon app shares. The interface is otherwise unchanged: the app keeps all of its own navbar controls (help, theme toggle, language selector, release notes and the sign-in / profile menu) - they were simply relocated into the shared bar with their behaviour intact.',
     items: [
       {
         kind: 'improved',
         icon: 'layout',
-        text: 'Adopted the suite-shared AppNavbar for the top bar. The shared component supplies the Aireon hub badge, the simil/red-oo wordmark and the bar shell, while similoo’s existing help, theme, language, release-notes and account controls are carried into its slots unchanged — so the imperative engine keeps wiring them exactly as before. Bumped @aireon/shared to v1.19.1.',
+        text: 'Adopted the suite-shared AppNavbar for the top bar. The shared component supplies the Aireon hub badge, the simil/red-oo wordmark and the bar shell, while similoo’s existing help, theme, language, release-notes and account controls are carried into its slots unchanged - so the imperative engine keeps wiring them exactly as before. Bumped @aireon/shared to v1.19.1.',
         prs: [],
       },
     ],
@@ -319,7 +334,7 @@ export const RELEASES = [
     date: 'June 13, 2026',
     codename: 'React Shell',
     summary:
-      'similoo is now a React 18 + TypeScript + Vite app, aligning it with the rest of the Aireon suite. The whole interface is visually and functionally unchanged — the MapLibre map, the Three.js building viewer, the comparable-buildings sidebar, the address search, the help and release-notes panels and the deep-linking all behave exactly as before. Only the app shell was rebuilt: the imperative engine was preserved verbatim and is now mounted by a thin React layer.',
+      'similoo is now a React 18 + TypeScript + Vite app, aligning it with the rest of the Aireon suite. The whole interface is visually and functionally unchanged - the MapLibre map, the Three.js building viewer, the comparable-buildings sidebar, the address search, the help and release-notes panels and the deep-linking all behave exactly as before. Only the app shell was rebuilt: the imperative engine was preserved verbatim and is now mounted by a thin React layer.',
     items: [
       {
         kind: 'improved',
@@ -330,7 +345,7 @@ export const RELEASES = [
       {
         kind: 'improved',
         icon: 'box',
-        text: 'Preserved the MapLibre viewer (zone painting, building extrusion highlights, parcel/feature-state logic) and the Three.js LOD-2.5 building scene + 3D detail modal exactly as they were — no 3D or map math was reimplemented. The comparison sidebar, comparable markers, map legend, methodology help, release notes, address geocoding, bug report and cross-app SSO auth are all the same modules as before.',
+        text: 'Preserved the MapLibre viewer (zone painting, building extrusion highlights, parcel/feature-state logic) and the Three.js LOD-2.5 building scene + 3D detail modal exactly as they were - no 3D or map math was reimplemented. The comparison sidebar, comparable markers, map legend, methodology help, release notes, address geocoding, bug report and cross-app SSO auth are all the same modules as before.',
         prs: [],
       },
       {
@@ -347,7 +362,7 @@ export const RELEASES = [
     date: 'June 13, 2026',
     codename: 'Dead Weight',
     summary:
-      'Removed the unused Cesium-era code that was left behind after the move to the MapLibre + Three.js viewer. No user-facing behaviour changes — just a leaner, cleaner codebase.',
+      'Removed the unused Cesium-era code that was left behind after the move to the MapLibre + Three.js viewer. No user-facing behaviour changes - just a leaner, cleaner codebase.',
     items: [
       {
         kind: 'fixed',
@@ -368,7 +383,7 @@ export const RELEASES = [
       {
         kind: 'improved',
         icon: 'database',
-        text: 'The building-footprint lookup that drives the 3D detail viewer is now cached client-side (localStorage, keyed by rounded coordinates + radius, 7-day TTL) — the same as the per-building height/volume metrics already were. Panning or zooming back to an area you have already opened reuses the cached footprints instead of re-hitting the Contoor 3D API, so it responds instantly and the upstream load drops. Only non-empty results are cached so a transient miss never gets pinned, and the cache degrades silently to a plain network fetch in private-browsing or quota-limited contexts.',
+        text: 'The building-footprint lookup that drives the 3D detail viewer is now cached client-side (localStorage, keyed by rounded coordinates + radius, 7-day TTL) - the same as the per-building height/volume metrics already were. Panning or zooming back to an area you have already opened reuses the cached footprints instead of re-hitting the Contoor 3D API, so it responds instantly and the upstream load drops. Only non-empty results are cached so a transient miss never gets pinned, and the cache degrades silently to a plain network fetch in private-browsing or quota-limited contexts.',
         prs: [],
       },
     ],
@@ -390,7 +405,7 @@ export const RELEASES = [
       {
         kind: 'new',
         icon: 'tag',
-        text: 'Wired up the version badge next to the wordmark — clicking it opens this release-notes timeline. It was being maintained every release but had no entry point.',
+        text: 'Wired up the version badge next to the wordmark - clicking it opens this release-notes timeline. It was being maintained every release but had no entry point.',
         prs: [],
       },
       {
@@ -519,7 +534,7 @@ export const RELEASES = [
             {
                 kind: 'fixed',
                 icon: 'log-in',
-                text: 'similoo had the account UI components but never actually initialised them — the navbar sign-in button was missing and similoo could not pick up your Aireon session. Auth is now wired up (setupAuth on load), so the sign-in / profile control appears and similoo joins cross-app single sign-on: signed in to any Aireon app, similoo signs you in automatically (a brief, UI-less prompt=none check). Anonymous visitors are unaffected.',
+                text: 'similoo had the account UI components but never actually initialised them - the navbar sign-in button was missing and similoo could not pick up your Aireon session. Auth is now wired up (setupAuth on load), so the sign-in / profile control appears and similoo joins cross-app single sign-on: signed in to any Aireon app, similoo signs you in automatically (a brief, UI-less prompt=none check). Anonymous visitors are unaffected.',
                 prs: [],
             },
         ],
@@ -529,13 +544,13 @@ export const RELEASES = [
         date: 'June 5, 2026',
         codename: 'One Sign-In',
         summary:
-            'Sign in to any Aireon app once and similoo signs you in automatically — suite-wide single sign-on.',
+            'Sign in to any Aireon app once and similoo signs you in automatically - suite-wide single sign-on.',
         highlight: false,
         items: [
             {
                 kind: 'improved',
                 icon: 'shield',
-                text: 'Cross-app single sign-on now works: if you are signed in to any Aireon app in this browser, similoo signs you in automatically on load via a brief, UI-less prompt=none check with the login service — no second password, and anonymous visitors are never sent to a login screen. The auth manager was also realigned with the shared @aireon/shared Cesium auth so it stays in lockstep with the rest of the suite.',
+                text: 'Cross-app single sign-on now works: if you are signed in to any Aireon app in this browser, similoo signs you in automatically on load via a brief, UI-less prompt=none check with the login service - no second password, and anonymous visitors are never sent to a login screen. The auth manager was also realigned with the shared @aireon/shared Cesium auth so it stays in lockstep with the rest of the suite.',
                 prs: [],
             },
         ],
@@ -551,7 +566,7 @@ export const RELEASES = [
             {
                 kind: 'improved',
                 icon: 'database',
-                text: 'Added a client-side IndexedDB blob cache (byte-budget LRU + 14-day TTL, ~150 MB cap) for the heavy 3D terrain/building GLB meshes streamed from the Contoor 3D API. Re-opening the same parcel — or a comparable that snaps to the same footprint — now serves the meshes from the browser instead of regenerating them upstream, so the detail viewer loads instantly and the 3D API load drops. The cache degrades silently to a plain network fetch in private-browsing or quota-limited contexts, and only genuine GLB binaries are stored so a transient upstream hiccup never poisons a coordinate.',
+                text: 'Added a client-side IndexedDB blob cache (byte-budget LRU + 14-day TTL, ~150 MB cap) for the heavy 3D terrain/building GLB meshes streamed from the Contoor 3D API. Re-opening the same parcel - or a comparable that snaps to the same footprint - now serves the meshes from the browser instead of regenerating them upstream, so the detail viewer loads instantly and the 3D API load drops. The cache degrades silently to a plain network fetch in private-browsing or quota-limited contexts, and only genuine GLB binaries are stored so a transient upstream hiccup never poisons a coordinate.',
                 prs: [],
             },
         ],
@@ -577,13 +592,13 @@ export const RELEASES = [
         date: 'June 3, 2026',
         codename: 'One Scene',
         summary:
-            'The building-detail 3D viewer is now a single scene instead of two separate "Point cloud" and "Solid model" tabs. The solid terrain is always shown as the ground base, and three independent toggles let you mix exactly what you want on top of it: the raw coloured LAS point cloud, the 3D building model, and — new — an aerial Basemap that drapes a swisstopo SWISSIMAGE orthophoto over the terrain so the ground reads as the real place rather than a grey surface. Previously you had to switch tabs and could never see, say, the point cloud and the solid building together; now every combination is one click away in the same view, and the camera/zoom stay put as you toggle.',
+            'The building-detail 3D viewer is now a single scene instead of two separate "Point cloud" and "Solid model" tabs. The solid terrain is always shown as the ground base, and three independent toggles let you mix exactly what you want on top of it: the raw coloured LAS point cloud, the 3D building model, and - new - an aerial Basemap that drapes a swisstopo SWISSIMAGE orthophoto over the terrain so the ground reads as the real place rather than a grey surface. Previously you had to switch tabs and could never see, say, the point cloud and the solid building together; now every combination is one click away in the same view, and the camera/zoom stay put as you toggle.',
         highlight: true,
         items: [
             {
                 kind: 'new',
                 icon: 'layers',
-                text: 'Point cloud, Buildings, and Basemap are now three independent toggles in one scene — flip any of them on or off without leaving the view or losing your camera angle. Replaces the old two-tab "Point cloud / Solid model" switch, which forced an either/or choice and always re-showed the building in both tabs.',
+                text: 'Point cloud, Buildings, and Basemap are now three independent toggles in one scene - flip any of them on or off without leaving the view or losing your camera angle. Replaces the old two-tab "Point cloud / Solid model" switch, which forced an either/or choice and always re-showed the building in both tabs.',
                 prs: [27],
             },
             {
@@ -605,13 +620,13 @@ export const RELEASES = [
         date: 'June 3, 2026',
         codename: 'Fresh Key',
         summary:
-            'Completes the v0.8.2 point-cloud "502" fix. The 3D upstream caches each GLB under an exact, full-precision coordinate key, and a bug makes it return a 500 (surfaced as a 502) on any cache HIT — i.e. the second and later times the same building is viewed. v0.8.2 retried with a few fixed coordinate nudges, but once used those fixed nudges get cached and poisoned too, so a repeatedly-viewed building kept failing. The retry now randomises the upstream cache key on every attempt — for the point cloud it nudges the request radius by a sub-centimetre random amount (keeping the centre exactly where you clicked), so every retry is a key the cache has never seen and regenerates cleanly. Verified against the live origin: a previously-failing coordinate now recovers on the first retry.',
+            'Completes the v0.8.2 point-cloud "502" fix. The 3D upstream caches each GLB under an exact, full-precision coordinate key, and a bug makes it return a 500 (surfaced as a 502) on any cache HIT - i.e. the second and later times the same building is viewed. v0.8.2 retried with a few fixed coordinate nudges, but once used those fixed nudges get cached and poisoned too, so a repeatedly-viewed building kept failing. The retry now randomises the upstream cache key on every attempt - for the point cloud it nudges the request radius by a sub-centimetre random amount (keeping the centre exactly where you clicked), so every retry is a key the cache has never seen and regenerates cleanly. Verified against the live origin: a previously-failing coordinate now recovers on the first retry.',
         highlight: false,
         items: [
             {
                 kind: 'fixed',
                 icon: 'refresh-cw',
-                text: 'Point cloud now recovers reliably from the upstream cache-hit 500/502, including on repeat views of the same building. The proxy retry randomises the upstream cache key each attempt (a sub-centimetre random radius nudge for terrain — centre stays exact — or a sub-metre lat/lng jitter for the building model) so it always lands on a fresh, never-poisoned cache entry instead of re-hitting the same broken one. Replaces v0.8.2\'s fixed nudges, which became poisoned after first use.',
+                text: 'Point cloud now recovers reliably from the upstream cache-hit 500/502, including on repeat views of the same building. The proxy retry randomises the upstream cache key each attempt (a sub-centimetre random radius nudge for terrain - centre stays exact - or a sub-metre lat/lng jitter for the building model) so it always lands on a fresh, never-poisoned cache entry instead of re-hitting the same broken one. Replaces v0.8.2\'s fixed nudges, which became poisoned after first use.',
                 prs: [26],
             },
         ],
@@ -621,7 +636,7 @@ export const RELEASES = [
         date: 'June 3, 2026',
         codename: 'No Bad Gateway',
         summary:
-            'Fixes the two errors that broke the building-detail 3D viewer when opening a comparable. First, the point cloud sometimes failed with a "502 Bad Gateway": the 3D upstream is fronted by a tunnel that intermittently returns a gateway error even though the origin serves the request fine moments later. The proxy already retried the upstream\'s known cache-read bug, but it surfaced these gateway errors immediately — it now retries any transient upstream 5xx (with a sub-metre coordinate jitter that also dodges the cache bug), so the point cloud loads reliably. Second, the solid model often failed with "No features returned from WFS": a comparable\'s coordinate can land a few metres off its building footprint, so the upstream\'s exact-point lookup missed. The viewer now snaps to the nearest real footprint before loading and recenters the whole scene there, so the building resolves and sits on its own terrain. If no footprint is nearby it falls back gracefully to a terrain-only view.',
+            'Fixes the two errors that broke the building-detail 3D viewer when opening a comparable. First, the point cloud sometimes failed with a "502 Bad Gateway": the 3D upstream is fronted by a tunnel that intermittently returns a gateway error even though the origin serves the request fine moments later. The proxy already retried the upstream\'s known cache-read bug, but it surfaced these gateway errors immediately - it now retries any transient upstream 5xx (with a sub-metre coordinate jitter that also dodges the cache bug), so the point cloud loads reliably. Second, the solid model often failed with "No features returned from WFS": a comparable\'s coordinate can land a few metres off its building footprint, so the upstream\'s exact-point lookup missed. The viewer now snaps to the nearest real footprint before loading and recenters the whole scene there, so the building resolves and sits on its own terrain. If no footprint is nearby it falls back gracefully to a terrain-only view.',
         highlight: false,
         items: [
             {
@@ -643,19 +658,19 @@ export const RELEASES = [
         date: 'June 3, 2026',
         codename: 'Planted',
         summary:
-            'Two fixes to the building-detail 3D viewer (the popup that opens from a comparable building). The solid model used to float high above its terrain: the building mesh arrives at absolute elevation (hundreds of metres above sea level) while the terrain point cloud is rebased so its lowest point sits at the origin, so the two never lined up. The viewer now samples the terrain\'s ground-class LiDAR points directly under the footprint and drops the building onto that local ground level, so it sits planted on the terrain in both point-cloud and solid modes. Separately, the point-cloud view now loads a much tighter zone — the default radius is cut to a quarter of the original (25 m, ≈50 m across instead of ≈200 m) so the scene is focused tightly on the building rather than a wide stretch of neighbourhood.',
+            'Two fixes to the building-detail 3D viewer (the popup that opens from a comparable building). The solid model used to float high above its terrain: the building mesh arrives at absolute elevation (hundreds of metres above sea level) while the terrain point cloud is rebased so its lowest point sits at the origin, so the two never lined up. The viewer now samples the terrain\'s ground-class LiDAR points directly under the footprint and drops the building onto that local ground level, so it sits planted on the terrain in both point-cloud and solid modes. Separately, the point-cloud view now loads a much tighter zone - the default radius is cut to a quarter of the original (25 m, ≈50 m across instead of ≈200 m) so the scene is focused tightly on the building rather than a wide stretch of neighbourhood.',
         highlight: false,
         items: [
             {
                 kind: 'fixed',
                 icon: 'move-vertical',
-                text: 'The solid 3D model no longer floats above the terrain. The building GLB comes in at absolute LV95 elevation while the terrain cloud is rebased to a zero origin, so the model levitated by the scene\'s base elevation. The viewer now raycasts the terrain\'s ground-class points under the footprint (stepping the sample radius outward to clear ground gaps under dense blocks) and seats the building\'s lowest vertex on that local ground level — fixing both the point-cloud and solid modes.',
+                text: 'The solid 3D model no longer floats above the terrain. The building GLB comes in at absolute LV95 elevation while the terrain cloud is rebased to a zero origin, so the model levitated by the scene\'s base elevation. The viewer now raycasts the terrain\'s ground-class points under the footprint (stepping the sample radius outward to clear ground gaps under dense blocks) and seats the building\'s lowest vertex on that local ground level - fixing both the point-cloud and solid modes.',
                 prs: [22],
             },
             {
                 kind: 'improved',
                 icon: 'scan',
-                text: 'The point-cloud view now loads a much smaller, tighter zone: the default scene radius is cut to 25 m (≈50 m across — a quarter of the original 100 m radius) so the visualisation centres tightly on the building instead of pulling in a wide neighbourhood of points.',
+                text: 'The point-cloud view now loads a much smaller, tighter zone: the default scene radius is cut to 25 m (≈50 m across - a quarter of the original 100 m radius) so the visualisation centres tightly on the building instead of pulling in a wide neighbourhood of points.',
                 prs: [22],
             },
         ],
@@ -665,13 +680,13 @@ export const RELEASES = [
         date: 'June 3, 2026',
         codename: 'Whole Parcel',
         summary:
-            'The red highlight now covers the whole parcel, not just one building. Until now searching an address painted the searched parcel red and lit up only the single building footprint under the search point — but a parcel often holds several buildings, and the others stayed the resting grey. similoo now paints every building inside the searched parcel red. Because the footprint tile carries no parcel id, membership is resolved geometrically: the searched parcel\'s polygon is gathered from the parcel tiles (so a tile-split parcel still counts) and every building whose footprint centroid falls inside it is highlighted. Like the comparable (pink) highlight, this is lazy and sticky — buildings that stream in late or are panned into view light up on the next map settle, and stay lit as you move. A new bottom-left legend explains the colours: red for the searched parcel and its buildings, green for same-zone parcels, pink for comparable buildings.',
+            'The red highlight now covers the whole parcel, not just one building. Until now searching an address painted the searched parcel red and lit up only the single building footprint under the search point - but a parcel often holds several buildings, and the others stayed the resting grey. similoo now paints every building inside the searched parcel red. Because the footprint tile carries no parcel id, membership is resolved geometrically: the searched parcel\'s polygon is gathered from the parcel tiles (so a tile-split parcel still counts) and every building whose footprint centroid falls inside it is highlighted. Like the comparable (pink) highlight, this is lazy and sticky - buildings that stream in late or are panned into view light up on the next map settle, and stay lit as you move. A new bottom-left legend explains the colours: red for the searched parcel and its buildings, green for same-zone parcels, pink for comparable buildings.',
         highlight: true,
         items: [
             {
                 kind: 'new',
                 icon: 'building-2',
-                text: 'Every building in the searched parcel is now highlighted red, not just the one under the search point. The footprint tile has no parcel column, so membership is resolved geometrically — the parcel polygon is gathered from the rendered parcel tiles by id (tile-split parcels included) and each building whose footprint centroid sits inside it is painted red. Resolution is lazy + sticky (re-checked on every map idle) so late-rendering buildings still light up. Falls back to the single nearest building when no parcel polygon is available.',
+                text: 'Every building in the searched parcel is now highlighted red, not just the one under the search point. The footprint tile has no parcel column, so membership is resolved geometrically - the parcel polygon is gathered from the rendered parcel tiles by id (tile-split parcels included) and each building whose footprint centroid sits inside it is painted red. Resolution is lazy + sticky (re-checked on every map idle) so late-rendering buildings still light up. Falls back to the single nearest building when no parcel polygon is available.',
                 prs: [],
             },
             {
@@ -687,7 +702,7 @@ export const RELEASES = [
         date: 'June 2, 2026',
         codename: 'Dark Match',
         summary:
-            'A small suite-consistency fix: in dark mode, the landing address-search results now use the theme-aware red tokens for their hover and selected states instead of a hardcoded light-red on dark surfaces, so the highlighted result reads with proper contrast — matching how the rest of the app tints active surfaces in dark mode.',
+            'A small suite-consistency fix: in dark mode, the landing address-search results now use the theme-aware red tokens for their hover and selected states instead of a hardcoded light-red on dark surfaces, so the highlighted result reads with proper contrast - matching how the rest of the app tints active surfaces in dark mode.',
         highlight: false,
         items: [
             {
@@ -703,7 +718,7 @@ export const RELEASES = [
         date: 'June 1, 2026',
         codename: 'Comparable Glow',
         summary:
-            'The comparable buildings now light up on the 3D map, not just their parcels. Until now the map painted the searched parcel red, every same-zone parcel green, and the searched building red — but the comparable buildings themselves stayed the resting grey. They now render pink (the same colour as the mini-cube markers and the sidebar cards), so the matches you see ranked in the panel are immediately findable as actual buildings on the map. A comparable lights up the moment it scrolls into view (pan or fly to one from its card) and stays lit as you move around, while the searched building keeps its red.',
+            'The comparable buildings now light up on the 3D map, not just their parcels. Until now the map painted the searched parcel red, every same-zone parcel green, and the searched building red - but the comparable buildings themselves stayed the resting grey. They now render pink (the same colour as the mini-cube markers and the sidebar cards), so the matches you see ranked in the panel are immediately findable as actual buildings on the map. A comparable lights up the moment it scrolls into view (pan or fly to one from its card) and stays lit as you move around, while the searched building keeps its red.',
         highlight: true,
         items: [
             {
@@ -725,7 +740,7 @@ export const RELEASES = [
         date: 'May 31, 2026',
         codename: 'Centralised share card',
         summary:
-            'The social-share preview image (Open Graph / Twitter card) now points at the centralized toolbox-hosted canonical image instead of a per-app file, with the correct real pixel dimensions — so link unfurls match the rest of the SwissNovo suite.',
+            'The social-share preview image (Open Graph / Twitter card) now points at the centralized toolbox-hosted canonical image instead of a per-app file, with the correct real pixel dimensions - so link unfurls match the rest of the SwissNovo suite.',
         highlight: false,
         items: [
             {
@@ -747,13 +762,13 @@ export const RELEASES = [
             {
                 kind: 'fixed',
                 icon: 'trash-2',
-                text: 'Removed dead Netlify config — Vercel-only. similoo runs entirely on Vercel (vercel.json + the api/ serverless functions, including api/signal-collect.js), so netlify.toml and netlify/functions/signal-collect.js were deleted. Client telemetry already POSTs to /api/signal-collect, so nothing in the app changes.',
+                text: 'Removed dead Netlify config - Vercel-only. similoo runs entirely on Vercel (vercel.json + the api/ serverless functions, including api/signal-collect.js), so netlify.toml and netlify/functions/signal-collect.js were deleted. Client telemetry already POSTs to /api/signal-collect, so nothing in the app changes.',
                 prs: [13],
             },
             {
                 kind: 'fixed',
                 icon: 'type',
-                text: 'Page <title> + meta.title now use the suite-standard em-dash ("similoo — Comparable Buildings Explorer"), matching the FR/DE/IT titles and the rest of the SwissNovo suite.',
+                text: 'Page <title> + meta.title now use the suite-standard em-dash ("similoo - Comparable Buildings Explorer"), matching the FR/DE/IT titles and the rest of the SwissNovo suite.',
                 prs: [],
             },
             {
@@ -765,7 +780,7 @@ export const RELEASES = [
             {
                 kind: 'improved',
                 icon: 'zoom-in',
-                text: 'Searched and deep-linked addresses now jump to zoom 17 (was 16.5) so the target building is at street level on arrival — the suite-wide deep-link zoom convention.',
+                text: 'Searched and deep-linked addresses now jump to zoom 17 (was 16.5) so the target building is at street level on arrival - the suite-wide deep-link zoom convention.',
                 prs: [],
             },
             {
@@ -787,19 +802,19 @@ export const RELEASES = [
         date: 'May 29, 2026',
         codename: 'Instant Match',
         summary:
-            'Address search now snaps to the result instantly and lights up the comparison the moment the tiles arrive. Picking an address jumps the camera straight there — no fly animation, no waiting — and the highlight is driven directly off the parcel vector tile: the searched parcel goes red, its 3D building goes red, and every parcel sharing the same `cz_local` (the similar building type) goes green. The big fix underneath: the parcel API returns the canonical id under `parcel_id` (already a "CH…" EGRID) and has no `egrid` field, so the old lookup silently fell back to the seeded mock every time — which meant the zone never matched and nothing painted. similoo now reads `parcel_id`, talks to the live `/score/similoo` for the comparables list, and no longer blocks the map highlight on that network call at all.',
+            'Address search now snaps to the result instantly and lights up the comparison the moment the tiles arrive. Picking an address jumps the camera straight there - no fly animation, no waiting - and the highlight is driven directly off the parcel vector tile: the searched parcel goes red, its 3D building goes red, and every parcel sharing the same `cz_local` (the similar building type) goes green. The big fix underneath: the parcel API returns the canonical id under `parcel_id` (already a "CH…" EGRID) and has no `egrid` field, so the old lookup silently fell back to the seeded mock every time - which meant the zone never matched and nothing painted. similoo now reads `parcel_id`, talks to the live `/score/similoo` for the comparables list, and no longer blocks the map highlight on that network call at all.',
         highlight: true,
         items: [
             {
                 kind: 'new',
                 icon: 'zap',
-                text: 'Address search switches the view instantly — `jumpTo` replaces the `flyTo` animation so the searched address snaps into place on the next frame with the lowest possible latency.',
+                text: 'Address search switches the view instantly - `jumpTo` replaces the `flyTo` animation so the searched address snaps into place on the next frame with the lowest possible latency.',
                 prs: [],
             },
             {
                 kind: 'fixed',
                 icon: 'crosshair',
-                text: 'The searched parcel (red), its 3D building (red), and all same-zone parcels (green) now reliably highlight. The highlight reads `cz_local` + `parcel_id` straight off the parcel tile and applies the instant the tile under the point loads — it no longer waits on (or depends on) the `/score/similoo` response, so it works even before the comparables list arrives.',
+                text: 'The searched parcel (red), its 3D building (red), and all same-zone parcels (green) now reliably highlight. The highlight reads `cz_local` + `parcel_id` straight off the parcel tile and applies the instant the tile under the point loads - it no longer waits on (or depends on) the `/score/similoo` response, so it works even before the comparables list arrives.',
                 prs: [],
             },
             {
@@ -821,13 +836,13 @@ export const RELEASES = [
         date: 'May 29, 2026',
         codename: 'Zone in Context',
         summary:
-            'The map gets its basemap back, and the comparison context is now visible at a glance. We restore the suite-standard satellite imagery (Esri World Imagery, same source the Cesium-based apps load by default) and paint the parcel layer by zoning straight off the vector tile: the searched parcel goes red, every other parcel sharing the target\'s `cz_local` goes green, and everything else fades to a near-transparent white wash so the imagery still reads. The earlier "model space" look intentionally dropped both — that revision left users wondering *why* a given building counted as comparable; surfacing the zone footprint answers that without an extra panel.',
+            'The map gets its basemap back, and the comparison context is now visible at a glance. We restore the suite-standard satellite imagery (Esri World Imagery, same source the Cesium-based apps load by default) and paint the parcel layer by zoning straight off the vector tile: the searched parcel goes red, every other parcel sharing the target\'s `cz_local` goes green, and everything else fades to a near-transparent white wash so the imagery still reads. The earlier "model space" look intentionally dropped both - that revision left users wondering *why* a given building counted as comparable; surfacing the zone footprint answers that without an extra panel.',
         highlight: true,
         items: [
             {
                 kind: 'new',
                 icon: 'map',
-                text: 'Satellite basemap restored — Esri World Imagery, matching project_RES and the other SwissNovo apps. The previous off-white "model space" background is gone.',
+                text: 'Satellite basemap restored - Esri World Imagery, matching project_RES and the other SwissNovo apps. The previous off-white "model space" background is gone.',
                 prs: [],
             },
             {
@@ -849,13 +864,13 @@ export const RELEASES = [
         date: 'May 28, 2026',
         codename: 'Address First',
         summary:
-            'Full UX rewrite around the address-first comparable-buildings flow. The app now opens on a minimal centred address search (no map clicking — that produced too many false signals). Pick a result and the working surface appears: MapLibre LOD 2.5 cubes on the left (target building painted red, comparable buildings as pink mini-cube markers across Switzerland) and the comparison sidebar on the right with target metrics, filters, and a sortable card list. The base raster and parcel polygons are gone — only the building cubes remain, so the visual reads as a model rather than a map. Clicking a comparable card (or its cube marker on the map) opens a Three.js LAS popup that renders a 100 m slice around the building with a toggle between the raw coloured point cloud (LAS classification colours) and a solid-mesh representation (Roofer building model on a grey terrain extracted from the ground class).',
+            'Full UX rewrite around the address-first comparable-buildings flow. The app now opens on a minimal centred address search (no map clicking - that produced too many false signals). Pick a result and the working surface appears: MapLibre LOD 2.5 cubes on the left (target building painted red, comparable buildings as pink mini-cube markers across Switzerland) and the comparison sidebar on the right with target metrics, filters, and a sortable card list. The base raster and parcel polygons are gone - only the building cubes remain, so the visual reads as a model rather than a map. Clicking a comparable card (or its cube marker on the map) opens a Three.js LAS popup that renders a 100 m slice around the building with a toggle between the raw coloured point cloud (LAS classification colours) and a solid-mesh representation (Roofer building model on a grey terrain extracted from the ground class).',
         highlight: true,
         items: [
             {
                 kind: 'new',
                 icon: 'search',
-                text: 'Address-first landing screen replaces map-click as the only entry point — single centred input with Mapbox-backed autocomplete, restricted to Switzerland. The map is hidden until an address is picked.',
+                text: 'Address-first landing screen replaces map-click as the only entry point - single centred input with Mapbox-backed autocomplete, restricted to Switzerland. The map is hidden until an address is picked.',
                 prs: [],
             },
             {
@@ -873,7 +888,7 @@ export const RELEASES = [
             {
                 kind: 'improved',
                 icon: 'eye-off',
-                text: 'Map click handlers (parcel/building selection) removed — selecting only via address search keeps the signal-collect feed clean of accidental clicks.',
+                text: 'Map click handlers (parcel/building selection) removed - selecting only via address search keeps the signal-collect feed clean of accidental clicks.',
                 prs: [],
             },
             {
@@ -885,7 +900,7 @@ export const RELEASES = [
             {
                 kind: 'improved',
                 icon: 'link',
-                text: 'Deep link via `?lat=&lng=` (+ optional `&label=`) skips the landing view and restores the comparison surface for the given coordinates — useful for sharing and headless tests.',
+                text: 'Deep link via `?lat=&lng=` (+ optional `&label=`) skips the landing view and restores the comparison surface for the given coordinates - useful for sharing and headless tests.',
                 prs: [],
             },
         ],
@@ -895,7 +910,7 @@ export const RELEASES = [
         date: 'May 27, 2026',
         codename: 'Inter Polish',
         summary:
-            'Typography refresh for a more professional tech-product look. UI body, headings, and the address search now ride on Inter (variable, OpenType cv11 + ss01 + tabular figures) with `-webkit-font-smoothing: antialiased` for clean rendering on the dark theme. Varela Round is preserved only for the `similoo` wordmark in the navbar — the suite-wide brand identifier with the red `oo`. Code/ID surfaces (parcel IDs, EGRID, camera monitor) switch to JetBrains Mono via a new `--hood-mono` token. Three tokens now drive every font choice in the app: `--hood-font` (Inter, UI), `--hood-display` (Varela Round, wordmark), `--hood-mono` (JetBrains Mono, code).',
+            'Typography refresh for a more professional tech-product look. UI body, headings, and the address search now ride on Inter (variable, OpenType cv11 + ss01 + tabular figures) with `-webkit-font-smoothing: antialiased` for clean rendering on the dark theme. Varela Round is preserved only for the `similoo` wordmark in the navbar - the suite-wide brand identifier with the red `oo`. Code/ID surfaces (parcel IDs, EGRID, camera monitor) switch to JetBrains Mono via a new `--hood-mono` token. Three tokens now drive every font choice in the app: `--hood-font` (Inter, UI), `--hood-display` (Varela Round, wordmark), `--hood-mono` (JetBrains Mono, code).',
         highlight: true,
         items: [
             {
@@ -913,7 +928,7 @@ export const RELEASES = [
             {
                 kind: 'improved',
                 icon: 'code-2',
-                text: 'IDs and code surfaces switch to JetBrains Mono via the new `--hood-mono` token — buildingInfoPanel, comparison cards/EGRID, release-notes version pills, and the camera monitor all share one mono stack.',
+                text: 'IDs and code surfaces switch to JetBrains Mono via the new `--hood-mono` token - buildingInfoPanel, comparison cards/EGRID, release-notes version pills, and the camera monitor all share one mono stack.',
                 prs: [],
             },
             {
@@ -934,7 +949,7 @@ export const RELEASES = [
             {
                 kind: 'improved',
                 icon: 'package',
-                text: 'Bumped @aireon/shared to v0.32.0 — release-notes button icon switched from Tag to CheckCircle.',
+                text: 'Bumped @aireon/shared to v0.32.0 - release-notes button icon switched from Tag to CheckCircle.',
                 prs: [],
             },
         ],
@@ -944,7 +959,7 @@ export const RELEASES = [
         date: 'May 26, 2026',
         codename: 'Featherweight',
         summary:
-            'Replace the Cesium 3D foundation inherited from hood with a much lighter MapLibre + fill-extrusion stack. Bundle drops ~75% vs the Cesium build (now ~1.1 MB JS / 304 KB gzipped, was ~3 MB+ gzipped). Vector parcels and 3D building footprints come from the suite\'s shared Martin tilesets (res-mbtiles-x.gisjoe.com / res-mbtiles-footprint-x.gisjoe.com — same sources room uses), so no new infra. Buildings extrude with rf_h_roof_70p − rf_h_ground for a realistic roof line. The comparison sidebar is unchanged on the outside but ports its highlight from Cesium entities to MapLibre Marker pins and feature-state. Carto Positron underlay provides geographic context.',
+            'Replace the Cesium 3D foundation inherited from hood with a much lighter MapLibre + fill-extrusion stack. Bundle drops ~75% vs the Cesium build (now ~1.1 MB JS / 304 KB gzipped, was ~3 MB+ gzipped). Vector parcels and 3D building footprints come from the suite\'s shared Martin tilesets (res-mbtiles-x.gisjoe.com / res-mbtiles-footprint-x.gisjoe.com - same sources room uses), so no new infra. Buildings extrude with rf_h_roof_70p − rf_h_ground for a realistic roof line. The comparison sidebar is unchanged on the outside but ports its highlight from Cesium entities to MapLibre Marker pins and feature-state. Carto Positron underlay provides geographic context.',
         highlight: true,
         items: [
             {
@@ -956,7 +971,7 @@ export const RELEASES = [
             {
                 kind: 'improved',
                 icon: 'gauge',
-                text: 'Cold bundle dropped from ~3 MB gzipped (Cesium) to 304 KB gzipped (MapLibre + Three deferred) — ~10× faster first paint, no terrain tile cost.',
+                text: 'Cold bundle dropped from ~3 MB gzipped (Cesium) to 304 KB gzipped (MapLibre + Three deferred) - ~10× faster first paint, no terrain tile cost.',
                 prs: [],
             },
             {
@@ -972,13 +987,13 @@ export const RELEASES = [
         date: 'May 25, 2026',
         codename: 'Proxy Pass',
         summary:
-            'Wire the real /score/similoo backend behind same-origin Vercel proxies so the UI talks to live RES data instead of always falling back to the EGRID-seeded mock. Two new Node serverless functions — api/similoo.ts and api/parcel.ts — attach the RES API token server-side and forward to /score/similoo and /res_api/parcel_data respectively (mirroring the scoore /api/overpass pattern). The client API surface no longer ships any token. Suite convention is the custom `token:` header on /score/* and /res_api/*; the previous Authorization: Bearer attempt would have hit 401 on both routes and always degraded to mock.',
+            'Wire the real /score/similoo backend behind same-origin Vercel proxies so the UI talks to live RES data instead of always falling back to the EGRID-seeded mock. Two new Node serverless functions - api/similoo.ts and api/parcel.ts - attach the RES API token server-side and forward to /score/similoo and /res_api/parcel_data respectively (mirroring the scoore /api/overpass pattern). The client API surface no longer ships any token. Suite convention is the custom `token:` header on /score/* and /res_api/*; the previous Authorization: Bearer attempt would have hit 401 on both routes and always degraded to mock.',
         highlight: true,
         items: [
             {
                 kind: 'fixed',
                 icon: 'shield-check',
-                text: 'New api/similoo.ts and api/parcel.ts Vercel proxies that send the RES API token via the suite-standard `token:` header (matching scoore/api/overpass). src/js/api/similoo.js and src/js/comparison/parcelLookup.js now POST same-origin to /api/similoo and /api/parcel — no client-side token, no Bearer header mismatch, no CORS surface.',
+                text: 'New api/similoo.ts and api/parcel.ts Vercel proxies that send the RES API token via the suite-standard `token:` header (matching scoore/api/overpass). src/js/api/similoo.js and src/js/comparison/parcelLookup.js now POST same-origin to /api/similoo and /api/parcel - no client-side token, no Bearer header mismatch, no CORS surface.',
                 prs: [],
             },
         ],
@@ -988,7 +1003,7 @@ export const RELEASES = [
         date: 'May 25, 2026',
         codename: 'First Compare',
         summary:
-            'similoo gets its headline surface: a right-edge "Comparable Buildings" sidebar that opens when you pick a building on the 3D map. Top section shows the target parcel\'s headline metrics — municipality, zoning, EGRID, parcel size, volume, footprint, height, floors, year, and the big ratioV number. Middle section filters by year window (1–30, default 10) and parcel-size range. Bottom is a sortable card list (similarity / ratioV / size / year) where each card visualises ratioV with a horizontal data-bar; clicking flies the camera to that comparable, hovering drops a highlight pin on the map. Backed by a new `fetchSimilooComparables(egrid)` client that calls `<RES>/score/similoo` when live and falls back to a deterministic mock seeded by the EGRID hash so the demo flow works before the backend ships. All visible strings translated across EN/FR/DE/IT.',
+            'similoo gets its headline surface: a right-edge "Comparable Buildings" sidebar that opens when you pick a building on the 3D map. Top section shows the target parcel\'s headline metrics - municipality, zoning, EGRID, parcel size, volume, footprint, height, floors, year, and the big ratioV number. Middle section filters by year window (1–30, default 10) and parcel-size range. Bottom is a sortable card list (similarity / ratioV / size / year) where each card visualises ratioV with a horizontal data-bar; clicking flies the camera to that comparable, hovering drops a highlight pin on the map. Backed by a new `fetchSimilooComparables(egrid)` client that calls `<RES>/score/similoo` when live and falls back to a deterministic mock seeded by the EGRID hash so the demo flow works before the backend ships. All visible strings translated across EN/FR/DE/IT.',
         highlight: true,
         items: [
             {
@@ -1022,7 +1037,7 @@ export const RELEASES = [
         date: 'May 25, 2026',
         codename: 'Fork',
         summary:
-            'similoo forks the hood 3D viewer foundation and rebrands it. The Cesium map, navbar, settings popover, theme toggle, screenshot pipeline, profile/auth, and four-locale i18n (EN/FR/DE/IT) all carry over from hood. Brand identifiers — page title, OG/Twitter tags, localStorage namespace, telemetry app_name, screenshot APP_SOURCE, file prefix — are switched to "similoo" so similoo and hood do not collide on the same browser or in the backend. The comparison engine, sidebar, and similarity-matching backend are still to be built.',
+            'similoo forks the hood 3D viewer foundation and rebrands it. The Cesium map, navbar, settings popover, theme toggle, screenshot pipeline, profile/auth, and four-locale i18n (EN/FR/DE/IT) all carry over from hood. Brand identifiers - page title, OG/Twitter tags, localStorage namespace, telemetry app_name, screenshot APP_SOURCE, file prefix - are switched to "similoo" so similoo and hood do not collide on the same browser or in the backend. The comparison engine, sidebar, and similarity-matching backend are still to be built.',
         highlight: false,
         items: [
             {

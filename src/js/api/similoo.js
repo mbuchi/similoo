@@ -87,11 +87,11 @@ const MOCK_MUNICIPALITIES = [
 ];
 
 const MOCK_ZONES = [
-    { local: 'W2 — Wohnzone 2', abbrev: 'W2' },
-    { local: 'W3 — Wohnzone 3', abbrev: 'W3' },
-    { local: 'WG3 — Wohn- und Gewerbezone', abbrev: 'WG3' },
-    { local: 'K2 — Kernzone', abbrev: 'K2' },
-    { local: 'Z2 — Centre village', abbrev: 'Z2' },
+    { local: 'W2 - Wohnzone 2', abbrev: 'W2' },
+    { local: 'W3 - Wohnzone 3', abbrev: 'W3' },
+    { local: 'WG3 - Wohn- und Gewerbezone', abbrev: 'WG3' },
+    { local: 'K2 - Kernzone', abbrev: 'K2' },
+    { local: 'Z2 - Centre village', abbrev: 'Z2' },
 ];
 
 function pick(arr, rand) {
