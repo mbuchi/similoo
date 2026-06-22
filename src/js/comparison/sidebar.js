@@ -525,11 +525,11 @@ function buildShell() {
                 <div class="cmp-size-control">
                     <label class="cmp-size-sub">
                         <span class="cmp-size-from-label"></span>
-                        <input type="number" min="0" step="10" class="cmp-size-from" inputmode="numeric" placeholder="—" />
+                        <input type="number" min="0" step="10" class="cmp-size-from" inputmode="numeric" placeholder="-" />
                     </label>
                     <label class="cmp-size-sub">
                         <span class="cmp-size-to-label"></span>
-                        <input type="number" min="0" step="10" class="cmp-size-to" inputmode="numeric" placeholder="—" />
+                        <input type="number" min="0" step="10" class="cmp-size-to" inputmode="numeric" placeholder="-" />
                     </label>
                 </div>
             </div>
@@ -601,7 +601,7 @@ function formatPct(n) {
 }
 
 function dash() {
-    return '—';
+    return '-';
 }
 
 function escapeHtml(str) {
