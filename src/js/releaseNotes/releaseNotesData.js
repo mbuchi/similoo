@@ -41,6 +41,21 @@ export const KIND_META = {
 
 export const RELEASES = [
   {
+    version: '0.13.4',
+    date: 'June 22, 2026',
+    codename: 'Shared v1.64.0',
+    summary:
+      'Updated the shared Aireon library to v1.64.0, which swaps the long em-dashes in the suite-shared interface text for plain hyphens - so the controls similoo borrows from the suite now read with the same punctuation as the rest of the app.',
+    items: [
+      {
+        kind: 'improved',
+        icon: 'package',
+        text: 'Bumped @aireon/shared to v1.64.0: the shared UI strings (the navbar, account menu and other suite-shared chrome) now use plain hyphens instead of em-dashes, matching similoo\'s own copy.',
+        prs: [],
+      },
+    ],
+  },
+  {
     version: '0.13.3',
     date: 'June 22, 2026',
     codename: 'Hyphens, not em-dashes',
