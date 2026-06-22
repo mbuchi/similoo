@@ -23,6 +23,28 @@ const DEBOUNCE_MS = 250;
 
 const SORT_KEYS = ['similarity', 'ratioV', 'size', 'year'];
 
+// One placeholder comparable card (mirrors `cmp-card`), shown while the first
+// fetch for a parcel is in flight. Suite standard: a skeleton, never a spinner.
+const SKELETON_CARD = `
+    <article class="cmp-card cmp-card-skeleton" aria-hidden="true">
+        <div class="cmp-card-head">
+            <div class="skeleton" style="height:11px;width:88px;"></div>
+            <div class="skeleton" style="height:12px;width:32px;"></div>
+        </div>
+        <div class="cmp-card-ratiov-row">
+            <div class="skeleton" style="height:16px;width:46px;"></div>
+            <div class="skeleton" style="height:6px;width:100%;"></div>
+        </div>
+        <div class="cmp-card-foot">
+            <div class="skeleton" style="height:22px;"></div>
+            <div class="skeleton" style="height:22px;"></div>
+            <div class="skeleton" style="height:22px;"></div>
+            <div class="skeleton" style="height:22px;"></div>
+            <div class="skeleton" style="height:22px;"></div>
+        </div>
+    </article>
+`;
+
 export function createComparisonSidebar({ map, onClose, onFlyTo, onSelectComparable, onHoverComparable, onUnhoverComparable, onDataLoaded } = {}) {
     let aside = buildShell();
     document.body.appendChild(aside);
@@ -88,6 +110,9 @@ export function createComparisonSidebar({ map, onClose, onFlyTo, onSelectCompara
 
     function show(egrid) {
         if (!egrid) return;
+        // New parcel → drop the previous parcel's data so the next load shows a
+        // skeleton instead of stale cards.
+        if (egrid !== currentEgrid) currentData = null;
         currentEgrid = egrid;
         aside.setAttribute('data-state', 'visible');
         aside.setAttribute('aria-hidden', 'false');
@@ -105,6 +130,9 @@ export function createComparisonSidebar({ map, onClose, onFlyTo, onSelectCompara
     async function loadFor(egrid) {
         const seq = ++fetchSeq;
         setStatus('loading');
+        // First fetch for this parcel → skeleton placeholders. On a slider
+        // refetch the prior data stays put (no flicker), only the status updates.
+        if (!currentData) renderLoadingSkeleton();
         try {
             const data = await fetchSimilooComparables(egrid, { years, limit: 12 });
             // A newer request may have raced ahead — drop the stale response.
@@ -119,6 +147,13 @@ export function createComparisonSidebar({ map, onClose, onFlyTo, onSelectCompara
         } catch (err) {
             if (seq !== fetchSeq) return;
             console.error('similoo fetch failed:', err);
+            // Drop the first-load skeleton; a refetch keeps the prior content.
+            if (!currentData) {
+                els.list.innerHTML = '';
+                els.targetSection.hidden = true;
+                els.targetSection.innerHTML = '';
+                els.targetEmpty.hidden = false;
+            }
             setStatus('error');
         }
     }
@@ -138,6 +173,29 @@ export function createComparisonSidebar({ map, onClose, onFlyTo, onSelectCompara
             default:
                 els.status.textContent = '';
         }
+    }
+
+    // Skeleton placeholders for the target metrics + comparable list, shown
+    // while the first fetch for a parcel is in flight (suite standard: never a
+    // spinner). Reuses the shared `.skeleton` blink and the real layout classes
+    // so the swap to real content does not shift.
+    function renderLoadingSkeleton() {
+        els.targetEmpty.hidden = true;
+        els.targetSection.hidden = false;
+        els.targetSection.innerHTML = `
+            <div class="cmp-target-head">
+                <div class="skeleton" style="height:64px;width:96px;border-radius:14px;"></div>
+                <div class="cmp-target-meta">
+                    <div class="skeleton" style="height:12px;width:85%;"></div>
+                    <div class="skeleton" style="height:12px;width:68%;"></div>
+                    <div class="skeleton" style="height:12px;width:78%;"></div>
+                </div>
+            </div>
+            <div class="cmp-target-grid">
+                ${'<div class="skeleton" style="height:42px;border-radius:8px;"></div>'.repeat(6)}
+            </div>
+        `;
+        els.list.innerHTML = SKELETON_CARD.repeat(6);
     }
 
     function renderTarget() {

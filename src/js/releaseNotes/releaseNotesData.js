@@ -41,6 +41,21 @@ export const KIND_META = {
 
 export const RELEASES = [
   {
+    version: '0.13.2',
+    date: 'June 22, 2026',
+    codename: 'Skeletons, not spinners',
+    summary:
+      'Comparable buildings now load with skeleton placeholders instead of a bare "Loading…" line — the panel shows the shape of the results while they fetch, so the layout no longer jumps when they arrive.',
+    items: [
+      {
+        kind: 'improved',
+        icon: 'layers',
+        text: 'While comparables load, the target metrics block and the result cards now render as skeleton placeholders shaped like the real content (the suite standard — never a spinner), in both light and dark themes. They clear cleanly when results arrive, are empty, or error out.',
+        prs: [],
+      },
+    ],
+  },
+  {
     version: '0.13.1',
     date: 'June 22, 2026',
     codename: 'Open Sesame',
