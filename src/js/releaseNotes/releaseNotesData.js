@@ -41,6 +41,21 @@ export const KIND_META = {
 
 export const RELEASES = [
   {
+    version: '0.13.5',
+    date: 'June 23, 2026',
+    codename: 'Skeleton on open',
+    summary:
+      'The app now opens with a skeleton placeholder of its layout instead of a loading spinner.',
+    items: [
+      {
+        kind: 'improved',
+        icon: 'wrench',
+        text: 'When similoo opens, it now shows a skeleton of its layout while it loads - instead of a spinner - so the page is visible right away and the wait feels shorter. The skeleton follows your theme.',
+        prs: [],
+      },
+    ],
+  },
+  {
     version: '0.13.4',
     date: 'June 22, 2026',
     codename: 'Shared v1.64.0',
