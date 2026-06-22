@@ -316,6 +316,16 @@
     border-color: var(--hood-red);
     transform: translateX(-2px);
 }
+/* Loading-state placeholder cards: inert, no hover/cursor affordance. */
+.cmp-card-skeleton {
+    cursor: default;
+    pointer-events: none;
+}
+.cmp-card-skeleton:hover {
+    background: var(--hood-panel-row-bg);
+    border-color: var(--hood-panel-border);
+    transform: none;
+}
 .cmp-card-head {
     display: flex;
     align-items: baseline;
