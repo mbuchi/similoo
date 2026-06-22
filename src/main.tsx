@@ -1,7 +1,8 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
-import { AppAccessGate, AuthProvider, GlassProvider, initTheme } from '@aireon/shared';
+import { AuthProvider, GlassProvider, initTheme } from '@aireon/shared';
 import App from './App';
+import { SimilooAccessGate } from './components/SimilooAccessGate';
 
 // Cross-app theme ("theme follows you"). The shared initTheme resolves the suite
 // `aireon_theme` cookie (scoped to .aireon.ch, shared by every *.aireon.ch app)
@@ -58,16 +59,19 @@ createRoot(document.getElementById('root')!).render(
         { label: 'Saved searches & exports across the suite', locked: true },
       ]}
     >
-      {/* AppAccessGate enforces the per-app access policy admins set in the
-          hub's App Manager. similoo defaults to `public`, so this is a no-op
-          unless an admin restricts it (member-only → sign-in prompt;
-          admin-only / under construction → short notice). It must sit inside
-          the shared AuthProvider so it can read the OIDC session via useAuth(). */}
-      <AppAccessGate appId="similoo" defaultAccess="public">
+      {/* SimilooAccessGate wraps the shared AppAccessGate (which enforces the
+          per-app access policy admins set in the hub's App Manager) and overlays
+          an app-shell skeleton during the on-open access check instead of the
+          gate's built-in spinner — the suite "skeletons, not spinners" rule.
+          similoo defaults to `public`, so the gate is a no-op unless an admin
+          restricts it (member-only → sign-in prompt; admin-only / under
+          construction → short notice). It must sit inside the shared
+          AuthProvider so it can read the OIDC session via useAuth(). */}
+      <SimilooAccessGate>
         <GlassProvider>
           <App />
         </GlassProvider>
-      </AppAccessGate>
+      </SimilooAccessGate>
     </AuthProvider>
   </StrictMode>,
 );
