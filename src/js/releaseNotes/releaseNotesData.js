@@ -41,6 +41,27 @@ export const KIND_META = {
 
 export const RELEASES = [
   {
+    version: '0.13.6',
+    date: 'June 25, 2026',
+    codename: 'Easy on Phones',
+    summary:
+      'Mobile readability and touch pass: the small labels in the comparison panel, the on-map legend and the release-notes timeline are now at least 12px, and the compact controls (close button, sort dropdown, year slider and the comparable map markers) have larger tap areas so they are easier to hit on a phone - without looking any bigger.',
+    items: [
+      {
+        kind: 'improved',
+        icon: 'smartphone',
+        text: 'Bumped every sub-12px label up to at least 12px - the comparison sidebar (target metrics, filters, card footers and meta), the on-map legend title and the release-notes tags now stay readable on small screens.',
+        prs: [],
+      },
+      {
+        kind: 'improved',
+        icon: 'hand',
+        text: 'Enlarged the tap targets on the compact controls to a comfortable touch size: the comparison close button, the sort dropdown, the year-range slider and the comparable-building map markers now have a 44px hit area while their visible size is unchanged.',
+        prs: [],
+      },
+    ],
+  },
+  {
     version: '0.13.5',
     date: 'June 23, 2026',
     codename: 'Skeleton on open',

@@ -66,8 +66,11 @@
     border: 0;
     background: transparent;
     padding: 0;
-    width: 24px;
-    height: 28px;
+    /* 44px transparent hit area for comfortable touch. The marker is
+       bottom-anchored, so the visible cube stays pinned to the ground point;
+       the extra width/height is invisible clickable padding above it. */
+    width: 44px;
+    height: 44px;
     cursor: pointer;
     position: relative;
     display: inline-flex;
@@ -177,7 +180,7 @@ html[data-theme='dark'] .comparison-map {
 }
 
 .map-legend-title {
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.05em;
@@ -237,6 +240,6 @@ html[data-theme='dark'] .map-legend-swatch {
         bottom: 26px;
     }
     .map-legend-label {
-        font-size: 11px;
+        font-size: 12px;
     }
 }
