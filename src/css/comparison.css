@@ -37,7 +37,7 @@
     border-bottom: 1px solid var(--hood-panel-border);
 }
 .cmp-eyebrow {
-    font-size: 11px;
+    font-size: 12px;
     text-transform: uppercase;
     letter-spacing: 0.08em;
     color: var(--hood-panel-source);
@@ -53,23 +53,36 @@
 }
 .cmp-close {
     position: absolute;
-    top: 14px;
-    right: 14px;
-    width: 28px;
-    height: 28px;
+    top: 6px;
+    right: 6px;
+    /* 44px transparent tap target for comfortable touch; the visible 28px chip
+       is painted by ::before so the control reads the same size as before. */
+    width: 44px;
+    height: 44px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     border: none;
-    background: var(--hood-panel-row-bg);
+    background: transparent;
     color: var(--hood-panel-muted);
-    border-radius: 6px;
     cursor: pointer;
-    transition: background-color 150ms ease, color 150ms ease;
+    transition: color 150ms ease;
+}
+.cmp-close::before {
+    content: "";
+    position: absolute;
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    background: var(--hood-panel-row-bg);
+    transition: background-color 150ms ease;
+    z-index: -1;
 }
 .cmp-close:hover {
-    background: var(--hood-panel-row-bg-hover);
     color: var(--hood-panel-title);
+}
+.cmp-close:hover::before {
+    background: var(--hood-panel-row-bg-hover);
 }
 .cmp-close i { width: 16px; height: 16px; }
 
@@ -81,7 +94,7 @@
 .cmp-section:last-child { border-bottom: none; }
 .cmp-section-title {
     margin: 0 0 12px;
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.08em;
@@ -119,7 +132,7 @@
 }
 .cmp-target-ratiov-label {
     margin-top: 6px;
-    font-size: 10px;
+    font-size: 12px;
     text-transform: uppercase;
     letter-spacing: 0.08em;
     color: var(--hood-panel-muted);
@@ -143,7 +156,7 @@
 .cmp-target-key {
     color: var(--hood-panel-muted);
     text-transform: uppercase;
-    font-size: 9.5px;
+    font-size: 12px;
     letter-spacing: 0.06em;
 }
 .cmp-target-val {
@@ -155,7 +168,7 @@
 }
 .cmp-target-egrid {
     font-family: var(--hood-mono);
-    font-size: 11px;
+    font-size: 12px;
 }
 .cmp-target-grid {
     display: grid;
@@ -171,7 +184,7 @@
     text-align: center;
 }
 .cmp-target-cell-key {
-    font-size: 9.5px;
+    font-size: 12px;
     text-transform: uppercase;
     letter-spacing: 0.06em;
     color: var(--hood-panel-muted);
@@ -195,7 +208,7 @@
 .cmp-filter-row:last-child { margin-bottom: 0; }
 .cmp-years-label,
 .cmp-size-label {
-    font-size: 11px;
+    font-size: 12px;
     color: var(--hood-panel-muted);
     text-transform: uppercase;
     letter-spacing: 0.06em;
@@ -209,8 +222,12 @@
 }
 .cmp-years-range {
     width: 100%;
+    /* Taller transparent hit area so the thumb is easy to grab on touch; the
+       track still paints centred so it does not look any thicker. */
+    min-height: 44px;
     accent-color: var(--hood-red);
     background: transparent;
+    cursor: pointer;
 }
 .cmp-years-value {
     font-variant-numeric: tabular-nums;
@@ -221,7 +238,7 @@
 }
 .cmp-years-suffix {
     color: var(--hood-panel-muted);
-    font-size: 11px;
+    font-size: 12px;
 }
 .cmp-size-control {
     display: grid;
@@ -232,7 +249,7 @@
     display: flex;
     flex-direction: column;
     gap: 3px;
-    font-size: 10px;
+    font-size: 12px;
     text-transform: uppercase;
     letter-spacing: 0.06em;
     color: var(--hood-panel-muted);
@@ -267,7 +284,7 @@
     display: flex;
     align-items: center;
     gap: 6px;
-    font-size: 10px;
+    font-size: 12px;
     text-transform: uppercase;
     letter-spacing: 0.06em;
     color: var(--hood-panel-muted);
@@ -277,10 +294,11 @@
     border: 1px solid var(--hood-panel-border);
     color: var(--hood-panel-title);
     font-family: inherit;
-    font-size: 11px;
+    font-size: 12px;
     border-radius: 6px;
     padding: 4px 6px;
     cursor: pointer;
+    min-height: 44px;
 }
 
 /* ---------- status (loading/empty/error) ---------- */
@@ -335,7 +353,7 @@
 }
 .cmp-card-egrid {
     font-family: var(--hood-mono);
-    font-size: 11px;
+    font-size: 12px;
     color: var(--hood-panel-muted);
     overflow: hidden;
     text-overflow: ellipsis;
@@ -377,7 +395,7 @@
     display: grid;
     grid-template-columns: repeat(5, 1fr);
     gap: 4px;
-    font-size: 10.5px;
+    font-size: 12px;
 }
 .cmp-card-foot-cell {
     display: flex;
@@ -389,7 +407,7 @@
     color: var(--hood-panel-muted);
     text-transform: uppercase;
     letter-spacing: 0.03em;
-    font-size: 8.5px;
+    font-size: 12px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -406,7 +424,7 @@
 /* ---------- meta footer ---------- */
 .cmp-meta {
     margin-top: 12px;
-    font-size: 10px;
+    font-size: 12px;
     color: var(--hood-panel-faint);
     text-align: right;
     text-transform: uppercase;
