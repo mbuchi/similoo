@@ -1,3 +1,4 @@
+import { DEFAULT_MAP_ZOOM } from '@aireon/shared/map-defaults';
 import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 
@@ -43,7 +44,7 @@ export const PARCEL_OUTLINE_LAYER = 'parcels-outline';
 // --- View defaults ----------------------------------------------------------
 
 const DEFAULT_CENTER = [8.54, 47.37]; // Zurich
-const DEFAULT_ZOOM = 14;
+const DEFAULT_ZOOM = DEFAULT_MAP_ZOOM;
 const DEFAULT_PITCH = 50;
 const DEFAULT_BEARING = -25;
 
