@@ -41,6 +41,21 @@ export const KIND_META = {
 
 export const RELEASES = [
   {
+    version: '0.13.7',
+    date: 'June 28, 2026',
+    codename: 'React Compiler Shell',
+    summary:
+      'similoo now builds its React shell with React Compiler, helping the suite chrome avoid unnecessary rerenders while the MapLibre and Three.js engine stays unchanged.',
+    items: [
+      {
+        kind: 'improved',
+        icon: 'zap',
+        text: 'Enabled React Compiler for the React-mounted navbar, access gate, release notes and shared chrome, using the React 18 runtime target. The map, comparison sidebar and 3D scene remain the same imperative engine.',
+        prs: [],
+      },
+    ],
+  },
+  {
     version: '0.13.6',
     date: 'June 25, 2026',
     codename: 'Easy on Phones',
