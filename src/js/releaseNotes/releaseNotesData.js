@@ -41,6 +41,19 @@ export const KIND_META = {
 
 export const RELEASES = [
   {
+    version: '0.13.8',
+    date: 'June 28, 2026',
+    codename: 'Shared launch zoom',
+    summary: 'The map now uses the shared Aireon default zoom when no zoom is provided in the link.',
+    items: [
+      {
+        kind: 'improved',
+        text: 'Opening the map without a ?zoom= value now starts from the shared @aireon/shared map default: zoom 18. Links with an explicit ?zoom= value still keep that zoom.',
+        prs: [],
+      },
+    ],
+  },
+  {
     version: '0.13.7',
     date: 'June 28, 2026',
     codename: 'React Compiler Shell',
