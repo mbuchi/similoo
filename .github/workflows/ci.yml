@@ -14,6 +14,10 @@ jobs:
         with:
           node-version: '20'
           cache: npm
+      - name: Configure @aireon/shared deploy key
+        env:
+          AIREON_SHARED_DEPLOY_KEY: ${{ secrets.AIREON_SHARED_DEPLOY_KEY }}
+        run: bash scripts/setup-aireon-shared-ssh.sh
       - run: npm ci
       - run: npm run build
       - run: npx vitest run --passWithNoTests
