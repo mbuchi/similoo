@@ -41,6 +41,21 @@ export const KIND_META = {
 
 export const RELEASES = [
   {
+    version: '0.13.9',
+    date: 'June 30, 2026',
+    codename: 'Deploy Restored',
+    summary:
+      'Restored production deploys. similoo pulls the shared @aireon/shared library over an authenticated SSH connection at build time, but its Vercel project was missing the deploy-key setup, so the two most recent builds failed on "npm install" and the live site stayed on the June 28 version. The deploy key is now wired up, so the build installs the shared library and ships again.',
+    items: [
+      {
+        kind: 'fixed',
+        icon: 'wrench',
+        text: 'Fixed the Vercel build failing with "npm install exited 128 / Permission denied (publickey)" while fetching the private @aireon/shared package over SSH. Wired the install-time deploy-key step into vercel.json (installCommand now runs scripts/setup-aireon-shared-ssh.sh before npm install, matching the rest of the suite) and provisioned the AIREON_SHARED_DEPLOY_KEY environment variable on the Vercel project, so the shared library clones cleanly and production deploys land again.',
+        prs: [],
+      },
+    ],
+  },
+  {
     version: '0.13.8',
     date: 'June 28, 2026',
     codename: 'Shared launch zoom',
