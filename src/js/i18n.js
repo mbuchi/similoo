@@ -82,10 +82,10 @@ const translations = {
     // ---------- meta ----------
     'meta.title': 'similoo - Comparable Buildings Explorer',
     'meta.description':
-      'Find buildings comparable to your parcel - same zoning, recent construction - visualised in 3D across Switzerland.',
+      'Find buildings comparable to your parcel - same zoning, recent construction - visualized in 3D across Switzerland.',
     'meta.og_title': 'similoo - comparable buildings explorer',
     'meta.og_description':
-      'Find buildings comparable to your parcel - same zoning, recent construction - visualised in 3D across Switzerland.',
+      'Find buildings comparable to your parcel - same zoning, recent construction - visualized in 3D across Switzerland.',
     'meta.og_image_alt': 'similoo - comparable buildings explorer',
     'meta.twitter_title': 'similoo - comparable buildings explorer',
     'meta.twitter_description':
@@ -421,7 +421,7 @@ const translations = {
       'A candidate must clear two hard filters before it can be ranked at all:',
     'help.filter_zone_title': 'Same zone',
     'help.filter_zone_body':
-      'Only parcels in the same planning zone (cz_local) as the target qualify - the parcels washed green on the map. A villa zone is never compared against a city-centre core.',
+      'Only parcels in the same planning zone (cz_local) as the target qualify - the parcels washed green on the map. A villa zone is never compared against a city-center core.',
     'help.filter_year_title': 'Recent construction',
     'help.filter_year_body':
       'Only buildings built within the years window count - 10 years by default, adjustable from 1 to 30 with the slider in the sidebar. Widening it surfaces more, older comparables.',
@@ -438,9 +438,9 @@ const translations = {
       'ratioV is the building volume divided by the parcel area - a measure of how densely a parcel is built up. It is similoo\'s headline metric because two buildings with a similar ratioV exploit their land in a similar way, even when their absolute size differs.',
     'help.ratiov_formula': 'building volume (m³) ÷ parcel area (m²)',
     'help.legend_title': 'Reading the map',
-    'help.legend_intro': 'The three highlight colours map onto the steps above:',
+    'help.legend_intro': 'The three highlight colors map onto the steps above:',
     'help.data_body':
-      'Comparables are computed server-side from the Swiss Building & Dwelling Register (GWR) via the /score/similoo service. If that service is unreachable, the sidebar falls back to clearly-labelled demo data so the flow stays explorable - the “Demo data” / “Live” tag under the list tells you which one you are seeing.',
+      'Comparables are computed server-side from the Swiss Building & Dwelling Register (GWR) via the /score/similoo service. If that service is unreachable, the sidebar falls back to clearly-labeled demo data so the flow stays explorable - the “Demo data” / “Live” tag under the list tells you which one you are seeing.',
     'help.footer': 'Adjust the years window or parcel-size range in the sidebar to refine the set.',
     'help.close': 'Close',
   },
