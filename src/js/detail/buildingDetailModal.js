@@ -24,6 +24,7 @@ export function createBuildingDetailModal() {
         subtitle: root.querySelector('.bdm-subtitle'),
         closeBtn: root.querySelector('.bdm-close'),
         layerBtns: Array.from(root.querySelectorAll('.bdm-layer-btn')),
+        lidarooLink: root.querySelector('.bdm-lidaroo'),
         canvas: root.querySelector('.bdm-canvas'),
         status: root.querySelector('.bdm-status'),
     };
@@ -77,6 +78,7 @@ export function createBuildingDetailModal() {
         els.title.textContent = label || formatLatLng(lat, lng);
         els.subtitle.textContent = subtitle || '';
         els.subtitle.hidden = !subtitle;
+        els.lidarooLink.href = lidarooUrl(lat, lng);
 
         lastFocus = document.activeElement;
         root.setAttribute('data-state', 'visible');
@@ -126,6 +128,10 @@ export function createBuildingDetailModal() {
             btn.querySelector('.bdm-layer-label').textContent = label;
             btn.setAttribute('title', label);
         });
+        const lidarooLabel = t('detail.open_lidaroo');
+        els.lidarooLink.querySelector('.bdm-lidaroo-label').textContent = lidarooLabel;
+        els.lidarooLink.setAttribute('title', lidarooLabel);
+        els.lidarooLink.setAttribute('aria-label', lidarooLabel);
         if (currentTarget && root.getAttribute('data-state') === 'visible') {
             els.title.textContent = currentTarget.label || formatLatLng(currentTarget.lat, currentTarget.lng);
         }
@@ -172,6 +178,14 @@ function buildShell() {
                         <span class="bdm-layer-dot" aria-hidden="true"></span><span class="bdm-layer-label"></span>
                     </button>
                 </div>
+                <a class="bdm-lidaroo" href="https://lidaroo.aireon.ch/" target="_blank" rel="noopener">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M15 3h6v6"></path>
+                        <path d="M10 14 21 3"></path>
+                        <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                    </svg>
+                    <span class="bdm-lidaroo-label"></span>
+                </a>
                 <button class="bdm-close" type="button" aria-label="Close">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                         <line x1="18" y1="6" x2="6" y2="18"></line>
@@ -188,4 +202,10 @@ function buildShell() {
 
 function formatLatLng(lat, lng) {
     return `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+}
+
+// Deep link into lidaroo, the suite's Giro3D point-cloud viewer, centered on
+// the same building (WGS84, ~6 decimals per the suite deep-link contract).
+function lidarooUrl(lat, lng) {
+    return `https://lidaroo.aireon.ch/?lat=${lat.toFixed(6)}&lng=${lng.toFixed(6)}`;
 }

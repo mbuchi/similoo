@@ -152,6 +152,36 @@
     border-color: #10b981;
 }
 
+/* "Open in lidaroo" deep link: hands the same building center off to the
+   suite's Giro3D point-cloud viewer in a new tab. Styled like a layer chip
+   but with an external-link glyph instead of a state dot. */
+.bdm-lidaroo {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    border: 1px solid var(--hood-border, #e5e7eb);
+    background: var(--hood-surface-2, #f9fafb);
+    color: var(--hood-muted, #6b7280);
+    font-size: 12px;
+    font-weight: 500;
+    padding: 5px 11px;
+    border-radius: var(--hood-radius-pill, 999px);
+    text-decoration: none;
+    white-space: nowrap;
+    transition: background var(--hood-transition, 0.15s), color var(--hood-transition, 0.15s), border-color var(--hood-transition, 0.15s);
+}
+
+.bdm-lidaroo:hover {
+    border-color: var(--hood-border-strong, #d1d5db);
+    color: var(--hood-ink, #111827);
+}
+
+.bdm-lidaroo svg {
+    width: 12px;
+    height: 12px;
+    flex: none;
+}
+
 .bdm-close {
     appearance: none;
     border: 0;
@@ -239,6 +269,17 @@
     border-color: rgba(255, 255, 255, 0.14);
 }
 
+[data-theme="dark"] .bdm-lidaroo {
+    background: rgba(255, 255, 255, 0.04);
+    border-color: rgba(255, 255, 255, 0.08);
+    color: #cbd5e1;
+}
+
+[data-theme="dark"] .bdm-lidaroo:hover {
+    border-color: rgba(255, 255, 255, 0.18);
+    color: #f1f5f9;
+}
+
 [data-theme="dark"] .bdm-close:hover {
     background: rgba(255, 255, 255, 0.08);
     color: #f1f5f9;
@@ -276,6 +317,11 @@ body.bdm-open {
     .bdm-layers {
         order: 3;
         flex-basis: 100%;
+    }
+    /* The lidaroo link joins the wrapped chip row after the toggles. */
+    .bdm-lidaroo {
+        order: 4;
+        padding: 5px 9px;
     }
     .bdm-layer-btn {
         padding: 5px 9px;
