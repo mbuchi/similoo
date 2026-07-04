@@ -41,6 +41,21 @@ export const KIND_META = {
 
 export const RELEASES = [
   {
+    version: '0.15.1',
+    date: 'July 4, 2026',
+    codename: 'Less Clutter',
+    summary:
+      'Removed the floating pink cube markers that sat over each comparable building on the map. They only duplicated a job the panel already does: comparables still show as pink buildings on the map, and you open the 3D point-cloud view from the cube button on each card in the panel.',
+    items: [
+      {
+        kind: 'improved',
+        icon: 'map-pin-off',
+        text: 'The small pink cube markers over comparable buildings are gone. They existed mainly to open the 3D point-cloud view, which now lives on a cube button in each comparable card — so the map reads cleaner while comparables stay visible as pink buildings.',
+        prs: [],
+      },
+    ],
+  },
+  {
     version: '0.15.0',
     date: 'July 4, 2026',
     codename: 'Into the Point Cloud',

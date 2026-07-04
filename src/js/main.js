@@ -12,7 +12,6 @@ import { applyTranslations, t } from './i18n.js';
 import { createComparisonSidebar } from './comparison/sidebar.js';
 import { resolveEgridFromLngLat, normaliseEgrid } from './comparison/parcelLookup.js';
 import { bindLandingSearch } from './landing/addressSearch.js';
-import { createComparableMarkers } from './viewer/comparableMarkers.js';
 import { createBuildingDetailModal } from './detail/buildingDetailModal.js';
 import { createMapLegend } from './viewer/mapLegend.js';
 import { initMethodologyHelp } from './help/methodologyPanel.js';
@@ -55,7 +54,6 @@ export function boot() {
 
     let map = null;
     let sidebar = null;
-    let markers = null;
     let detailModal = null;
     let legend = null;
     // Every building inside the searched parcel is painted red (the `target`
@@ -122,12 +120,9 @@ export function boot() {
                 clearTargetHighlight();
                 clearZoneHighlight();
                 clearComparableHighlights();
-                markers?.clear();
                 document.body.classList.remove('cmp-shifted');
             },
             onSelectComparable: (c) => openDetail(c),
-            onHoverComparable: (c) => markers?.highlightId(c?.egrid || null),
-            onUnhoverComparable: () => markers?.highlightId(null),
             onFlyTo: (c) => {
                 if (!map || !Number.isFinite(c.lat) || !Number.isFinite(c.lng)) return;
                 map.flyTo({
@@ -140,10 +135,11 @@ export function boot() {
                 });
             },
             onDataLoaded: (data) => {
-                // Comparable mini-cubes on the map.
-                markers?.setComparables(data?.comparables || []);
                 // Paint each comparable's 3D footprint pink (resolved lazily as
-                // tiles render — see refreshComparableBuildingHighlights).
+                // tiles render — see refreshComparableBuildingHighlights). This
+                // is now the sole on-map indicator of comparables; the floating
+                // mini-cube markers were removed as redundant — the sidebar list
+                // (with its per-card "open 3D" button) is the way to reach them.
                 setComparablesForHighlight(data?.comparables || []);
                 // Re-affirm the parcel paint once the sidebar data lands. The
                 // highlight was already applied instantly from the tile at
@@ -164,24 +160,12 @@ export function boot() {
         return sidebar;
     }
 
-    function ensureMarkers() {
-        if (markers) return markers;
-        markers = createComparableMarkers({
-            map,
-            onSelect: (c) => openDetail(c),
-            onHover: () => {},
-            onUnhover: () => {},
-        });
-        return markers;
-    }
-
     async function showComparison(label, lat, lng) {
         landingView.hidden = true;
         comparisonView.hidden = false;
         emitAddress(label, lat, lng);
         await ensureMap();
         ensureSidebar();
-        ensureMarkers();
         if (window.lucide?.createIcons) window.lucide.createIcons();
     }
 
@@ -315,7 +299,7 @@ export function boot() {
     // which paints off a tile property) we can only colour a comparable's 3D
     // footprint once it has rendered. We resolve each comparable's building id
     // by probing the tile at its centroid and set the `comparable` feature-
-    // state the building layer paints pink (matching the mini-cube markers).
+    // state the building layer paints pink (the sole on-map cue for a match).
     //
     // Resolution is lazy + sticky: comparables off-screen at search time light
     // up the moment the user pans/flies them into view (we re-probe on every
@@ -461,14 +445,13 @@ export function boot() {
 
         // Re-searching from the navbar reaches handlePick directly (the old
         // "Search again" bar used to clear state on the way back to landing).
-        // Wipe the previous search's highlights, comparable pins and sidebar
-        // before loading the new parcel. `map` is null on the very first search,
-        // when there is nothing to clear.
+        // Wipe the previous search's highlights and sidebar before loading the
+        // new parcel. `map` is null on the very first search, when there is
+        // nothing to clear.
         if (map) {
             clearTargetHighlight();
             clearZoneHighlight();
             clearComparableHighlights();
-            markers?.clear();
             sidebar?.hide();
         }
 

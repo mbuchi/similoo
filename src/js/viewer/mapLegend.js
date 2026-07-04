@@ -5,7 +5,7 @@ import { t, onLocaleChange } from '../i18n.js';
 // similoo paints three things on the comparison surface:
 //   * red    — the searched parcel and every building inside it
 //   * green  — parcels sharing the searched parcel's zone (`cz_local`)
-//   * pink   — comparable buildings (and their mini-cube markers)
+//   * pink   — comparable buildings (their extruded footprints)
 //
 // Until now those colours were unlabelled, so a first-time visitor had to
 // infer the meaning. This is the suite-standard bottom-left legend panel
