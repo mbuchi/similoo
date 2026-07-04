@@ -41,6 +41,27 @@ export const KIND_META = {
 
 export const RELEASES = [
   {
+    version: '0.13.12',
+    date: 'July 4, 2026',
+    codename: 'Jump to the Parcel',
+    summary:
+      'Clicking a comparable building now flies the map straight to that parcel, so you can see it in context. Opening the 3D point-cloud view moved to a dedicated cube button inside each comparable card.',
+    items: [
+      {
+        kind: 'new',
+        icon: 'map-pin',
+        text: 'Click any comparable card to fly the map to that parcel and highlight it. Previously a click could only open the 3D point-cloud viewer, with no way to locate the building on the map.',
+        prs: [],
+      },
+      {
+        kind: 'improved',
+        icon: 'box',
+        text: 'The 3D point-cloud viewer now opens from a small cube button in the top-right of each comparable card, keeping the whole card free for the new "show on map" action.',
+        prs: [],
+      },
+    ],
+  },
+  {
     version: '0.13.11',
     date: 'July 4, 2026',
     codename: 'Closer to Home',

@@ -264,11 +264,17 @@ export function createComparisonSidebar({ map, onClose, onFlyTo, onSelectCompara
 
     function cardHtml(c, idx, maxRatio) {
         const ratioPct = Math.max(2, Math.min(100, Math.round((c.ratioV / maxRatio) * 100)));
+        const pcLabel = escapeHtml(t('comparison.card_view_pointcloud'));
         return `
-            <article class="cmp-card" data-idx="${idx}" tabindex="0" role="button" aria-label="${escapeHtml(t('comparison.card_aria', { egrid: c.egrid || '' }))}">
+            <article class="cmp-card" data-idx="${idx}" tabindex="0" role="button" aria-label="${escapeHtml(t('comparison.card_aria', { egrid: c.egrid || '' }))}" title="${escapeHtml(t('comparison.card_show_hint'))}">
                 <header class="cmp-card-head">
                     <div class="cmp-card-egrid" title="${escapeHtml(c.egrid || '')}">${escapeHtml(c.egrid || dash())}</div>
-                    <div class="cmp-card-year">${c.construction_year != null ? escapeHtml(String(c.construction_year)) : dash()}</div>
+                    <div class="cmp-card-head-right">
+                        <div class="cmp-card-year">${c.construction_year != null ? escapeHtml(String(c.construction_year)) : dash()}</div>
+                        <button class="cmp-card-pc" type="button" aria-label="${pcLabel}" title="${pcLabel}">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>
+                        </button>
+                    </div>
                 </header>
                 <div class="cmp-card-ratiov-row">
                     <div class="cmp-card-ratiov-value">${formatRatio(c.ratioV)}</div>
@@ -306,26 +312,31 @@ export function createComparisonSidebar({ map, onClose, onFlyTo, onSelectCompara
             const idx = Number(card.dataset.idx);
             const comparable = sortedView()[idx];
             if (!comparable) return;
-            // Click opens the building-detail popup. Fly-to is reserved
-            // for explicit "show on map" affordances; otherwise the
-            // primary action on a card is "inspect this building in 3D".
-            card.addEventListener('click', () => {
-                if (typeof onSelectComparable === 'function') {
-                    onSelectComparable(comparable);
-                } else {
+            // Primary action: fly the map camera to the comparable parcel so
+            // the user can see it in context. The 3D point-cloud viewer moved
+            // to the dedicated in-card button (below) — clicking the card body
+            // now means "show me this one on the map".
+            card.addEventListener('click', () => flyToComparable(comparable));
+            card.addEventListener('keydown', (e) => {
+                // Only the card's own Enter/Space triggers fly-to; when the
+                // nested point-cloud button has focus it fires its own click,
+                // so we must not double-handle the bubbled keydown here.
+                if (e.target !== card) return;
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
                     flyToComparable(comparable);
                 }
             });
-            card.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    if (typeof onSelectComparable === 'function') {
-                        onSelectComparable(comparable);
-                    } else {
-                        flyToComparable(comparable);
-                    }
-                }
-            });
+            // Secondary action: the small in-card button opens the 3D
+            // point-cloud viewer. stopPropagation keeps it from also flying
+            // the map via the card's click handler above.
+            const pcBtn = card.querySelector('.cmp-card-pc');
+            if (pcBtn) {
+                pcBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    if (typeof onSelectComparable === 'function') onSelectComparable(comparable);
+                });
+            }
             card.addEventListener('mouseenter', () => {
                 highlightComparable(comparable);
                 onHoverComparable?.(comparable);

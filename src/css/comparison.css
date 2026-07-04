@@ -346,7 +346,7 @@
 }
 .cmp-card-head {
     display: flex;
-    align-items: baseline;
+    align-items: center;
     justify-content: space-between;
     gap: 8px;
     margin-bottom: 6px;
@@ -355,15 +355,52 @@
     font-family: var(--hood-mono);
     font-size: 12px;
     color: var(--hood-panel-muted);
+    flex: 1;
+    min-width: 0;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+}
+.cmp-card-head-right {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex: none;
 }
 .cmp-card-year {
     font-size: 12px;
     font-weight: 700;
     color: var(--hood-panel-title);
     font-variant-numeric: tabular-nums;
+}
+/* Secondary in-card action: open the 3D point-cloud viewer. The card body
+   itself flies the map to the parcel; this button is the escape hatch to the
+   heavier 3D view, so it reads as a quiet icon until hovered. */
+.cmp-card-pc {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: none;
+    width: 26px;
+    height: 26px;
+    padding: 0;
+    border: 1px solid var(--hood-panel-border);
+    border-radius: 7px;
+    background: transparent;
+    color: var(--hood-panel-muted);
+    cursor: pointer;
+    transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease;
+}
+.cmp-card-pc:hover,
+.cmp-card-pc:focus-visible {
+    color: var(--hood-red);
+    border-color: var(--hood-red);
+    background: var(--hood-panel-row-bg-hover);
+    outline: none;
+}
+.cmp-card-pc svg {
+    width: 15px;
+    height: 15px;
 }
 .cmp-card-ratiov-row {
     display: grid;
