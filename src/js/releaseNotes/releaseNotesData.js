@@ -41,6 +41,27 @@ export const KIND_META = {
 
 export const RELEASES = [
   {
+    version: '0.13.11',
+    date: 'July 4, 2026',
+    codename: 'Closer to Home',
+    summary:
+      'Comparable buildings now stay in the searched building\'s municipality. The /score/similoo service restricts candidates to the target parcel\'s municipality in addition to the same planning zone (cz_local), and the app copy has been updated to match: previously, because zone labels repeat nationwide, results could come from anywhere in Switzerland.',
+    items: [
+      {
+        kind: 'improved',
+        icon: 'wrench',
+        text: 'Comparables are now restricted to the searched building\'s municipality in addition to the same planning zone (cz_local). Before this server-side fix, identical zone labels in other cantons let results surface from all over Switzerland.',
+        prs: [],
+      },
+      {
+        kind: 'docs',
+        icon: 'file-text',
+        text: 'Updated the landing page, About dialog, page metadata and the "How comparables are calculated" help across all four languages: the geographic scope now reads "same municipality and zone" instead of "across Switzerland".',
+        prs: [],
+      },
+    ],
+  },
+  {
     version: '0.13.10',
     date: 'July 1, 2026',
     codename: 'Spelling, Americanized',
