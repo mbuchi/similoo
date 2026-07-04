@@ -41,6 +41,33 @@ export const KIND_META = {
 
 export const RELEASES = [
   {
+    version: '0.14.0',
+    date: 'July 4, 2026',
+    codename: 'Search by EGRID',
+    summary:
+      'The navbar search now understands EGRIDs: type a Swiss parcel id like "CH80754..." and matching parcels appear at the top of the results, so you can jump straight to a building by its EGRID instead of only by address. The subject building card also gains a suite-standard identity header with the address on top and a one-click copyable EGRID chip.',
+    items: [
+      {
+        kind: 'new',
+        icon: 'search',
+        text: 'Search by EGRID from the navbar. Enter a Swiss parcel id (CH followed by digits) and matching parcels are listed first, labeled with the EGRID and address; picking one loads its comparables exactly like an address search. Address search is unchanged.',
+        prs: [],
+      },
+      {
+        kind: 'new',
+        icon: 'copy',
+        text: 'The subject building card now leads with a parcel identity header: the searched address as the title, the municipality below it, and the EGRID as a monospace chip you can click to copy to the clipboard (with a "Copied" confirmation). This matches the shared identity header used across the Aireon suite.',
+        prs: [],
+      },
+      {
+        kind: 'improved',
+        icon: 'wrench',
+        text: 'Updated the shared @aireon/shared library to v1.73.1, which powers the new EGRID-aware navbar search and the copyable EGRID identity header.',
+        prs: [],
+      },
+    ],
+  },
+  {
     version: '0.13.12',
     date: 'July 4, 2026',
     codename: 'Jump to the Parcel',
