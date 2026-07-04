@@ -1,11 +1,16 @@
 import './i18n.js';
 
+import maplibregl from 'maplibre-gl';
 import {
     initializeViewer,
     BUILDING_SOURCE,
     BUILDING_SOURCE_LAYER,
     BUILDING_LAYER,
     PARCEL_FILL_LAYER,
+    CMP_HOVER_SOURCE,
+    CMP_HOVER_FILL_LAYER,
+    CMP_HOVER_GLOW_LAYER,
+    CMP_HOVER_LINE_LAYER,
     applyZoneHighlight,
 } from './viewer/viewerConfig.js';
 import { applyTranslations, t } from './i18n.js';
@@ -67,6 +72,11 @@ export function boot() {
     // "already painted" guard so we re-probe only the unresolved ones).
     const comparableBuildingByEgrid = new Map();
     let pickSeq = 0;
+    // Hovered-comparable parcel spotlight state (see showComparableParcelHover).
+    let comparableHoverActive = false;
+    let comparableHoverRaf = 0;
+    let comparableHoverStart = 0;
+    let comparableHoverBeacon = null;
 
     async function ensureMap() {
         if (map) return map;
@@ -120,9 +130,14 @@ export function boot() {
                 clearTargetHighlight();
                 clearZoneHighlight();
                 clearComparableHighlights();
+                hideComparableParcelHover();
                 document.body.classList.remove('cmp-shifted');
             },
             onSelectComparable: (c) => openDetail(c),
+            // Hovering a comparable card spotlights its parcel on the map with
+            // an animated amber outline (replacing the old red pin marker).
+            onHoverComparable: (c) => showComparableParcelHover(c),
+            onUnhoverComparable: () => hideComparableParcelHover(),
             onFlyTo: (c) => {
                 if (!map || !Number.isFinite(c.lat) || !Number.isFinite(c.lng)) return;
                 map.flyTo({
@@ -343,6 +358,118 @@ export function boot() {
         currentComparables = [];
     }
 
+    // --- Hovered-comparable parcel spotlight --------------------------------
+    //
+    // Hovering a comparable card lights up its whole parcel on the map with an
+    // animated amber outline (superseding the old single red pin). We resolve
+    // the match's parcel polygon from the rendered parcel tiles at its centroid
+    // and feed it into the `cmp-hover` GeoJSON source, then run a short rAF loop
+    // that grows the outline in (~220 ms) and gently breathes it. When the
+    // parcel isn't rendered (the comparable is panned off-screen) there is no
+    // polygon to trace, so we fall back to an amber "waypoint" beacon pinned at
+    // the coordinate — still amber, never the old red box.
+    function parcelFeatureAt(lng, lat) {
+        if (!map || !map.getLayer(PARCEL_FILL_LAYER)) return null;
+        const p = map.project([lng, lat]);
+        // Widen the probe in steps — a comparable's coordinate can sit a few
+        // metres off its parcel centroid (near an edge), so a tight box alone
+        // would miss.
+        for (const pad of [4, 16, 40]) {
+            const hits = map.queryRenderedFeatures(
+                [[p.x - pad, p.y - pad], [p.x + pad, p.y + pad]],
+                { layers: [PARCEL_FILL_LAYER] },
+            );
+            if (hits.length) return hits[0];
+        }
+        return null;
+    }
+
+    function showComparableParcelHover(c) {
+        if (!map || !c || !Number.isFinite(c.lat) || !Number.isFinite(c.lng)) return;
+        // Reset any prior hover (rapid card-to-card moves) before starting.
+        hideComparableParcelHover();
+
+        const feat = parcelFeatureAt(c.lng, c.lat);
+        const rings = feat && feat.id != null ? collectParcelRingsById(feat.id) : [];
+        const src = map.getSource(CMP_HOVER_SOURCE);
+        if (rings.length && src) {
+            src.setData({
+                type: 'Feature',
+                properties: {},
+                // Each rendered ring becomes its own polygon so a tile-split or
+                // multipart parcel traces fully.
+                geometry: { type: 'MultiPolygon', coordinates: rings.map((r) => [r]) },
+            });
+            comparableHoverActive = true;
+            comparableHoverStart = performance.now();
+            animateComparableHover(comparableHoverStart);
+        } else {
+            // Off-screen / unrendered parcel — no polygon to outline.
+            showComparableBeacon(c);
+        }
+    }
+
+    function animateComparableHover(ts) {
+        if (!comparableHoverActive || !map) return;
+        const elapsed = ts - comparableHoverStart;
+        // Grow-in envelope, then a slow sine "breathing" pulse.
+        const grow = Math.min(1, elapsed / 220);
+        const pulse = 0.5 + 0.5 * Math.sin(elapsed / 520); // 0..1
+        const coreW = (1.6 + 1.0 * pulse) * grow;          // px
+        const glowW = (5.0 + 4.0 * pulse) * grow;          // px
+        const glowO = 0.55 * grow;
+        const fillO = (0.10 + 0.06 * pulse) * grow;
+        try {
+            map.setPaintProperty(CMP_HOVER_LINE_LAYER, 'line-width', coreW);
+            map.setPaintProperty(CMP_HOVER_GLOW_LAYER, 'line-width', glowW);
+            map.setPaintProperty(CMP_HOVER_GLOW_LAYER, 'line-opacity', glowO);
+            map.setPaintProperty(CMP_HOVER_FILL_LAYER, 'fill-opacity', fillO);
+        } catch { /* layer may be mid-teardown */ }
+        comparableHoverRaf = requestAnimationFrame(animateComparableHover);
+    }
+
+    function hideComparableParcelHover() {
+        comparableHoverActive = false;
+        if (comparableHoverRaf) {
+            cancelAnimationFrame(comparableHoverRaf);
+            comparableHoverRaf = 0;
+        }
+        if (map) {
+            try {
+                map.setPaintProperty(CMP_HOVER_LINE_LAYER, 'line-width', 0);
+                map.setPaintProperty(CMP_HOVER_GLOW_LAYER, 'line-width', 0);
+                map.setPaintProperty(CMP_HOVER_GLOW_LAYER, 'line-opacity', 0);
+                map.setPaintProperty(CMP_HOVER_FILL_LAYER, 'fill-opacity', 0);
+                const src = map.getSource(CMP_HOVER_SOURCE);
+                if (src) src.setData({ type: 'FeatureCollection', features: [] });
+            } catch { /* no-op */ }
+        }
+        clearComparableBeacon();
+    }
+
+    function showComparableBeacon(c) {
+        clearComparableBeacon();
+        try {
+            const el = document.createElement('div');
+            el.className = 'cmp-hover-beacon';
+            el.innerHTML =
+                '<span class="cmp-hover-beacon-ring"></span>' +
+                '<span class="cmp-hover-beacon-pin"></span>';
+            comparableHoverBeacon = new maplibregl.Marker({ element: el, anchor: 'bottom' })
+                .setLngLat([c.lng, c.lat])
+                .addTo(map);
+        } catch (err) {
+            console.warn('comparable beacon failed:', err);
+        }
+    }
+
+    function clearComparableBeacon() {
+        if (comparableHoverBeacon) {
+            try { comparableHoverBeacon.remove(); } catch { /* no-op */ }
+            comparableHoverBeacon = null;
+        }
+    }
+
     // --- Target-parcel building highlights ----------------------------------
     //
     // The product ask: paint EVERY building in the searched parcel red, not just
@@ -376,17 +503,21 @@ export function boot() {
         return targetBuildingIds.size;
     }
 
-    // Gather the searched parcel's outer rings from every rendered parcel-fill
-    // feature carrying its id (a large parcel can be split across vector tiles).
-    function collectTargetParcelRings() {
-        if (!map || currentTargetParcelId == null || !map.getLayer(PARCEL_FILL_LAYER)) return [];
+    // Gather a parcel's outer rings from every rendered parcel-fill feature
+    // carrying the given id (a large parcel can be split across vector tiles).
+    function collectParcelRingsById(id) {
+        if (!map || id == null || !map.getLayer(PARCEL_FILL_LAYER)) return [];
         const feats = map.queryRenderedFeatures({ layers: [PARCEL_FILL_LAYER] });
         const rings = [];
         for (const f of feats) {
-            if (f.id !== currentTargetParcelId) continue;
+            if (f.id !== id) continue;
             collectOuterRings(f.geometry, rings);
         }
         return rings;
+    }
+
+    function collectTargetParcelRings() {
+        return collectParcelRingsById(currentTargetParcelId);
     }
 
     // Screen-space bounding box (padded) of a set of geographic rings, used to
@@ -452,6 +583,7 @@ export function boot() {
             clearTargetHighlight();
             clearZoneHighlight();
             clearComparableHighlights();
+            hideComparableParcelHover();
             sidebar?.hide();
         }
 

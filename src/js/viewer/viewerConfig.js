@@ -41,6 +41,18 @@ export const PARCEL_SOURCE_LAYER = 'parcel_2025_07';
 export const PARCEL_FILL_LAYER = 'parcels-zone-fill';
 export const PARCEL_OUTLINE_LAYER = 'parcels-outline';
 
+// Hovered-comparable parcel spotlight. A dedicated GeoJSON source fed by
+// main.js when a comparable card is hovered: the match's parcel polygon is
+// traced with an animated amber glow (a soft fill wash + a blurred glow line
+// under a crisp core line) that "grows in" and gently pulses. Amber is the
+// suite's hover accent. Empty at rest.
+export const CMP_HOVER_SOURCE = 'cmp-hover';
+export const CMP_HOVER_FILL_LAYER = 'cmp-hover-fill';
+export const CMP_HOVER_GLOW_LAYER = 'cmp-hover-glow';
+export const CMP_HOVER_LINE_LAYER = 'cmp-hover-line';
+export const CMP_HOVER_COLOR = '#F59E0B';      // amber — glow + fill
+export const CMP_HOVER_CORE_COLOR = '#FDE68A'; // bright amber-white — core line
+
 // --- View defaults ----------------------------------------------------------
 
 const DEFAULT_CENTER = [8.54, 47.37]; // Zurich
@@ -170,6 +182,12 @@ function buildStyle() {
                 url: BUILDING_TILES_URL,
                 promoteId: 'res_building_id',
             },
+            // Hovered-comparable parcel outline — driven imperatively by
+            // main.js (setData + animated paint widths). Empty at rest.
+            [CMP_HOVER_SOURCE]: {
+                type: 'geojson',
+                data: { type: 'FeatureCollection', features: [] },
+            },
         },
         layers: [
             // Deep-slate background only shows through where the raster
@@ -202,6 +220,42 @@ function buildStyle() {
                 paint: {
                     'line-color': 'rgba(255,255,255,0.55)',
                     'line-width': ['interpolate', ['linear'], ['zoom'], 13, 0.3, 17, 1.2],
+                },
+            },
+            // Hovered-comparable parcel spotlight (below the buildings so the
+            // outline reads as a ground border, not a line over rooftops).
+            // All three start invisible; main.js animates the widths/opacity
+            // for the grow-in + breathing pulse when a comparable is hovered.
+            {
+                id: CMP_HOVER_FILL_LAYER,
+                type: 'fill',
+                source: CMP_HOVER_SOURCE,
+                paint: {
+                    'fill-color': CMP_HOVER_COLOR,
+                    'fill-opacity': 0,
+                },
+            },
+            {
+                id: CMP_HOVER_GLOW_LAYER,
+                type: 'line',
+                source: CMP_HOVER_SOURCE,
+                layout: { 'line-join': 'round', 'line-cap': 'round' },
+                paint: {
+                    'line-color': CMP_HOVER_COLOR,
+                    'line-width': 0,
+                    'line-blur': 6,
+                    'line-opacity': 0,
+                },
+            },
+            {
+                id: CMP_HOVER_LINE_LAYER,
+                type: 'line',
+                source: CMP_HOVER_SOURCE,
+                layout: { 'line-join': 'round', 'line-cap': 'round' },
+                paint: {
+                    'line-color': CMP_HOVER_CORE_COLOR,
+                    'line-width': 0,
+                    'line-opacity': 0.95,
                 },
             },
             {

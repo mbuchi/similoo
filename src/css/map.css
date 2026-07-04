@@ -41,18 +41,67 @@
     backdrop-filter: blur(4px);
 }
 
-/* Hover/focus pin dropped by comparison/sidebar.js when a comparable card
- * is hovered. A simple circle-with-stem in similoo's red so the pin reads
- * clearly against the LOD 2.5 cubes. */
-.cmp-pin {
-    width: 16px;
-    height: 22px;
+/* Off-screen fallback for a hovered comparable whose parcel isn't currently
+ * rendered (the primary treatment is an animated amber parcel outline drawn
+ * on the map by main.js). A small gaming-style "waypoint" beacon — a bobbing
+ * amber pin over a pulsing ground ring — dropped at the comparable's point.
+ * Amber matches the suite hover accent + the on-map outline glow. */
+.cmp-hover-beacon {
+    position: relative;
+    width: 26px;
+    height: 34px;
     pointer-events: none;
-    background:
-        radial-gradient(circle at 50% 6px, #DC2626 0 5px, transparent 6px),
-        linear-gradient(180deg, #DC2626 0%, #DC2626 50%, transparent 60%);
-    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.45));
     transform: translateZ(0);
+}
+
+.cmp-hover-beacon-pin {
+    position: absolute;
+    left: 50%;
+    bottom: 7px;
+    width: 15px;
+    height: 15px;
+    margin-left: -7.5px;
+    border-radius: 50% 50% 50% 0;
+    transform: rotate(-45deg);
+    background: linear-gradient(135deg, #FDE68A 0%, #F59E0B 100%);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.45);
+    animation: cmp-beacon-bob 1.1s ease-in-out infinite;
+}
+
+/* White eye at the pin's centre (rotation-invariant, so the -45deg parent
+ * rotation leaves it centred). */
+.cmp-hover-beacon-pin::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 5px;
+    height: 5px;
+    margin: -2.5px 0 0 -2.5px;
+    border-radius: 50%;
+    background: #fff;
+}
+
+.cmp-hover-beacon-ring {
+    position: absolute;
+    left: 50%;
+    bottom: 0;
+    width: 20px;
+    height: 7px;
+    margin-left: -10px;
+    border-radius: 50%;
+    background: radial-gradient(ellipse at center, rgba(245, 158, 11, 0.6) 0%, rgba(245, 158, 11, 0) 70%);
+    animation: cmp-beacon-ring 1.1s ease-in-out infinite;
+}
+
+@keyframes cmp-beacon-bob {
+    0%, 100% { bottom: 7px; }
+    50% { bottom: 12px; }
+}
+
+@keyframes cmp-beacon-ring {
+    0%, 100% { transform: scale(0.8); opacity: 0.5; }
+    50% { transform: scale(1.15); opacity: 0.9; }
 }
 
 /* When the sidebar is open the map should make room on the right so
