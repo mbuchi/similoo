@@ -62,7 +62,7 @@ const translations = {
     'menu.active': 'Active',
     'menu.user': 'User',
     'about.menu': 'About',
-    'about.description': 'similoo finds buildings comparable to a Swiss address - same zone, recent construction - and shows them as LOD 2.5 cubes plus a detailed 3D inspection.',
+    'about.description': 'similoo finds buildings comparable to a Swiss address - same municipality and zone, recent construction - and shows them as LOD 2.5 cubes plus a detailed 3D inspection.',
     'about.map_data': 'Map data',
     'about.renderer': 'Renderer',
     'about.data': 'Building data',
@@ -82,14 +82,14 @@ const translations = {
     // ---------- meta ----------
     'meta.title': 'similoo - Comparable Buildings Explorer',
     'meta.description':
-      'Find buildings comparable to your parcel - same zoning, recent construction - visualized in 3D across Switzerland.',
+      'Find buildings comparable to your parcel - same zoning, recent construction - visualized in 3D in the same municipality.',
     'meta.og_title': 'similoo - comparable buildings explorer',
     'meta.og_description':
-      'Find buildings comparable to your parcel - same zoning, recent construction - visualized in 3D across Switzerland.',
+      'Find buildings comparable to your parcel - same zoning, recent construction - visualized in 3D in the same municipality.',
     'meta.og_image_alt': 'similoo - comparable buildings explorer',
     'meta.twitter_title': 'similoo - comparable buildings explorer',
     'meta.twitter_description':
-      'Find buildings comparable to your parcel across Switzerland.',
+      'Find buildings comparable to your parcel in the same municipality.',
     'meta.twitter_image_alt': 'similoo - comparable buildings explorer',
 
     // ---------- nav ----------
@@ -383,7 +383,7 @@ const translations = {
 
     // ---------- landing (address-first entry screen) ----------
     'landing.title': 'Type a Swiss address.',
-    'landing.subtitle': 'similoo finds buildings comparable to the one at this address - same zone, recent construction - and shows them as LOD 2.5 cubes on the map plus a detailed 3D inspection on demand.',
+    'landing.subtitle': 'similoo finds buildings comparable to the one at this address - same municipality and zone, recent construction - and shows them as LOD 2.5 cubes on the map plus a detailed 3D inspection on demand.',
     'landing.search_placeholder': 'e.g. Bahnhofstrasse 10, Zürich',
     'landing.search_aria': 'Search address',
     'landing.hint': 'Pick a result to load the comparison.',
@@ -412,16 +412,16 @@ const translations = {
     'help.subtitle':
       'similoo ranks the buildings most similar to the one you searched - in three steps.',
     'help.intro':
-      'When you search an address, similoo looks for buildings that are genuine peers of the one on your parcel - same planning zone, similar age, similar density - then ranks them by how closely they match. Here is exactly how that works.',
+      'When you search an address, similoo looks for buildings that are genuine peers of the one on your parcel - same municipality and planning zone, similar age, similar density - then ranks them by how closely they match. Here is exactly how that works.',
     'help.step1_title': 'Pick the target parcel',
     'help.step1_body':
       'The address you search resolves to a parcel and its EGRID (the official Swiss parcel id). similoo reads that parcel\'s key figures from the building register (GWR): planning zone, parcel area, building volume, footprint, height, floors and construction year. Every candidate is then measured against this target.',
     'help.step2_title': 'Filter down to true peers',
     'help.step2_body':
       'A candidate must clear two hard filters before it can be ranked at all:',
-    'help.filter_zone_title': 'Same zone',
+    'help.filter_zone_title': 'Same municipality and zone',
     'help.filter_zone_body':
-      'Only parcels in the same planning zone (cz_local) as the target qualify - the parcels washed green on the map. A villa zone is never compared against a city-center core.',
+      'Only parcels in the same municipality and the same planning zone (cz_local) as the target qualify - the parcels washed green on the map. A villa zone is never compared against a city-center core, and a match never comes from the other end of Switzerland.',
     'help.filter_year_title': 'Recent construction',
     'help.filter_year_body':
       'Only buildings built within the years window count - 10 years by default, adjustable from 1 to 30 with the slider in the sidebar. Widening it surfaces more, older comparables.',
@@ -459,7 +459,7 @@ const translations = {
     'menu.active': 'Actif',
     'menu.user': 'Utilisateur',
     'about.menu': 'À propos',
-    'about.description': 'similoo trouve des bâtiments comparables à une adresse suisse - même zone, construction récente - et les affiche en cubes LOD 2.5 avec une inspection 3D détaillée.',
+    'about.description': 'similoo trouve des bâtiments comparables à une adresse suisse - même commune et même zone, construction récente - et les affiche en cubes LOD 2.5 avec une inspection 3D détaillée.',
     'about.map_data': 'Données cartographiques',
     'about.renderer': 'Moteur de rendu',
     'about.data': 'Données des bâtiments',
@@ -480,14 +480,14 @@ const translations = {
     'meta.title':
       'similoo - Explorateur de bâtiments comparables',
     'meta.description':
-      'Trouvez des bâtiments comparables à votre parcelle - même zonage, construction récente - visualisés en 3D dans toute la Suisse.',
+      'Trouvez des bâtiments comparables à votre parcelle - même zonage, construction récente - visualisés en 3D dans la même commune.',
     'meta.og_title': 'similoo - Bâtiments comparables',
     'meta.og_description':
-      'Trouvez des bâtiments comparables à votre parcelle - même zonage, construction récente - visualisés en 3D dans toute la Suisse.',
+      'Trouvez des bâtiments comparables à votre parcelle - même zonage, construction récente - visualisés en 3D dans la même commune.',
     'meta.og_image_alt': 'similoo - Bâtiments comparables',
     'meta.twitter_title': 'similoo - Bâtiments comparables',
     'meta.twitter_description':
-      'Trouvez des bâtiments comparables à votre parcelle à travers la Suisse.',
+      'Trouvez des bâtiments comparables à votre parcelle dans la même commune.',
     'meta.twitter_image_alt': 'similoo - Bâtiments comparables',
 
     // ---------- nav ----------
@@ -785,7 +785,7 @@ const translations = {
     'camera.roll': 'Roulis',
 
     'landing.title': 'Saisissez une adresse suisse.',
-    'landing.subtitle': 'similoo trouve des bâtiments comparables à celui de cette adresse - même zone, construction récente - et les affiche en cubes LOD 2.5 sur la carte, avec une inspection 3D détaillée à la demande.',
+    'landing.subtitle': 'similoo trouve des bâtiments comparables à celui de cette adresse - même commune et même zone, construction récente - et les affiche en cubes LOD 2.5 sur la carte, avec une inspection 3D détaillée à la demande.',
     'landing.search_placeholder': 'p. ex. Rue du Mont-Blanc 10, Genève',
     'landing.search_aria': 'Rechercher une adresse',
     'landing.hint': 'Choisissez un résultat pour charger la comparaison.',
@@ -812,16 +812,16 @@ const translations = {
     'help.subtitle':
       'similoo classe les bâtiments les plus similaires à celui que vous avez recherché - en trois étapes.',
     'help.intro':
-      'Lorsque vous recherchez une adresse, similoo cherche des bâtiments réellement comparables à celui de votre parcelle - même zone d\'affectation, âge similaire, densité similaire - puis les classe selon leur degré de correspondance. Voici exactement comment cela fonctionne.',
+      'Lorsque vous recherchez une adresse, similoo cherche des bâtiments réellement comparables à celui de votre parcelle - même commune, même zone d\'affectation, âge similaire, densité similaire - puis les classe selon leur degré de correspondance. Voici exactement comment cela fonctionne.',
     'help.step1_title': 'Choisir la parcelle cible',
     'help.step1_body':
       'L\'adresse recherchée est résolue en une parcelle et son EGRID (l\'identifiant officiel suisse de la parcelle). similoo lit les chiffres clés de cette parcelle dans le registre des bâtiments (RegBL) : zone d\'affectation, surface de parcelle, volume bâti, emprise, hauteur, étages et année de construction. Chaque candidat est ensuite mesuré par rapport à cette cible.',
     'help.step2_title': 'Restreindre aux vrais pairs',
     'help.step2_body':
       'Un candidat doit franchir deux filtres stricts avant de pouvoir être classé :',
-    'help.filter_zone_title': 'Même zone',
+    'help.filter_zone_title': 'Même commune et même zone',
     'help.filter_zone_body':
-      'Seules les parcelles situées dans la même zone d\'affectation (cz_local) que la cible sont retenues - les parcelles teintées en vert sur la carte. Une zone de villas n\'est jamais comparée à un cœur de ville.',
+      'Seules les parcelles situées dans la même commune et la même zone d\'affectation (cz_local) que la cible sont retenues - les parcelles teintées en vert sur la carte. Une zone de villas n\'est jamais comparée à un cœur de ville, et un comparable ne vient jamais de l\'autre bout de la Suisse.',
     'help.filter_year_title': 'Construction récente',
     'help.filter_year_body':
       'Seuls les bâtiments construits dans la fenêtre d\'années comptent - 10 ans par défaut, réglable de 1 à 30 avec le curseur de la barre latérale. L\'élargir fait apparaître davantage de comparables, plus anciens.',
@@ -859,7 +859,7 @@ const translations = {
     'menu.active': 'Aktiv',
     'menu.user': 'Benutzer',
     'about.menu': 'Über',
-    'about.description': 'similoo findet Gebäude, die mit einer Schweizer Adresse vergleichbar sind - gleiche Zone, neuer Bau - und zeigt sie als LOD-2.5-Würfel sowie eine detaillierte 3D-Ansicht.',
+    'about.description': 'similoo findet Gebäude, die mit einer Schweizer Adresse vergleichbar sind - gleiche Gemeinde und Zone, neuer Bau - und zeigt sie als LOD-2.5-Würfel sowie eine detaillierte 3D-Ansicht.',
     'about.map_data': 'Kartendaten',
     'about.renderer': 'Renderer',
     'about.data': 'Gebäudedaten',
@@ -879,14 +879,14 @@ const translations = {
     // ---------- meta ----------
     'meta.title': 'similoo - Vergleichbare Gebäude-Explorer',
     'meta.description':
-      'Finden Sie Gebäude, die mit Ihrer Parzelle vergleichbar sind - gleiche Zonierung, neuere Bauten - in 3D in der ganzen Schweiz visualisiert.',
+      'Finden Sie Gebäude, die mit Ihrer Parzelle vergleichbar sind - gleiche Zonierung, neuere Bauten - in 3D in derselben Gemeinde visualisiert.',
     'meta.og_title': 'similoo - Vergleichbare Gebäude',
     'meta.og_description':
-      'Finden Sie Gebäude, die mit Ihrer Parzelle vergleichbar sind - gleiche Zonierung, neuere Bauten - in 3D in der ganzen Schweiz visualisiert.',
+      'Finden Sie Gebäude, die mit Ihrer Parzelle vergleichbar sind - gleiche Zonierung, neuere Bauten - in 3D in derselben Gemeinde visualisiert.',
     'meta.og_image_alt': 'similoo - Vergleichbare Gebäude',
     'meta.twitter_title': 'similoo - Vergleichbare Gebäude',
     'meta.twitter_description':
-      'Finden Sie Gebäude, die mit Ihrer Parzelle in der ganzen Schweiz vergleichbar sind.',
+      'Finden Sie Gebäude, die mit Ihrer Parzelle in derselben Gemeinde vergleichbar sind.',
     'meta.twitter_image_alt': 'similoo - Vergleichbare Gebäude',
 
     // ---------- nav ----------
@@ -1185,7 +1185,7 @@ const translations = {
     'camera.roll': 'Rollwinkel',
 
     'landing.title': 'Geben Sie eine Schweizer Adresse ein.',
-    'landing.subtitle': 'similoo findet Gebäude, die mit dem an dieser Adresse vergleichbar sind - gleiche Zone, kürzlich gebaut - und zeigt sie als LOD-2.5-Würfel auf der Karte plus eine detaillierte 3D-Ansicht auf Wunsch.',
+    'landing.subtitle': 'similoo findet Gebäude, die mit dem an dieser Adresse vergleichbar sind - gleiche Gemeinde und Zone, kürzlich gebaut - und zeigt sie als LOD-2.5-Würfel auf der Karte plus eine detaillierte 3D-Ansicht auf Wunsch.',
     'landing.search_placeholder': 'z. B. Bahnhofstrasse 10, Zürich',
     'landing.search_aria': 'Adresse suchen',
     'landing.hint': 'Wählen Sie ein Ergebnis, um den Vergleich zu laden.',
@@ -1212,16 +1212,16 @@ const translations = {
     'help.subtitle':
       'similoo reiht die Gebäude, die dem gesuchten am ähnlichsten sind - in drei Schritten.',
     'help.intro':
-      'Wenn Sie eine Adresse suchen, sucht similoo nach Gebäuden, die echte Pendants zu dem auf Ihrer Parzelle sind - gleiche Nutzungszone, ähnliches Alter, ähnliche Dichte - und reiht sie danach, wie genau sie übereinstimmen. So funktioniert das genau.',
+      'Wenn Sie eine Adresse suchen, sucht similoo nach Gebäuden, die echte Pendants zu dem auf Ihrer Parzelle sind - gleiche Gemeinde und Nutzungszone, ähnliches Alter, ähnliche Dichte - und reiht sie danach, wie genau sie übereinstimmen. So funktioniert das genau.',
     'help.step1_title': 'Zielparzelle bestimmen',
     'help.step1_body':
       'Die gesuchte Adresse wird zu einer Parzelle und ihrem EGRID (der offiziellen Schweizer Parzellen-ID) aufgelöst. similoo liest die Kennzahlen dieser Parzelle aus dem Gebäuderegister (GWR): Nutzungszone, Parzellenfläche, Gebäudevolumen, Grundfläche, Höhe, Geschosse und Baujahr. Jeder Kandidat wird dann an dieser Zielparzelle gemessen.',
     'help.step2_title': 'Auf echte Pendants eingrenzen',
     'help.step2_body':
       'Ein Kandidat muss zwei harte Filter passieren, bevor er überhaupt eingereiht wird:',
-    'help.filter_zone_title': 'Gleiche Zone',
+    'help.filter_zone_title': 'Gleiche Gemeinde und Zone',
     'help.filter_zone_body':
-      'Nur Parzellen in derselben Nutzungszone (cz_local) wie das Ziel kommen infrage - die auf der Karte grün eingefärbten Parzellen. Eine Villenzone wird nie mit einem Stadtzentrum verglichen.',
+      'Nur Parzellen in derselben Gemeinde und derselben Nutzungszone (cz_local) wie das Ziel kommen infrage - die auf der Karte grün eingefärbten Parzellen. Eine Villenzone wird nie mit einem Stadtzentrum verglichen, und ein Vergleichsobjekt stammt nie vom anderen Ende der Schweiz.',
     'help.filter_year_title': 'Neubau',
     'help.filter_year_body':
       'Nur Gebäude, die innerhalb des Jahresfensters gebaut wurden, zählen - standardmässig 10 Jahre, mit dem Regler in der Seitenleiste von 1 bis 30 einstellbar. Ein grösseres Fenster bringt mehr, ältere Vergleichsobjekte hervor.',
@@ -1259,7 +1259,7 @@ const translations = {
     'menu.active': 'Attivo',
     'menu.user': 'Utente',
     'about.menu': 'Informazioni',
-    'about.description': 'similoo trova edifici comparabili a un indirizzo svizzero - stessa zona, costruzione recente - e li mostra come cubi LOD 2.5 con un’ispezione 3D dettagliata.',
+    'about.description': 'similoo trova edifici comparabili a un indirizzo svizzero - stesso comune e stessa zona, costruzione recente - e li mostra come cubi LOD 2.5 con un’ispezione 3D dettagliata.',
     'about.map_data': 'Dati cartografici',
     'about.renderer': 'Motore di rendering',
     'about.data': 'Dati degli edifici',
@@ -1280,14 +1280,14 @@ const translations = {
     'meta.title':
       'similoo - Esploratore di edifici comparabili',
     'meta.description':
-      'Trova edifici comparabili alla tua particella - stessa zona, costruzione recente - visualizzati in 3D in tutta la Svizzera.',
+      'Trova edifici comparabili alla tua particella - stessa zona, costruzione recente - visualizzati in 3D nello stesso comune.',
     'meta.og_title': 'similoo - Edifici comparabili',
     'meta.og_description':
-      'Trova edifici comparabili alla tua particella - stessa zona, costruzione recente - visualizzati in 3D in tutta la Svizzera.',
+      'Trova edifici comparabili alla tua particella - stessa zona, costruzione recente - visualizzati in 3D nello stesso comune.',
     'meta.og_image_alt': 'similoo - Edifici comparabili',
     'meta.twitter_title': 'similoo - Edifici comparabili',
     'meta.twitter_description':
-      'Trova edifici comparabili alla tua particella in tutta la Svizzera.',
+      'Trova edifici comparabili alla tua particella nello stesso comune.',
     'meta.twitter_image_alt': 'similoo - Edifici comparabili',
 
     // ---------- nav ----------
@@ -1584,7 +1584,7 @@ const translations = {
     'camera.roll': 'Rollio',
 
     'landing.title': 'Digita un indirizzo svizzero.',
-    'landing.subtitle': 'similoo trova edifici comparabili a quello di questo indirizzo - stessa zona, costruzione recente - e li mostra come cubi LOD 2.5 sulla mappa più un\'ispezione 3D dettagliata su richiesta.',
+    'landing.subtitle': 'similoo trova edifici comparabili a quello di questo indirizzo - stesso comune e stessa zona, costruzione recente - e li mostra come cubi LOD 2.5 sulla mappa più un\'ispezione 3D dettagliata su richiesta.',
     'landing.search_placeholder': 'es. Via Nassa 10, Lugano',
     'landing.search_aria': 'Cerca indirizzo',
     'landing.hint': 'Seleziona un risultato per caricare il confronto.',
@@ -1611,16 +1611,16 @@ const translations = {
     'help.subtitle':
       'similoo classifica gli edifici più simili a quello che hai cercato - in tre passaggi.',
     'help.intro':
-      'Quando cerchi un indirizzo, similoo cerca edifici realmente paragonabili a quello sulla tua particella - stessa zona di pianificazione, età simile, densità simile - e poi li classifica in base a quanto corrispondono. Ecco esattamente come funziona.',
+      'Quando cerchi un indirizzo, similoo cerca edifici realmente paragonabili a quello sulla tua particella - stesso comune, stessa zona di pianificazione, età simile, densità simile - e poi li classifica in base a quanto corrispondono. Ecco esattamente come funziona.',
     'help.step1_title': 'Scegliere la particella di riferimento',
     'help.step1_body':
       'L\'indirizzo cercato viene risolto in una particella e nel suo EGRID (l\'identificativo ufficiale svizzero della particella). similoo legge i dati chiave di quella particella dal registro degli edifici (RegBL): zona di pianificazione, superficie della particella, volume edificato, impronta, altezza, piani e anno di costruzione. Ogni candidato viene poi confrontato con questo riferimento.',
     'help.step2_title': 'Restringere ai veri simili',
     'help.step2_body':
       'Un candidato deve superare due filtri rigidi prima di poter essere classificato:',
-    'help.filter_zone_title': 'Stessa zona',
+    'help.filter_zone_title': 'Stesso comune e stessa zona',
     'help.filter_zone_body':
-      'Si qualificano solo le particelle nella stessa zona di pianificazione (cz_local) del riferimento - le particelle colorate di verde sulla mappa. Una zona di ville non viene mai confrontata con un centro cittadino.',
+      'Si qualificano solo le particelle nello stesso comune e nella stessa zona di pianificazione (cz_local) del riferimento - le particelle colorate di verde sulla mappa. Una zona di ville non viene mai confrontata con un centro cittadino, e un comparabile non arriva mai dall\'altro capo della Svizzera.',
     'help.filter_year_title': 'Costruzione recente',
     'help.filter_year_body':
       'Contano solo gli edifici costruiti entro la finestra di anni - 10 anni per impostazione predefinita, regolabile da 1 a 30 con il cursore nella barra laterale. Allargandola emergono comparabili più numerosi e più datati.',
