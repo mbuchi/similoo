@@ -41,6 +41,21 @@ export const KIND_META = {
 
 export const RELEASES = [
   {
+    version: '0.16.0',
+    date: 'July 4, 2026',
+    codename: 'Spotlight',
+    summary:
+      'Hovering a comparable card now spotlights that parcel on the map. The whole parcel border lights up with a glowing amber outline that grows in and gently pulses, replacing the small red marker, so you can see exactly which parcel it is and how big it is at a glance.',
+    items: [
+      {
+        kind: 'improved',
+        icon: 'scan-search',
+        text: 'Hover a comparable in the panel and its parcel now glows with an animated amber outline that traces the full boundary, replacing the old red pin. If the parcel sits off-screen, an amber waypoint beacon points to it instead.',
+        prs: [],
+      },
+    ],
+  },
+  {
     version: '0.15.1',
     date: 'July 4, 2026',
     codename: 'Less Clutter',

@@ -1,4 +1,3 @@
-import maplibregl from 'maplibre-gl';
 import { t, onLocaleChange } from '../i18n.js';
 import { fetchSimilooComparables } from '../api/similoo.js';
 
@@ -67,7 +66,6 @@ export function createComparisonSidebar({ map, onClose, onFlyTo, onSelectCompara
     let sizeTo = null;
     let sortBy = 'similarity';
     let fetchSeq = 0;
-    let highlightMarker = null;
 
     const els = {
         closeBtn: aside.querySelector('.cmp-close'),
@@ -138,7 +136,7 @@ export function createComparisonSidebar({ map, onClose, onFlyTo, onSelectCompara
         currentEgrid = null;
         currentAddress = null;
         currentData = null;
-        clearHighlight();
+        onUnhoverComparable?.();
     }
 
     async function loadFor(egrid) {
@@ -417,22 +415,14 @@ export function createComparisonSidebar({ map, onClose, onFlyTo, onSelectCompara
                     if (typeof onSelectComparable === 'function') onSelectComparable(comparable);
                 });
             }
-            card.addEventListener('mouseenter', () => {
-                highlightComparable(comparable);
-                onHoverComparable?.(comparable);
-            });
-            card.addEventListener('mouseleave', () => {
-                clearHighlight();
-                onUnhoverComparable?.(comparable);
-            });
-            card.addEventListener('focus', () => {
-                highlightComparable(comparable);
-                onHoverComparable?.(comparable);
-            });
-            card.addEventListener('blur', () => {
-                clearHighlight();
-                onUnhoverComparable?.(comparable);
-            });
+            // Hover/focus spotlights the comparable's parcel on the map. The
+            // map treatment (an animated amber parcel outline) is owned by
+            // main.js via these callbacks — the sidebar no longer drops its
+            // own map marker.
+            card.addEventListener('mouseenter', () => onHoverComparable?.(comparable));
+            card.addEventListener('mouseleave', () => onUnhoverComparable?.(comparable));
+            card.addEventListener('focus', () => onHoverComparable?.(comparable));
+            card.addEventListener('blur', () => onUnhoverComparable?.(comparable));
         });
     }
 
@@ -488,33 +478,6 @@ export function createComparisonSidebar({ map, onClose, onFlyTo, onSelectCompara
         }
     }
 
-    function highlightComparable(c) {
-        if (!map) return;
-        if (!Number.isFinite(c?.lat) || !Number.isFinite(c?.lng)) return;
-        clearHighlight();
-        // A floating red pin (DOM marker) over the comparable's centroid.
-        // We don't have a stable per-comparable feature id in the rendered
-        // building layer so we can't toggle feature-state for the whole set;
-        // the marker is cheaper than juggling a filtered overlay layer and
-        // it disappears cleanly on mouseleave.
-        try {
-            const el = document.createElement('div');
-            el.className = 'cmp-pin';
-            highlightMarker = new maplibregl.Marker({ element: el, anchor: 'bottom' })
-                .setLngLat([c.lng, c.lat])
-                .addTo(map);
-        } catch (err) {
-            console.warn('comparison highlight failed:', err);
-        }
-    }
-
-    function clearHighlight() {
-        if (highlightMarker) {
-            try { highlightMarker.remove(); } catch {}
-            highlightMarker = null;
-        }
-    }
-
     function renderMeta() {
         const meta = currentData?.meta;
         if (!meta) {
@@ -566,7 +529,7 @@ export function createComparisonSidebar({ map, onClose, onFlyTo, onSelectCompara
     relabel();
 
     function destroy() {
-        clearHighlight();
+        onUnhoverComparable?.();
         aside?.remove();
         aside = null;
     }
