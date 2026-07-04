@@ -559,7 +559,24 @@ export function boot() {
             }
         }
         if (seq !== pickSeq) return;
-        if (egrid) sidebar.show(egrid);
+        // Pass the searched address so the sidebar's parcel identity header can
+        // title the subject card with it (falling back to the municipality).
+        // A synthetic "CH…"-shaped label from formatLatLng isn't a real address,
+        // so only forward a label that came from an actual geocoder pick.
+        if (egrid) sidebar.show(egrid, addressLabelFor(result));
+    }
+
+    // The searched address to title the identity header. handlePick receives
+    // `result.label` from a geocoder pick (navbar or landing search) or, for a
+    // bare ?lat/?lng deep-link, a "lat, lng" string from formatLatLng — which is
+    // NOT a street address, so we drop it and let the header fall back to the
+    // municipality.
+    function addressLabelFor(result) {
+        const label = result?.label;
+        if (!label || typeof label !== 'string') return null;
+        // formatLatLng output looks like "46.94821, 7.44743" — pure coords.
+        if (/^-?\d+(\.\d+)?\s*,\s*-?\d+(\.\d+)?$/.test(label.trim())) return null;
+        return label;
     }
 
     // Poll `fn` until it returns a truthy value or we exhaust the budget. Used

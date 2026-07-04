@@ -23,6 +23,15 @@ const DEBOUNCE_MS = 250;
 
 const SORT_KEYS = ['similarity', 'ratioV', 'size', 'year'];
 
+// Inline lucide SVGs matching the shared <ParcelIdentityHeader> (MapPin 11px for
+// the subtitle, Copy/Check 13px for the EGRID chip). Inlined because this
+// imperative card builds its DOM via innerHTML rather than the React icon
+// components; the markup + `.aireon-pih-*` classes are otherwise identical to
+// the shared component so the header renders the same across the suite.
+const PIN_SVG = '<svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/></svg>';
+const COPY_SVG = '<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="aireon-pih-egrid-icon" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>';
+const CHECK_SVG = '<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="aireon-pih-egrid-icon" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>';
+
 // One placeholder comparable card (mirrors `cmp-card`), shown while the first
 // fetch for a parcel is in flight. Suite standard: a skeleton, never a spinner.
 const SKELETON_CARD = `
@@ -50,6 +59,7 @@ export function createComparisonSidebar({ map, onClose, onFlyTo, onSelectCompara
     document.body.appendChild(aside);
 
     let currentEgrid = null;
+    let currentAddress = null;
     let currentData = null;
     let currentTargetSeed = null;
     let years = DEFAULT_YEARS;
@@ -108,12 +118,15 @@ export function createComparisonSidebar({ map, onClose, onFlyTo, onSelectCompara
         renderList();
     });
 
-    function show(egrid) {
+    function show(egrid, address) {
         if (!egrid) return;
         // New parcel → drop the previous parcel's data so the next load shows a
         // skeleton instead of stale cards.
         if (egrid !== currentEgrid) currentData = null;
         currentEgrid = egrid;
+        // The searched address (if any) titles the parcel identity header; it
+        // arrives from the navbar/landing search pick via main.js.
+        currentAddress = address || null;
         aside.setAttribute('data-state', 'visible');
         aside.setAttribute('aria-hidden', 'false');
         loadFor(egrid);
@@ -123,6 +136,7 @@ export function createComparisonSidebar({ map, onClose, onFlyTo, onSelectCompara
         aside.setAttribute('data-state', 'hidden');
         aside.setAttribute('aria-hidden', 'true');
         currentEgrid = null;
+        currentAddress = null;
         currentData = null;
         clearHighlight();
     }
@@ -212,7 +226,9 @@ export function createComparisonSidebar({ map, onClose, onFlyTo, onSelectCompara
             : (target.building_volume_m3 && target.parcel_area_m2
                 ? target.building_volume_m3 / target.parcel_area_m2
                 : null);
+        const egrid = target.egrid || currentEgrid || null;
         els.targetSection.innerHTML = `
+            ${identityHeaderHtml(egrid)}
             <div class="cmp-target-head">
                 <div class="cmp-target-ratiov">
                     <div class="cmp-target-ratiov-value">${formatRatio(ratioV)}</div>
@@ -220,16 +236,8 @@ export function createComparisonSidebar({ map, onClose, onFlyTo, onSelectCompara
                 </div>
                 <div class="cmp-target-meta">
                     <div class="cmp-target-line">
-                        <span class="cmp-target-key">${escapeHtml(t('comparison.metric_municipality'))}</span>
-                        <span class="cmp-target-val">${escapeHtml(target.municipality || dash())}</span>
-                    </div>
-                    <div class="cmp-target-line">
                         <span class="cmp-target-key">${escapeHtml(t('comparison.metric_zoning'))}</span>
                         <span class="cmp-target-val">${escapeHtml(target.cz_local || target.cz_abbrev || dash())}</span>
-                    </div>
-                    <div class="cmp-target-line">
-                        <span class="cmp-target-key">${escapeHtml(t('comparison.metric_egrid'))}</span>
-                        <span class="cmp-target-val cmp-target-egrid">${escapeHtml(target.egrid || dash())}</span>
                     </div>
                 </div>
             </div>
@@ -242,6 +250,78 @@ export function createComparisonSidebar({ map, onClose, onFlyTo, onSelectCompara
                 ${targetCell('comparison.metric_year', target.construction_year != null ? String(target.construction_year) : dash())}
             </div>
         `;
+        bindIdentityHeader();
+    }
+
+    // Suite-standard parcel identity header (mirrors the shared
+    // @aireon/shared <ParcelIdentityHeader>, reusing its shipped `.aireon-pih-*`
+    // classes from map-ui.css). Titles the subject card with the searched
+    // address (falling back to the municipality, then a localized "Selected
+    // parcel"), shows the municipality as the muted subtitle, and renders the
+    // EGRID as a monospace chip that copies itself to the clipboard on click.
+    // similoo's engine themes off [data-theme="dark"], which the shipped
+    // `.aireon-pih-*` rules already target, so no --dark flag is needed here.
+    function identityHeaderHtml(egrid) {
+        const target = currentData?.target;
+        const municipality = target?.municipality || null;
+        const title = currentAddress || municipality || t('comparison.identity_fallback_title');
+        // Show the municipality as the muted subtitle only when it isn't already
+        // the title (i.e. we have a real searched address up top) — otherwise it
+        // would just repeat the title line.
+        const subtitle = currentAddress && municipality ? municipality : null;
+        const copyLabel = t('comparison.copy_egrid');
+        return `
+            <div class="aireon-pih cmp-target-identity">
+                <div class="aireon-pih-main">
+                    <h2 class="aireon-pih-title">${escapeHtml(title)}</h2>
+                    ${subtitle ? `
+                    <p class="aireon-pih-subtitle">
+                        ${PIN_SVG}
+                        <span class="aireon-pih-subtitle-text">${escapeHtml(subtitle)}</span>
+                    </p>` : ''}
+                    ${egrid ? `
+                    <button type="button" class="aireon-pih-egrid" data-egrid="${escapeHtml(egrid)}" title="${escapeHtml(copyLabel)}" aria-label="${escapeHtml(copyLabel)}">
+                        <span class="aireon-pih-egrid-eyebrow" aria-hidden="true">EGRID</span>
+                        <span class="aireon-pih-egrid-value">${escapeHtml(egrid)}</span>
+                        ${COPY_SVG}
+                    </button>
+                    <span role="status" aria-live="polite" class="sr-only"></span>` : ''}
+                </div>
+            </div>
+        `;
+    }
+
+    // Wire the copy-to-clipboard chip after each renderTarget(). Mirrors the
+    // shared component's behavior: copy the EGRID, swap the label + icon to
+    // "Copied" for ~1.5s, announce it politely, then revert.
+    let copyTimer = null;
+    function bindIdentityHeader() {
+        const chip = els.targetSection.querySelector('.aireon-pih-egrid');
+        if (!chip) return;
+        const status = els.targetSection.querySelector('.aireon-pih [role="status"]');
+        chip.addEventListener('click', async () => {
+            const egrid = chip.dataset.egrid;
+            if (!egrid) return;
+            try {
+                await navigator.clipboard?.writeText(egrid);
+            } catch {
+                return;
+            }
+            const copiedLabel = t('comparison.copied');
+            const valueEl = chip.querySelector('.aireon-pih-egrid-value');
+            const iconEl = chip.querySelector('.aireon-pih-egrid-icon');
+            chip.classList.add('aireon-pih-egrid--copied');
+            if (valueEl) valueEl.textContent = copiedLabel;
+            if (iconEl) iconEl.outerHTML = CHECK_SVG;
+            chip.title = copiedLabel;
+            chip.setAttribute('aria-label', copiedLabel);
+            if (status) status.textContent = copiedLabel;
+            if (copyTimer) clearTimeout(copyTimer);
+            copyTimer = setTimeout(() => {
+                // Re-render the header to restore the idle EGRID/icon state.
+                if (els.targetSection && currentData) renderTarget();
+            }, 1500);
+        });
     }
 
     function renderList() {
