@@ -41,6 +41,21 @@ export const KIND_META = {
 
 export const RELEASES = [
   {
+    version: '0.15.0',
+    date: 'July 4, 2026',
+    codename: 'Into the Point Cloud',
+    summary:
+      'Open in lidaroo: jump from a building\'s 3D view to the full swissSURFACE3D point cloud in lidaroo. The 3D detail popup now carries a deep link that opens the same building, centered on the same coordinates, in the suite\'s dedicated point-cloud viewer.',
+    items: [
+      {
+        kind: 'new',
+        icon: 'external-link',
+        text: 'New "Open in lidaroo" link in the 3D detail popup header. It opens lidaroo, the Aireon suite\'s Giro3D point-cloud viewer, in a new tab centered on the same building, so you can explore the full swissSURFACE3D point cloud around any comparable. Available in all four interface languages.',
+        prs: [],
+      },
+    ],
+  },
+  {
     version: '0.14.0',
     date: 'July 4, 2026',
     codename: 'Search by EGRID',

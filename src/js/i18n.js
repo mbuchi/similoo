@@ -407,6 +407,7 @@ const translations = {
     'detail.layer_pointcloud': 'Point cloud',
     'detail.layer_buildings': 'Buildings',
     'detail.layer_basemap': 'Aerial map',
+    'detail.open_lidaroo': 'Open in lidaroo',
     'detail.loading': 'Loading 3D scene…',
     'detail.error': 'Could not load 3D scene.',
 
@@ -812,6 +813,7 @@ const translations = {
     'detail.layer_pointcloud': 'Nuage de points',
     'detail.layer_buildings': 'Bâtiments',
     'detail.layer_basemap': 'Vue aérienne',
+    'detail.open_lidaroo': 'Ouvrir dans lidaroo',
     'detail.loading': 'Chargement de la scène 3D…',
     'detail.error': 'Impossible de charger la scène 3D.',
 
@@ -1217,6 +1219,7 @@ const translations = {
     'detail.layer_pointcloud': 'Punktwolke',
     'detail.layer_buildings': 'Gebäude',
     'detail.layer_basemap': 'Luftbild',
+    'detail.open_lidaroo': 'In lidaroo öffnen',
     'detail.loading': '3D-Szene wird geladen…',
     'detail.error': '3D-Szene konnte nicht geladen werden.',
 
@@ -1621,6 +1624,7 @@ const translations = {
     'detail.layer_pointcloud': 'Nuvola di punti',
     'detail.layer_buildings': 'Edifici',
     'detail.layer_basemap': 'Foto aerea',
+    'detail.open_lidaroo': 'Apri in lidaroo',
     'detail.loading': 'Caricamento scena 3D…',
     'detail.error': 'Impossibile caricare la scena 3D.',
 
