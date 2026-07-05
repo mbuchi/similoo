@@ -106,6 +106,19 @@ export default function App() {
       /* no-op */
     }
   }, [isDark]);
+  // Keep `isDark` in lockstep with the `<html>.dark` class. The shared
+  // MapUserMenu hydrates the signed-in user's profile after mount and calls
+  // adoptStoredTheme(), which toggles the class directly — bypassing our state.
+  // Syncing state re-runs the mirror effect above, so `data-theme` (the engine
+  // + bespoke CSS) follows too.
+  useEffect(() => {
+    const html = document.documentElement;
+    const sync = () => setIsDark(html.classList.contains('dark'));
+    sync(); // catch a class flip between the initial useState and this effect
+    const observer = new MutationObserver(sync);
+    observer.observe(html, { attributes: true, attributeFilter: ['class'] });
+    return () => observer.disconnect();
+  }, []);
   const toggleTheme = useCallback(() => setIsDark((v) => !v), []);
 
   // --- Liquid Glass appearance level (0 Off · 1 Frosted · 2 Liquid) -------

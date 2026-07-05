@@ -41,6 +41,21 @@ export const KIND_META = {
 
 export const RELEASES = [
   {
+    version: '0.17.1',
+    date: 'July 5, 2026',
+    codename: 'Navbar theme in sync',
+    summary:
+      'Fixed the navbar and user menu showing the wrong theme colors on startup until the theme was toggled.',
+    items: [
+      {
+        kind: 'fixed',
+        icon: 'bug',
+        text: 'When your saved account theme differed from the theme the app booted with, the navbar wordmark and the user menu could render in the opposite theme (for example a light wordmark on a dark bar) until you toggled the theme twice. The app now follows the account theme immediately after sign-in, and the comparison view switches along with it.',
+        prs: [],
+      },
+    ],
+  },
+  {
     version: '0.17.0',
     date: 'July 5, 2026',
     codename: 'Tidy History',
