@@ -41,6 +41,21 @@ export const KIND_META = {
 
 export const RELEASES = [
   {
+    version: '0.17.0',
+    date: 'July 5, 2026',
+    codename: 'Tidy History',
+    summary:
+      'Recent searches in the navbar search box are now individually removable. Each row in the "Recent searches" dropdown has a small delete (x) button, so you can clear a single past address without wiping your whole history.',
+    items: [
+      {
+        kind: 'improved',
+        icon: 'trash-2',
+        text: 'Updated the shared @aireon/shared library to v1.74.0, which adds a per-row delete (x) button to the "Recent searches" dropdown in the navbar search. Hover or focus a recent entry and click the x to remove just that entry from your history.',
+        prs: [],
+      },
+    ],
+  },
+  {
     version: '0.16.0',
     date: 'July 4, 2026',
     codename: 'Spotlight',
