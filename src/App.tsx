@@ -24,6 +24,10 @@ import {
 import { HelpCircle, Info, Share2, Sun, Moon, Tag } from 'lucide-react';
 import LandingView from './components/LandingView';
 import ComparisonView from './components/ComparisonView';
+import SavedImagesPanel from './components/SavedImagesPanel';
+import ScreenshotOverlay from './components/ScreenshotOverlay';
+import { useScreenshot } from './hooks/useScreenshot';
+import type { ScreenshotMetadata } from './lib/imageService';
 import { getLocale, onLocaleChange, setLocale, applyTranslations, t } from './js/i18n.js';
 // Methodology ("how comparable buildings are calculated") help panel. The
 // engine still owns its Esc/hash/deep-link wiring via initMethodologyHelp();
@@ -160,6 +164,43 @@ export default function App() {
   });
   const [showAbout, setShowAbout] = useState(false);
 
+  // --- Save image + gallery (shared RES image service) --------------------
+  // "Save image" captures the current map view (html-to-image → WebP) and
+  // uploads it to the shared RES gallery; "My Exports" opens the SavedImagesPanel
+  // (cross-app list + delete). Metadata is read best-effort off the live MapLibre
+  // map the engine exposes as `window.__similooMap`.
+  const [galleryOpen, setGalleryOpen] = useState(false);
+  const getCaptureMetadata = useCallback((): ScreenshotMetadata => {
+    const meta: ScreenshotMetadata = {};
+    const map = (window as unknown as {
+      __similooMap?: {
+        getCenter?: () => { lat: number; lng: number };
+        getZoom?: () => number;
+        getBearing?: () => number;
+        getPitch?: () => number;
+      };
+    }).__similooMap;
+    if (map && typeof map.getCenter === 'function') {
+      try {
+        const c = map.getCenter();
+        meta.central_lat = c.lat;
+        meta.central_lng = c.lng;
+        if (typeof map.getZoom === 'function') meta.zoom = map.getZoom();
+        if (typeof map.getBearing === 'function') meta.bearing_degree = map.getBearing();
+        if (typeof map.getPitch === 'function') meta.tilt_degree = map.getPitch();
+        // similoo renders LOD 2.5 building cubes on an ArcGIS World Imagery
+        // satellite basemap; both are constant for this app.
+        meta.basemap = 'satellite';
+        meta.is_3d_mode = true;
+      } catch {
+        /* map not ready yet — best-effort snapshot */
+      }
+    }
+    if (currentAddress) meta.address = currentAddress;
+    return meta;
+  }, [currentAddress]);
+  const { capture, isCapturing, notice } = useScreenshot(getCaptureMetadata);
+
   // "Share this view" — copy the URL, flash the suite "Link copied" pill.
   const [shareCopied, setShareCopied] = useState(false);
   const handleShare = useCallback(() => {
@@ -235,12 +276,15 @@ export default function App() {
             resultsCount: (n) => t('nav.search_results_count', { count: n }),
           },
         }}
-        // Map action cluster: similoo has no save-image / locate, so only the
-        // Settings gear (Liquid Glass picker) + Language switcher render — the
-        // other actions auto-hide when their handlers are omitted.
+        // Map action cluster: Save image + My Exports (shared RES gallery),
+        // the Settings gear (Liquid Glass picker) + Language switcher. similoo
+        // has no locate button, so that action auto-hides (handler omitted).
         toolbar={{
           locale,
           onLocaleChange: changeLocale,
+          onCapture: capture,
+          isCapturing,
+          onShowImages: () => setGalleryOpen(true),
           settingsItems: [glassSettingsItem],
           labels: {
             saveImage: t('screenshot.save'),
@@ -342,6 +386,14 @@ export default function App() {
       )}
 
       <ShareCopiedToast show={shareCopied} label={shareStrings.copied} dark={isDark} />
+
+      {/* Save image + gallery. The overlay shows during capture; the panel is
+          the cross-app "My Exports" gallery. similoo has no toast context, so
+          capture success/failure is flashed through the same shared pill used
+          for "Link copied". */}
+      <SavedImagesPanel darkMode={isDark} isOpen={galleryOpen} onClose={() => setGalleryOpen(false)} />
+      <ScreenshotOverlay isCapturing={isCapturing} darkMode={isDark} />
+      <ShareCopiedToast show={!!notice} label={notice ?? ''} dark={isDark} />
     </ErrorLogBoundary>
   );
 }

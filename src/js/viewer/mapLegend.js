@@ -25,6 +25,8 @@ export function createMapLegend(container) {
     const el = document.createElement('div');
     el.className = 'map-legend';
     el.setAttribute('role', 'region');
+    // Floating chrome — excluded from the "Save image" map capture.
+    el.setAttribute('data-screenshot-ignore', 'true');
 
     el.innerHTML = `
         <div class="map-legend-title"></div>

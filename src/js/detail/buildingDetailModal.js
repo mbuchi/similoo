@@ -154,6 +154,8 @@ export function createBuildingDetailModal() {
 function buildShell() {
     const root = document.createElement('div');
     root.className = 'bdm';
+    // Floating chrome — excluded from the "Save image" map capture.
+    root.setAttribute('data-screenshot-ignore', 'true');
     root.setAttribute('data-state', 'hidden');
     root.setAttribute('aria-hidden', 'true');
     root.setAttribute('role', 'dialog');
