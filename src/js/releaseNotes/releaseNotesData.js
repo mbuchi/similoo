@@ -41,6 +41,21 @@ export const KIND_META = {
 
 export const RELEASES = [
   {
+    version: '0.19.0',
+    date: 'July 6, 2026',
+    codename: 'Save the view',
+    summary:
+      'You can now save the current map view as an image and browse the images you have saved across the Aireon suite.',
+    items: [
+      {
+        kind: 'new',
+        icon: 'camera',
+        text: 'Save image: capture the current map view to your image gallery. Open "My Exports" from the map toolbar to review, open, or delete any image you have saved in an Aireon app. Updated the shared @aireon/shared library to v1.76.0.',
+        prs: [],
+      },
+    ],
+  },
+  {
     version: '0.18.0',
     date: 'July 6, 2026',
     codename: 'Always Watching',

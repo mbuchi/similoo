@@ -546,6 +546,8 @@ export function createComparisonSidebar({ map, onClose, onFlyTo, onSelectCompara
 function buildShell() {
     const aside = document.createElement('aside');
     aside.className = 'cmp';
+    // Floating chrome — excluded from the "Save image" map capture.
+    aside.setAttribute('data-screenshot-ignore', 'true');
     aside.setAttribute('data-state', 'hidden');
     aside.setAttribute('aria-hidden', 'true');
     aside.setAttribute('role', 'complementary');

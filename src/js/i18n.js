@@ -194,6 +194,12 @@ const translations = {
     'gallery.col_3d_mode': '3D mode',
     'gallery.tilt_value': 'Tilt {value}',
     'gallery.additional_metadata': 'Additional metadata',
+    'gallery.mode_on': 'On',
+    'gallery.mode_off': 'Off',
+    'gallery.try_again': 'Try again',
+    'gallery.open_preview': 'Open preview of {name}',
+    'gallery.delete_title': 'Delete image?',
+    'gallery.cancel': 'Cancel',
 
     // ---------- tour (Shepherd) ----------
     'tour.skip': 'Skip',
@@ -602,6 +608,12 @@ const translations = {
     'gallery.col_3d_mode': 'Mode 3D',
     'gallery.tilt_value': 'Incl. {value}',
     'gallery.additional_metadata': 'Métadonnées supplémentaires',
+    'gallery.mode_on': 'Activé',
+    'gallery.mode_off': 'Désactivé',
+    'gallery.try_again': 'Réessayer',
+    'gallery.open_preview': 'Ouvrir l\'aperçu de {name}',
+    'gallery.delete_title': 'Supprimer l\'image ?',
+    'gallery.cancel': 'Annuler',
 
     // ---------- tour ----------
     'tour.skip': 'Passer',
@@ -1008,6 +1020,12 @@ const translations = {
     'gallery.col_3d_mode': '3D-Modus',
     'gallery.tilt_value': 'Neigung {value}',
     'gallery.additional_metadata': 'Zusätzliche Metadaten',
+    'gallery.mode_on': 'Ein',
+    'gallery.mode_off': 'Aus',
+    'gallery.try_again': 'Erneut versuchen',
+    'gallery.open_preview': 'Vorschau von {name} öffnen',
+    'gallery.delete_title': 'Bild löschen?',
+    'gallery.cancel': 'Abbrechen',
 
     // ---------- tour ----------
     'tour.skip': 'Überspringen',
@@ -1413,6 +1431,12 @@ const translations = {
     'gallery.col_3d_mode': 'Modalità 3D',
     'gallery.tilt_value': 'Incl. {value}',
     'gallery.additional_metadata': 'Metadati aggiuntivi',
+    'gallery.mode_on': 'Attivo',
+    'gallery.mode_off': 'Disattivo',
+    'gallery.try_again': 'Riprova',
+    'gallery.open_preview': 'Apri anteprima di {name}',
+    'gallery.delete_title': 'Eliminare l\'immagine?',
+    'gallery.cancel': 'Annulla',
 
     // ---------- tour ----------
     'tour.skip': 'Salta',

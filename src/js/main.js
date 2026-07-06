@@ -452,6 +452,8 @@ export function boot() {
         try {
             const el = document.createElement('div');
             el.className = 'cmp-hover-beacon';
+            // Floating chrome — excluded from the "Save image" map capture.
+            el.setAttribute('data-screenshot-ignore', 'true');
             el.innerHTML =
                 '<span class="cmp-hover-beacon-ring"></span>' +
                 '<span class="cmp-hover-beacon-pin"></span>';
