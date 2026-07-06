@@ -153,7 +153,7 @@ export default function App() {
   // (per the logger's default flags) failed resource loads, CSP violations and
   // fetch failures. It is idempotent and returns an uninstall function used as
   // the effect cleanup.
-  useEffect(() => errorLogger.install(), [errorLogger]);
+  useEffect(() => errorLogger.install({ captureConsoleErrors: true }), [errorLogger]);
   const rn = useReleaseNotes({
     currentVersion: CURRENT_VERSION,
     storageKey: 'similoo:lastSeenReleaseVersion',
