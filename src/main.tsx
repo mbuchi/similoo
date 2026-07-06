@@ -49,7 +49,7 @@ import './css/glass.css';
 // VITE_OPENREPLAY_PROJECT_KEY is set on the Vercel project. The global error
 // capture itself is wired inside App.tsx (the app's error logger installs its
 // uncaught-error / promise-rejection / resource / CSP / fetch listeners there).
-initOpenReplay({ projectKey: import.meta.env.VITE_OPENREPLAY_PROJECT_KEY as string | undefined });
+initOpenReplay({ projectKey: import.meta.env.VITE_OPENREPLAY_PROJECT_KEY as string | undefined, trackerOptions: { canvas: { disableCanvas: true } } });
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
