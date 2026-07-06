@@ -41,6 +41,21 @@ export const KIND_META = {
 
 export const RELEASES = [
   {
+    version: '0.18.0',
+    date: 'July 6, 2026',
+    codename: 'Always Watching',
+    summary:
+      'similoo now captures errors automatically so problems get fixed faster, and gains opt-in session replay for support.',
+    items: [
+      {
+        kind: 'new',
+        icon: 'shield-alert',
+        text: 'Automatic error capture (uncaught errors, failed requests, and resource + CSP errors) is now wired into the app, and rendering crashes are contained by a shared error boundary instead of blanking the page. Optional session replay is included but stays off until enabled. Updated the shared @aireon/shared library to v1.75.0.',
+        prs: [],
+      },
+    ],
+  },
+  {
     version: '0.17.1',
     date: 'July 5, 2026',
     codename: 'Navbar theme in sync',
