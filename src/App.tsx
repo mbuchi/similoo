@@ -13,6 +13,7 @@ import {
   getReleaseNotesStrings,
   getShareStrings,
   createErrorLogger,
+  ErrorLogBoundary,
   useAuth,
   setTheme,
   type Locale,
@@ -146,6 +147,13 @@ export default function App() {
   // --- Account / chrome state --------------------------------------------
   const { email } = useAuth();
   const errorLogger = useMemo(() => createErrorLogger({ appName: 'similoo' }), []);
+  // Attach the global capture listeners once. Until now this logger only powered
+  // the navbar-search onError and the bug-report dialog — nothing hooked the
+  // automatic sources. install() wires uncaught errors, promise rejections and
+  // (per the logger's default flags) failed resource loads, CSP violations and
+  // fetch failures. It is idempotent and returns an uninstall function used as
+  // the effect cleanup.
+  useEffect(() => errorLogger.install(), [errorLogger]);
   const rn = useReleaseNotes({
     currentVersion: CURRENT_VERSION,
     storageKey: 'similoo:lastSeenReleaseVersion',
@@ -206,7 +214,7 @@ export default function App() {
   ];
 
   return (
-    <>
+    <ErrorLogBoundary logger={errorLogger} darkMode={isDark}>
       <AppNavbar
         appName="similoo"
         dark={isDark}
@@ -334,6 +342,6 @@ export default function App() {
       )}
 
       <ShareCopiedToast show={shareCopied} label={shareStrings.copied} dark={isDark} />
-    </>
+    </ErrorLogBoundary>
   );
 }

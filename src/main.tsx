@@ -1,6 +1,6 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
-import { AuthProvider, GlassProvider, initTheme } from '@aireon/shared';
+import { AuthProvider, GlassProvider, initTheme, initOpenReplay } from '@aireon/shared';
 import App from './App';
 import { SimilooAccessGate } from './components/SimilooAccessGate';
 
@@ -43,6 +43,13 @@ import '@aireon/shared/glass.css';
 // `./css/glass.css` opts similoo's bespoke floating surfaces (comparison panel,
 // building detail, methodology, on-map legend) into the shared glass tokens.
 import './css/glass.css';
+
+// Env-gated session replay. initOpenReplay is a no-op unless the project key is
+// present, so this is safe to ship now — session replay stays inert until
+// VITE_OPENREPLAY_PROJECT_KEY is set on the Vercel project. The global error
+// capture itself is wired inside App.tsx (the app's error logger installs its
+// uncaught-error / promise-rejection / resource / CSP / fetch listeners there).
+initOpenReplay({ projectKey: import.meta.env.VITE_OPENREPLAY_PROJECT_KEY as string | undefined });
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
