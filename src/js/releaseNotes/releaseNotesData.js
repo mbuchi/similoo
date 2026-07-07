@@ -41,6 +41,33 @@ export const KIND_META = {
 
 export const RELEASES = [
   {
+    version: '0.20.0',
+    date: 'July 7, 2026',
+    codename: 'Full-resolution detail',
+    summary:
+      'The building detail view now streams the real swissSURFACE3D LiDAR point cloud, powered by the same engine as lidaroo.',
+    items: [
+      {
+        kind: 'new',
+        icon: 'box',
+        text: 'Detail view, rebuilt: opening a comparable now streams the full-resolution swissSURFACE3D point cloud around the building (Giro3D, the same engine as lidaroo), with a red pin marking the building and free orbit/pan/zoom across the whole neighborhood tile.',
+        prs: [],
+      },
+      {
+        kind: 'new',
+        icon: 'palette',
+        text: 'Color modes: switch the point cloud between Elevation, Classification (ground, vegetation, buildings), and Intensity coloring from the chips in the detail header.',
+        prs: [],
+      },
+      {
+        kind: 'improved',
+        icon: 'loader',
+        text: 'Live preparation progress: the first visit to a new area shows the server-side tile conversion progress (about 45 seconds); areas already prepared open instantly.',
+        prs: [],
+      },
+    ],
+  },
+  {
     version: '0.19.0',
     date: 'July 6, 2026',
     codename: 'Save the view',

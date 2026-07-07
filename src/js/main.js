@@ -23,8 +23,8 @@ import { initMethodologyHelp } from './help/methodologyPanel.js';
 
 // similoo's imperative engine entry point.
 //
-// This module owns the full app behaviour: map setup, the Three.js building
-// scene, the comparison sidebar + panels, address search, deep-linking,
+// This module owns the full app behaviour: map setup, the Giro3D point-cloud
+// detail modal, the comparison sidebar + panels, address search, deep-linking,
 // theme/locale/overflow navbar wiring, auth and the bug-report widget. It was
 // the vanilla `<script type="module">` entry; in the React shell it is invoked
 // once from a useEffect after App.tsx has rendered the static DOM scaffold

@@ -1,10 +1,12 @@
 // Building-detail popup.
 //
-// Opens an overlay that renders a LAS slice around a comparable building
-// in Three.js. Lazy-mounts the scene on first open, reuses the renderer
-// across opens, and exposes three independent layer toggles — Point
-// cloud, Buildings, and an aerial Basemap drape — over an always-visible
-// solid terrain base. (Replaces the old two-tab point-cloud/solid switch.)
+// Opens an overlay that streams the swissSURFACE3D COPC point-cloud tile
+// around a comparable building via Giro3D (the same engine + RES lidar
+// pipeline as the suite's lidaroo app). Lazy-mounts the scene on first
+// open, reuses the Instance across opens of the same tile, and exposes a
+// color-mode radio group — Elevation / Classification / Intensity — in the
+// header. (Replaces the old Contoor-GLB Three.js scene and its
+// pointcloud/building/basemap layer toggles.)
 //
 // Public API:
 //   const modal = createBuildingDetailModal();
@@ -12,7 +14,7 @@
 //   modal.hide();
 
 import { t, onLocaleChange } from '../i18n.js';
-import { createBuildingScene } from '../three/buildingScene.js';
+import { createCopcScene } from '../lidar/copcScene.js';
 
 export function createBuildingDetailModal() {
     let root = buildShell();
@@ -23,7 +25,7 @@ export function createBuildingDetailModal() {
         title: root.querySelector('.bdm-title'),
         subtitle: root.querySelector('.bdm-subtitle'),
         closeBtn: root.querySelector('.bdm-close'),
-        layerBtns: Array.from(root.querySelectorAll('.bdm-layer-btn')),
+        colorBtns: Array.from(root.querySelectorAll('.bdm-color-btn')),
         lidarooLink: root.querySelector('.bdm-lidaroo'),
         canvas: root.querySelector('.bdm-canvas'),
         status: root.querySelector('.bdm-status'),
@@ -33,6 +35,7 @@ export function createBuildingDetailModal() {
     let openSeq = 0;
     let currentTarget = null;
     let lastFocus = null;
+    let themeObserver = null;
 
     els.closeBtn.addEventListener('click', hide);
     els.backdrop.addEventListener('click', hide);
@@ -40,36 +43,48 @@ export function createBuildingDetailModal() {
         if (e.key === 'Escape' && root.getAttribute('data-state') === 'visible') hide();
     });
 
-    els.layerBtns.forEach((btn) => {
-        btn.addEventListener('click', () => toggleLayer(btn));
+    els.colorBtns.forEach((btn) => {
+        btn.addEventListener('click', () => selectColorMode(btn.dataset.mode));
     });
 
-    // Each chip is an independent on/off toggle, not a radio. Flip its
-    // aria-pressed and route to the matching scene control: 'basemap'
-    // drives the orthophoto drape, the others drive layer visibility.
-    function toggleLayer(btn) {
+    // The chips are a radio group (one color mode is always active), unlike
+    // the old scene's independent layer toggles: elevation ramp,
+    // ASPRS classification palette, or LiDAR return intensity.
+    function selectColorMode(mode) {
         if (!scene) return;
-        const layer = btn.dataset.layer;
-        const next = btn.getAttribute('aria-pressed') !== 'true';
-        btn.setAttribute('aria-pressed', next ? 'true' : 'false');
-        if (layer === 'basemap') scene.setBasemap(next);
-        else scene.setLayer(layer, next);
+        scene.setColorMode(mode);
+        syncColorButtons();
     }
 
-    // Reflect the scene's current layer state onto the chips (called once
-    // the scene exists, so the buttons match its defaults).
-    function syncLayerButtons() {
-        if (!scene) return;
-        const active = { ...scene.getLayers(), basemap: scene.getBasemap() };
-        els.layerBtns.forEach((btn) => {
-            const on = !!active[btn.dataset.layer];
-            btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+    // Reflect the scene's active color mode onto the chips (aria-pressed
+    // marks exactly the one active mode).
+    function syncColorButtons() {
+        const active = scene ? scene.getColorMode() : 'elevation';
+        els.colorBtns.forEach((btn) => {
+            btn.setAttribute('aria-pressed', btn.dataset.mode === active ? 'true' : 'false');
         });
     }
 
     function setStatus(msg) {
         els.status.textContent = msg || '';
         els.status.hidden = !msg;
+    }
+
+    // The app's theme is React-controlled: the toggle in App.tsx drives both
+    // the `.dark` class and `data-theme` on <html> (see the note near the end
+    // of main.js). The scene's canvas background must follow live while the
+    // modal is open, so watch documentElement mutations — the same pattern
+    // that fixed the theme desync in lidaroo — rather than sampling only at
+    // scene creation.
+    function watchTheme() {
+        if (themeObserver) return;
+        themeObserver = new MutationObserver(() => {
+            scene?.setDark(document.documentElement.classList.contains('dark'));
+        });
+        themeObserver.observe(document.documentElement, {
+            attributes: true,
+            attributeFilter: ['class', 'data-theme'],
+        });
     }
 
     async function show({ lat, lng, label, subtitle }) {
@@ -87,14 +102,26 @@ export function createBuildingDetailModal() {
         els.closeBtn.focus();
 
         if (!scene) {
-            scene = createBuildingScene({ container: els.canvas });
-            syncLayerButtons();
+            scene = createCopcScene({ container: els.canvas });
+            scene.setDark(document.documentElement.classList.contains('dark'));
+            watchTheme();
+            syncColorButtons();
         }
 
         const seq = ++openSeq;
         setStatus(t('detail.loading'));
         try {
-            await scene.loadAt({ lat, lng, label });
+            await scene.loadAt({
+                lat,
+                lng,
+                // A cold tile converts on the RES box for ~45 s (cached tiles
+                // are instant); narrate the progress so the wait reads as work,
+                // not a hang.
+                onProgress: (percent) => {
+                    if (seq !== openSeq) return;
+                    setStatus(t('detail.preparing', { percent }));
+                },
+            });
             if (seq !== openSeq) return;
             setStatus('');
         } catch (err) {
@@ -113,19 +140,19 @@ export function createBuildingDetailModal() {
         lastFocus = null;
     }
 
-    const LAYER_LABEL_KEYS = {
-        pointcloud: 'detail.layer_pointcloud',
-        building: 'detail.layer_buildings',
-        basemap: 'detail.layer_basemap',
+    const COLOR_LABEL_KEYS = {
+        elevation: 'detail.color_elevation',
+        classification: 'detail.color_classification',
+        intensity: 'detail.color_intensity',
     };
 
     function relabel() {
         root.querySelector('.bdm-close').setAttribute('aria-label', t('detail.close'));
-        els.layerBtns.forEach((btn) => {
-            const key = LAYER_LABEL_KEYS[btn.dataset.layer];
+        els.colorBtns.forEach((btn) => {
+            const key = COLOR_LABEL_KEYS[btn.dataset.mode];
             if (!key) return;
             const label = t(key);
-            btn.querySelector('.bdm-layer-label').textContent = label;
+            btn.querySelector('.bdm-color-label').textContent = label;
             btn.setAttribute('title', label);
         });
         const lidarooLabel = t('detail.open_lidaroo');
@@ -140,6 +167,8 @@ export function createBuildingDetailModal() {
     relabel();
 
     function destroy() {
+        themeObserver?.disconnect();
+        themeObserver = null;
         if (scene) {
             scene.dispose();
             scene = null;
@@ -169,15 +198,15 @@ function buildShell() {
                     <h2 class="bdm-title" id="bdm-title"></h2>
                     <div class="bdm-subtitle" hidden></div>
                 </div>
-                <div class="bdm-layers" role="group">
-                    <button type="button" class="bdm-layer-btn bdm-layer-point" data-layer="pointcloud" aria-pressed="true">
-                        <span class="bdm-layer-dot" aria-hidden="true"></span><span class="bdm-layer-label"></span>
+                <div class="bdm-colors" role="group">
+                    <button type="button" class="bdm-color-btn bdm-color-elevation" data-mode="elevation" aria-pressed="true">
+                        <span class="bdm-color-dot" aria-hidden="true"></span><span class="bdm-color-label"></span>
                     </button>
-                    <button type="button" class="bdm-layer-btn bdm-layer-building" data-layer="building" aria-pressed="true">
-                        <span class="bdm-layer-dot" aria-hidden="true"></span><span class="bdm-layer-label"></span>
+                    <button type="button" class="bdm-color-btn bdm-color-classification" data-mode="classification" aria-pressed="false">
+                        <span class="bdm-color-dot" aria-hidden="true"></span><span class="bdm-color-label"></span>
                     </button>
-                    <button type="button" class="bdm-layer-btn bdm-layer-basemap" data-layer="basemap" aria-pressed="false">
-                        <span class="bdm-layer-dot" aria-hidden="true"></span><span class="bdm-layer-label"></span>
+                    <button type="button" class="bdm-color-btn bdm-color-intensity" data-mode="intensity" aria-pressed="false">
+                        <span class="bdm-color-dot" aria-hidden="true"></span><span class="bdm-color-label"></span>
                     </button>
                 </div>
                 <a class="bdm-lidaroo" href="https://lidaroo.aireon.ch/" target="_blank" rel="noopener">
@@ -206,8 +235,9 @@ function formatLatLng(lat, lng) {
     return `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
 }
 
-// Deep link into lidaroo, the suite's Giro3D point-cloud viewer, centered on
-// the same building (WGS84, ~6 decimals per the suite deep-link contract).
+// Deep link into lidaroo, the suite's full-tile Giro3D point-cloud viewer,
+// centered on the same building (WGS84, ~6 decimals per the suite deep-link
+// contract).
 function lidarooUrl(lat, lng) {
     return `https://lidaroo.aireon.ch/?lat=${lat.toFixed(6)}&lng=${lng.toFixed(6)}`;
 }
