@@ -1,6 +1,7 @@
 /* Building-detail popup overlay.
    Click a comparable in the sidebar (or its cube on the map) → modal
-   opens with a Three.js LAS scene. The page-level layout is left alone
+   opens with a Giro3D scene streaming the swissSURFACE3D COPC point-cloud
+   tile from the RES backend. The page-level layout is left alone
    (we use a fixed overlay, not a flex slot) so the comparison sidebar
    and split-screen map keep their state behind the backdrop. */
 
@@ -87,16 +88,16 @@
     font-family: var(--hood-mono, ui-monospace);
 }
 
-/* Independent layer toggles (Point cloud / Buildings / Basemap). Each chip
-   is its own on/off switch with a coloured dot when active — not a
-   segmented radio. */
-.bdm-layers {
+/* Color-mode chips (Elevation / Classification / Intensity). A radio group:
+   exactly one is active (aria-pressed) and drives how the streamed point
+   cloud is colored. Same chip visual language as the old layer toggles. */
+.bdm-colors {
     display: inline-flex;
     gap: 6px;
     flex-wrap: wrap;
 }
 
-.bdm-layer-btn {
+.bdm-color-btn {
     appearance: none;
     display: inline-flex;
     align-items: center;
@@ -114,7 +115,7 @@
     transition: background var(--hood-transition, 0.15s), color var(--hood-transition, 0.15s), border-color var(--hood-transition, 0.15s);
 }
 
-.bdm-layer-dot {
+.bdm-color-dot {
     width: 8px;
     height: 8px;
     border-radius: 50%;
@@ -124,37 +125,38 @@
     transition: background var(--hood-transition, 0.15s), border-color var(--hood-transition, 0.15s);
 }
 
-.bdm-layer-btn:hover {
+.bdm-color-btn:hover {
     border-color: var(--hood-border-strong, #d1d5db);
     color: var(--hood-ink, #111827);
 }
 
-.bdm-layer-btn[aria-pressed="true"] {
+.bdm-color-btn[aria-pressed="true"] {
     background: var(--hood-surface, #fff);
     color: var(--hood-ink, #111827);
     box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
 }
 
-/* Per-layer accent on the active dot: sky = point cloud (LiDAR colours),
-   red = building (its mesh colour), green = aerial basemap. */
-.bdm-layer-point[aria-pressed="true"] .bdm-layer-dot {
+/* Per-mode accent on the active dot: sky = elevation (the LiDAR height
+   ramp), green = classification (ASPRS class palette, vegetation-led),
+   amber = intensity (return-strength greyscale reads warm). */
+.bdm-color-elevation[aria-pressed="true"] .bdm-color-dot {
     background: #38bdf8;
     border-color: #38bdf8;
 }
 
-.bdm-layer-building[aria-pressed="true"] .bdm-layer-dot {
-    background: #dc2626;
-    border-color: #dc2626;
-}
-
-.bdm-layer-basemap[aria-pressed="true"] .bdm-layer-dot {
+.bdm-color-classification[aria-pressed="true"] .bdm-color-dot {
     background: #10b981;
     border-color: #10b981;
 }
 
+.bdm-color-intensity[aria-pressed="true"] .bdm-color-dot {
+    background: #f59e0b;
+    border-color: #f59e0b;
+}
+
 /* "Open in lidaroo" deep link: hands the same building center off to the
-   suite's Giro3D point-cloud viewer in a new tab. Styled like a layer chip
-   but with an external-link glyph instead of a state dot. */
+   suite's full-tile Giro3D point-cloud viewer in a new tab. Styled like a
+   color-mode chip but with an external-link glyph instead of a state dot. */
 .bdm-lidaroo {
     display: inline-flex;
     align-items: center;
@@ -252,18 +254,18 @@
     color: #94a3b8;
 }
 
-[data-theme="dark"] .bdm-layer-btn {
+[data-theme="dark"] .bdm-color-btn {
     background: rgba(255, 255, 255, 0.04);
     border-color: rgba(255, 255, 255, 0.08);
     color: #cbd5e1;
 }
 
-[data-theme="dark"] .bdm-layer-btn:hover {
+[data-theme="dark"] .bdm-color-btn:hover {
     border-color: rgba(255, 255, 255, 0.18);
     color: #f1f5f9;
 }
 
-[data-theme="dark"] .bdm-layer-btn[aria-pressed="true"] {
+[data-theme="dark"] .bdm-color-btn[aria-pressed="true"] {
     background: #1f2937;
     color: #f1f5f9;
     border-color: rgba(255, 255, 255, 0.14);
@@ -314,7 +316,7 @@ body.bdm-open {
     .bdm-close {
         order: 2;
     }
-    .bdm-layers {
+    .bdm-colors {
         order: 3;
         flex-basis: 100%;
     }
@@ -323,7 +325,7 @@ body.bdm-open {
         order: 4;
         padding: 5px 9px;
     }
-    .bdm-layer-btn {
+    .bdm-color-btn {
         padding: 5px 9px;
     }
 }
