@@ -41,6 +41,20 @@ export const KIND_META = {
 
 export const RELEASES = [
   {
+    version: '0.21.0',
+    date: 'July 8, 2026',
+    codename: 'Buildable massing',
+    summary:
+      'The searched parcel now opens a 3D buildable-massing simulator right in the comparison panel, so you can size up its development potential alongside the comparables.',
+    items: [
+      {
+        kind: 'new',
+        icon: 'box',
+        text: 'Search a parcel to open a 3D buildable-massing simulator in the comparison panel, with floors and coverage sliders and quick tower, mid-rise, and low-rise presets.',
+      },
+    ],
+  },
+  {
     version: '0.20.0',
     date: 'July 7, 2026',
     codename: 'Full-resolution detail',

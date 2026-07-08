@@ -522,6 +522,20 @@ export function boot() {
         return collectParcelRingsById(currentTargetParcelId);
     }
 
+    // Build a GeoJSON polygon for the searched parcel from its rendered tile
+    // ring(s) — the lite base geometry the buildable-massing simulator extrudes.
+    // Prefers the id-gathered rings (a tile-split parcel still traces whole),
+    // then the single picked tile feature's own geometry, else null (the shared
+    // <BuildableMassingSection> then tries a real spare_space match off the
+    // egrid/lngLat, and renders nothing when there is none).
+    function buildTargetParcelGeometry(parcelFeature) {
+        const rings = collectTargetParcelRings();
+        if (rings.length === 1) return { type: 'Polygon', coordinates: [rings[0]] };
+        if (rings.length > 1) return { type: 'MultiPolygon', coordinates: rings.map((r) => [r]) };
+        const g = parcelFeature?.geometry;
+        return g && (g.type === 'Polygon' || g.type === 'MultiPolygon') ? g : null;
+    }
+
     // Screen-space bounding box (padded) of a set of geographic rings, used to
     // bound the building queryRenderedFeatures. The pad covers the pitch lean of
     // tall extrusions so footprints near the parcel edge aren't queried out.
@@ -676,11 +690,17 @@ export function boot() {
             }
         }
         if (seq !== pickSeq) return;
+        // Capture the searched parcel's polygon (the lite base for the buildable-
+        // massing simulator) plus its centroid, so the sidebar can feed the shared
+        // <BuildableMassingSection>. The rings are gathered by parcel id (across a
+        // tile split); geometry falls back to the picked tile feature, then null.
+        const parcelGeometry = buildTargetParcelGeometry(parcelFeature);
+        const parcelLngLat = [result.lng, result.lat];
         // Pass the searched address so the sidebar's parcel identity header can
         // title the subject card with it (falling back to the municipality).
         // A synthetic "CH…"-shaped label from formatLatLng isn't a real address,
         // so only forward a label that came from an actual geocoder pick.
-        if (egrid) sidebar.show(egrid, addressLabelFor(result));
+        if (egrid) sidebar.show(egrid, addressLabelFor(result), parcelGeometry, parcelLngLat);
     }
 
     // The searched address to title the identity header. handlePick receives
