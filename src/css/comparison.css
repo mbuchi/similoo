@@ -101,6 +101,15 @@
     color: var(--hood-panel-muted);
 }
 
+/* ---------- buildable-massing simulator (shared React component) ---------- */
+/* The .cmp-massing div is mounted by sidebar.js. It collapses entirely when the
+   component renders null (no parcel footprint + no spare_space candidate); when
+   it has content it reads as a normal sidebar section — a top-aligned divider
+   plus the same 16px/22px inset the other sections use. */
+.cmp-massing:empty { display: none; }
+.cmp-massing:not(:empty) { border-bottom: 1px solid var(--hood-panel-row-bg); }
+.cmp-massing-inner { padding: 16px 22px; }
+
 /* ---------- target parcel block ---------- */
 .cmp-target-empty {
     font-size: 13px;

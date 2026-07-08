@@ -1,4 +1,7 @@
-import { t, onLocaleChange } from '../i18n.js';
+import { createElement } from 'react';
+import { createRoot } from 'react-dom/client';
+import { BuildableMassingSection } from '@aireon/shared';
+import { t, onLocaleChange, getLocale } from '../i18n.js';
 import { fetchSimilooComparables } from '../api/similoo.js';
 
 // Right-edge "Comparable Buildings" sidebar.
@@ -61,6 +64,12 @@ export function createComparisonSidebar({ map, onClose, onFlyTo, onSelectCompara
     let currentAddress = null;
     let currentData = null;
     let currentTargetSeed = null;
+    // The searched parcel's polygon + centroid, threaded in from main.js's pick
+    // flow — the lite base + camera center the buildable-massing simulator uses.
+    let currentGeometry = null;
+    let currentLngLat = null;
+    let massingRoot = null;
+    let massingThemeObserver = null;
     let years = DEFAULT_YEARS;
     let sizeFrom = null;
     let sizeTo = null;
@@ -71,6 +80,7 @@ export function createComparisonSidebar({ map, onClose, onFlyTo, onSelectCompara
         closeBtn: aside.querySelector('.cmp-close'),
         targetSection: aside.querySelector('.cmp-target'),
         targetEmpty: aside.querySelector('.cmp-target-empty'),
+        massing: aside.querySelector('.cmp-massing'),
         yearsRange: aside.querySelector('.cmp-years-range'),
         yearsValue: aside.querySelector('.cmp-years-value'),
         sizeFromInput: aside.querySelector('.cmp-size-from'),
@@ -116,7 +126,7 @@ export function createComparisonSidebar({ map, onClose, onFlyTo, onSelectCompara
         renderList();
     });
 
-    function show(egrid, address) {
+    function show(egrid, address, geometry, lngLat) {
         if (!egrid) return;
         // New parcel → drop the previous parcel's data so the next load shows a
         // skeleton instead of stale cards.
@@ -125,8 +135,14 @@ export function createComparisonSidebar({ map, onClose, onFlyTo, onSelectCompara
         // The searched address (if any) titles the parcel identity header; it
         // arrives from the navbar/landing search pick via main.js.
         currentAddress = address || null;
+        // The parcel polygon + centroid drive the buildable-massing simulator.
+        currentGeometry = geometry || null;
+        currentLngLat = Array.isArray(lngLat) && lngLat.length === 2 ? lngLat : null;
         aside.setAttribute('data-state', 'visible');
         aside.setAttribute('aria-hidden', 'false');
+        // Paint the massing panel straight away off the geometry (real parcel-area
+        // fills in once /score/similoo resolves — see loadFor).
+        renderMassing();
         loadFor(egrid);
     }
 
@@ -136,7 +152,55 @@ export function createComparisonSidebar({ map, onClose, onFlyTo, onSelectCompara
         currentEgrid = null;
         currentAddress = null;
         currentData = null;
+        currentGeometry = null;
+        currentLngLat = null;
+        // Tear the massing preview down (drops its RES fetch + 3D scene) so the
+        // next parcel starts clean.
+        renderMassing();
         onUnhoverComparable?.();
+    }
+
+    // --- Buildable-massing simulator (shared React component) ----------------
+    //
+    // similoo's sidebar is imperative vanilla DOM, so the shared
+    // <BuildableMassingSection> is mounted into a stable `.cmp-massing` div via
+    // its own React root (created lazily, reused across parcels). It renders
+    // NOTHING when there's no geometry and no real spare_space candidate, so the
+    // `.cmp-massing` container stays empty (and collapsed — see comparison.css)
+    // until there's something to show.
+    function renderMassing() {
+        if (!els.massing) return;
+        if (!massingRoot) {
+            massingRoot = createRoot(els.massing);
+            watchMassingTheme();
+        }
+        const target = currentData?.target;
+        const areaM2 = Number.isFinite(target?.parcel_area_m2) ? target.parcel_area_m2 : null;
+        massingRoot.render(
+            createElement(BuildableMassingSection, {
+                geometry: currentGeometry,
+                areaM2,
+                egrid: currentEgrid || undefined,
+                lngLat: currentLngLat,
+                dark: document.documentElement.classList.contains('dark'),
+                locale: getLocale(),
+                className: 'cmp-massing-inner',
+                onError: (err) => console.warn('massing render error:', err?.message || err),
+            }),
+        );
+    }
+
+    // The app theme is React-controlled (App.tsx flips both `.dark` and
+    // `data-theme` on <html>); re-render the massing preview when it changes so
+    // its palette follows live — the same MutationObserver pattern the detail
+    // modal uses. Created once, on first render.
+    function watchMassingTheme() {
+        if (massingThemeObserver) return;
+        massingThemeObserver = new MutationObserver(() => renderMassing());
+        massingThemeObserver.observe(document.documentElement, {
+            attributes: true,
+            attributeFilter: ['class', 'data-theme'],
+        });
     }
 
     async function loadFor(egrid) {
@@ -154,6 +218,9 @@ export function createComparisonSidebar({ map, onClose, onFlyTo, onSelectCompara
             renderTarget();
             renderList();
             renderMeta();
+            // Real parcel-area is now known — re-render massing so its lite
+            // estimate is sized off the true parcel size.
+            renderMassing();
             setStatus(data?.comparables?.length ? 'ready' : 'empty');
             if (typeof onDataLoaded === 'function') onDataLoaded(data);
         } catch (err) {
@@ -522,6 +589,8 @@ export function createComparisonSidebar({ map, onClose, onFlyTo, onSelectCompara
         renderTarget();
         renderList();
         renderMeta();
+        // Re-render the massing panel so its localized labels flip with the app.
+        renderMassing();
         if (els.status.dataset.state) setStatus(els.status.dataset.state);
     }
 
@@ -530,6 +599,18 @@ export function createComparisonSidebar({ map, onClose, onFlyTo, onSelectCompara
 
     function destroy() {
         onUnhoverComparable?.();
+        massingThemeObserver?.disconnect();
+        massingThemeObserver = null;
+        // Unmount the React root asynchronously — unmounting synchronously from
+        // within another render pass trips a React warning; the container node
+        // ref survives the aside.remove() below.
+        if (massingRoot) {
+            const root = massingRoot;
+            massingRoot = null;
+            setTimeout(() => {
+                try { root.unmount(); } catch { /* already gone */ }
+            }, 0);
+        }
         aside?.remove();
         aside = null;
     }
@@ -565,6 +646,11 @@ function buildShell() {
             <div class="cmp-target"></div>
             <div class="cmp-target-empty"></div>
         </section>
+
+        <!-- Subject-parcel buildable-massing simulator (shared React component
+             mounted here imperatively). Stays empty — collapsed, no chrome —
+             when the component finds no footprint to render. -->
+        <div class="cmp-massing"></div>
 
         <section class="cmp-section cmp-filters">
             <h3 class="cmp-section-title cmp-filters-title"></h3>
