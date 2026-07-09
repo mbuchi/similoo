@@ -41,6 +41,21 @@ export const KIND_META = {
 
 export const RELEASES = [
   {
+    version: '0.21.1',
+    date: 'July 9, 2026',
+    codename: 'A sharper account menu',
+    summary:
+      'The saved-parcels pipeline in your account menu is now interactive, with a needs-attention nudge and full keyboard navigation.',
+    items: [
+      {
+        kind: 'improved',
+        icon: 'search',
+        text: 'Your account menu got sharper: click any pipeline stage (New, Contacted, Negotiation, Due Diligence) to jump straight to that filtered list of saved parcels, watch for a needs-attention nudge that surfaces high-priority and stale parcels, and drive the whole menu by keyboard. The account card now shows your real role too (via @aireon/shared v1.87.0).',
+        prs: [],
+      },
+    ],
+  },
+  {
     version: '0.21.0',
     date: 'July 8, 2026',
     codename: 'Buildable massing',
