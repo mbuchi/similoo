@@ -41,6 +41,21 @@ export const KIND_META = {
 
 export const RELEASES = [
   {
+    version: '0.21.2',
+    date: 'July 10, 2026',
+    codename: 'Steadier glow',
+    summary:
+      'Cleaned up a harmless but noisy map warning from the amber hover glow on comparable cards.',
+    items: [
+      {
+        kind: 'fixed',
+        icon: 'sparkles',
+        text: 'Hovering a comparable card could briefly ask the map for a negative outline width or opacity on its very first animation frame, flooding the console with MapLibre errors. The glow animation is now clamped so it never dips below zero.',
+        prs: [89],
+      },
+    ],
+  },
+  {
     version: '0.21.1',
     date: 'July 9, 2026',
     codename: 'A sharper account menu',

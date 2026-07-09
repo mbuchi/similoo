@@ -411,7 +411,11 @@ export function boot() {
 
     function animateComparableHover(ts) {
         if (!comparableHoverActive || !map) return;
-        const elapsed = ts - comparableHoverStart;
+        // rAF timestamps mark the frame's vsync start, which can pre-date the
+        // performance.now() captured when the hover began — clamp so `elapsed`
+        // (and thus every derived paint value) never dips below 0, which
+        // MapLibre rejects ("less than the minimum value 0").
+        const elapsed = Math.max(0, ts - comparableHoverStart);
         // Grow-in envelope, then a slow sine "breathing" pulse.
         const grow = Math.min(1, elapsed / 220);
         const pulse = 0.5 + 0.5 * Math.sin(elapsed / 520); // 0..1
