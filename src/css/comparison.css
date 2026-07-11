@@ -110,6 +110,92 @@
 .cmp-massing:not(:empty) { border-bottom: 1px solid var(--hood-panel-row-bg); }
 .cmp-massing-inner { padding: 16px 22px; }
 
+/* The shared massing studio deliberately renders compact controls. Inside this
+   mobile-first sidebar, keep those visuals compact but give every action a
+   reliable 44px touch box. Native range tracks stay at their browser-painted
+   thickness; only the transparent input area grows. */
+.cmp-massing-inner input[type="range"] {
+    min-height: 44px;
+    background: transparent;
+    cursor: pointer;
+}
+.cmp-massing-inner .mb-2 {
+    min-height: 44px;
+    margin-top: -7px;
+    margin-bottom: 1px;
+}
+.cmp-massing-inner .mb-2 > button {
+    position: relative;
+    min-width: 44px;
+    min-height: 44px;
+    border-color: transparent !important;
+    background: transparent !important;
+}
+.cmp-massing-inner .mb-2 > button::before {
+    content: "";
+    position: absolute;
+    inset: 7px;
+    border: 1px solid var(--hood-panel-border);
+    border-radius: 8px;
+    transition: background-color 150ms ease, border-color 150ms ease;
+}
+.cmp-massing-inner .mb-2 > button:hover::before,
+.cmp-massing-inner .mb-2 > button:focus-visible::before {
+    border-color: var(--hood-red);
+    background: var(--hood-panel-row-bg-hover);
+}
+.cmp-massing-inner .space-y-3 > .flex.gap-1\.5 > button {
+    position: relative;
+    min-height: 44px;
+    border-color: transparent !important;
+    background: transparent !important;
+}
+.cmp-massing-inner .space-y-3 > .flex.gap-1\.5 > button::before {
+    content: "";
+    position: absolute;
+    inset: 9px 0;
+    border: 1px solid var(--hood-panel-border);
+    border-radius: 8px;
+    transition: background-color 150ms ease, border-color 150ms ease;
+}
+.cmp-massing-inner .space-y-3 > .flex.gap-1\.5 > button:hover::before,
+.cmp-massing-inner .space-y-3 > .flex.gap-1\.5 > button:focus-visible::before {
+    border-color: var(--hood-red);
+    background: var(--hood-panel-row-bg-hover);
+}
+.cmp-massing-inner [role="switch"] {
+    position: relative;
+    width: 44px;
+    height: 44px;
+    flex: none;
+    background: transparent !important;
+}
+.cmp-massing-inner [role="switch"]::before {
+    content: "";
+    position: absolute;
+    top: 12px;
+    left: 4px;
+    width: 36px;
+    height: 20px;
+    border-radius: 999px;
+    background: #cbd5e1;
+    transition: background-color 150ms ease;
+}
+[data-theme="dark"] .cmp-massing-inner [role="switch"]::before {
+    background: #334155;
+}
+.cmp-massing-inner [role="switch"][aria-checked="true"]::before {
+    background: #f59e0b;
+}
+.cmp-massing-inner [role="switch"] > span {
+    top: 14px !important;
+    left: 4px !important;
+    transform: translateX(0) !important;
+}
+.cmp-massing-inner [role="switch"][aria-checked="true"] > span {
+    transform: translateX(18px) !important;
+}
+
 /* ---------- target parcel block ---------- */
 .cmp-target-empty {
     font-size: 13px;
@@ -182,6 +268,9 @@
     padding-bottom: 12px;
     margin-bottom: 12px;
     border-bottom: 1px solid var(--hood-panel-border);
+}
+.cmp-target-identity .aireon-pih-egrid {
+    min-height: 44px;
 }
 .cmp-target-grid {
     display: grid;
@@ -276,6 +365,7 @@
     font-family: inherit;
     font-size: 12px;
     width: 100%;
+    min-height: 44px;
     box-sizing: border-box;
 }
 .cmp-size-sub input:focus {
@@ -362,7 +452,9 @@
     align-items: center;
     justify-content: space-between;
     gap: 8px;
-    margin-bottom: 6px;
+    min-height: 44px;
+    margin-top: -9px;
+    margin-bottom: -3px;
 }
 .cmp-card-egrid {
     font-family: var(--hood-mono);
@@ -379,6 +471,7 @@
     align-items: center;
     gap: 6px;
     flex: none;
+    min-height: 44px;
 }
 .cmp-card-year {
     font-size: 12px;
@@ -390,28 +483,42 @@
    itself flies the map to the parcel; this button is the escape hatch to the
    heavier 3D view, so it reads as a quiet icon until hovered. */
 .cmp-card-pc {
+    position: relative;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     flex: none;
-    width: 26px;
-    height: 26px;
+    width: 44px;
+    height: 44px;
     padding: 0;
-    border: 1px solid var(--hood-panel-border);
-    border-radius: 7px;
+    border: none;
     background: transparent;
     color: var(--hood-panel-muted);
     cursor: pointer;
-    transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease;
+    transition: color 150ms ease;
+}
+.cmp-card-pc::before {
+    content: "";
+    position: absolute;
+    width: 26px;
+    height: 26px;
+    border: 1px solid var(--hood-panel-border);
+    border-radius: 7px;
+    background: transparent;
+    transition: background-color 150ms ease, border-color 150ms ease;
 }
 .cmp-card-pc:hover,
 .cmp-card-pc:focus-visible {
     color: var(--hood-red);
-    border-color: var(--hood-red);
-    background: var(--hood-panel-row-bg-hover);
     outline: none;
 }
+.cmp-card-pc:hover::before,
+.cmp-card-pc:focus-visible::before {
+    border-color: var(--hood-red);
+    background: var(--hood-panel-row-bg-hover);
+}
 .cmp-card-pc svg {
+    position: relative;
     width: 15px;
     height: 15px;
 }

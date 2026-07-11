@@ -41,6 +41,21 @@ export const KIND_META = {
 
 export const RELEASES = [
   {
+    version: '0.21.4',
+    date: 'July 12, 2026',
+    codename: 'Sure-handed controls',
+    summary:
+      'Mobile comparison controls are easier to operate without making the dense scene UI look heavier.',
+    items: [
+      {
+        kind: 'fixed',
+        icon: 'wrench',
+        text: 'Expanded the touch areas for massing sliders, presets, the floor-line switch, parcel-size inputs, EGRID copy and point-cloud actions to 44px while keeping slider tracks and icon chips visually compact. The floor-line switch no longer overflows its control row.',
+        prs: [],
+      },
+    ],
+  },
+  {
     version: '0.21.3',
     date: 'July 11, 2026',
     codename: 'Native speed',
