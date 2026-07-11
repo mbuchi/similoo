@@ -41,6 +41,21 @@ export const KIND_META = {
 
 export const RELEASES = [
   {
+    version: '0.21.3',
+    date: 'July 11, 2026',
+    codename: 'Native speed',
+    summary:
+      'Behind the scenes: type-checking now runs on the TypeScript 7 native compiler.',
+    items: [
+      {
+        kind: 'improved',
+        icon: 'wrench',
+        text: 'Type-checking now runs on the TypeScript 7 native compiler (~10x faster).',
+        prs: [90],
+      },
+    ],
+  },
+  {
     version: '0.21.2',
     date: 'July 10, 2026',
     codename: 'Steadier glow',
