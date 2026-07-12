@@ -1,4 +1,3 @@
-import { toCanvas } from 'html-to-image';
 import { screenshotNodeFilter, suppressCaptureShadows } from '@aireon/shared';
 
 export interface CaptureOptions {
@@ -17,6 +16,10 @@ export async function captureBrowserScreenshot(
   // onto the map as a strip once the chrome is hidden; restore it right after.
   const restoreShadows = suppressCaptureShadows();
   try {
+    // html-to-image (~30 kB) is only needed when the user actually saves an
+    // image, never on first paint — load it on demand so it stays out of the
+    // eager bundle.
+    const { toCanvas } = await import('html-to-image');
     const canvas = await toCanvas(target, {
       backgroundColor: getComputedStyle(document.body).backgroundColor || '#ffffff',
       pixelRatio: window.devicePixelRatio || 1,
