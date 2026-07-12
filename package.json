@@ -29,7 +29,7 @@
     "vite": "^5.4.2"
   },
   "dependencies": {
-    "@aireon/shared": "github:mbuchi/aireon-shared#v1.87.0",
+    "@aireon/shared": "github:mbuchi/aireon-shared#v1.93.1",
     "@giro3d/giro3d": "^2.0.3",
     "@openreplay/tracker": "^18.1.0",
     "html-to-image": "^1.11.13",
