@@ -14,7 +14,11 @@
 //   modal.hide();
 
 import { t, onLocaleChange } from '../i18n.js';
-import { createCopcScene } from '../lidar/copcScene.js';
+// The Giro3D COPC point-cloud scene (three + @giro3d/giro3d, ~130 kB gz + the
+// giro3d bundle) is the single heaviest dependency in the app and is only ever
+// needed once a comparable building is opened in this modal — never on first
+// paint. It is loaded on demand (see show()) so the initial map view no longer
+// eagerly downloads or parses the whole 3D stack.
 
 export function createBuildingDetailModal() {
     let root = buildShell();
@@ -102,10 +106,18 @@ export function createBuildingDetailModal() {
         els.closeBtn.focus();
 
         if (!scene) {
-            scene = createCopcScene({ container: els.canvas });
-            scene.setDark(document.documentElement.classList.contains('dark'));
-            watchTheme();
-            syncColorButtons();
+            // Lazily pull in the Giro3D/three point-cloud scene the first time a
+            // building is opened. Keeps the heavy 3D stack out of the eager
+            // initial-load bundle.
+            const { createCopcScene } = await import('../lidar/copcScene.js');
+            // Guard against a second open() racing the chunk load: only the
+            // first to return here creates the (reused) scene.
+            if (!scene) {
+                scene = createCopcScene({ container: els.canvas });
+                scene.setDark(document.documentElement.classList.contains('dark'));
+                watchTheme();
+                syncColorButtons();
+            }
         }
 
         const seq = ++openSeq;

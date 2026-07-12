@@ -697,6 +697,32 @@ html, body, #mapContainer {
     }
 }
 
+/* ── Shared AppNavbar: narrow-phone overflow fix ──────────────────────────
+   The shared @aireon/shared AppNavbar sizes its horizontal gaps and edge
+   padding for tablet+ widths (section-gap 1rem, padding-x 1rem). Below ~400px
+   the fixed action cluster (address search + Help / About / More-tools ⋯ +
+   account avatar) overflows the 390px iPhone viewport and clips the account
+   avatar off the right edge (the #1 suite mobile navbar bug). We trim the
+   navbar's own section gaps + edge padding and let the address search flex
+   below its content floor (min-width: 0) so the whole cluster fits without a
+   horizontal scroll. Scoped to <=480px and raised above the shared `:root`
+   token defaults via the `.aireon-appnav-bar` prefix, so >=640px stays
+   byte-identical (the shared min-width:640 rules are untouched). App-owned,
+   no @aireon/shared change. */
+@media (max-width: 480px) {
+    .aireon-appnav-bar .aireon-appnav-inner {
+        padding-left: 0.5rem;
+        padding-right: 0.5rem;
+    }
+    .aireon-appnav-bar .aireon-appnav-search {
+        margin-left: 0.5rem;
+        min-width: 0;
+    }
+    .aireon-appnav-bar .aireon-appnav-actions {
+        margin-left: 0.5rem;
+    }
+}
+
 /* ── Mobile overflow (⋯) menu ─────────────────────────────────────────────
    Below 768px the four secondary actions (help, theme, locale, sign-in) no
    longer fit beside the wordmark, so they collapse into a ⋯ dropdown anchored

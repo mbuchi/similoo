@@ -41,6 +41,27 @@ export const KIND_META = {
 
 export const RELEASES = [
   {
+    version: '0.21.5',
+    date: 'July 12, 2026',
+    codename: 'Lighter first load',
+    summary:
+      'The first page load is noticeably lighter, and the top bar fits cleanly on narrow phones.',
+    items: [
+      {
+        kind: 'improved',
+        icon: 'wrench',
+        text: 'Cut the initial-load JavaScript roughly in half: the Three.js / Giro3D point-cloud viewer and the screenshot encoder now download only when you open a building’s 3D detail or save an image, instead of on every visit.',
+        prs: [92],
+      },
+      {
+        kind: 'fixed',
+        icon: 'bug',
+        text: 'The top navigation no longer clips the account button off the right edge on narrow phones (~360–400px) — the address search and action icons now fit the viewport without a horizontal scroll. Desktop layout is unchanged.',
+        prs: [92],
+      },
+    ],
+  },
+  {
     version: '0.21.4',
     date: 'July 12, 2026',
     codename: 'Sure-handed controls',
@@ -51,7 +72,7 @@ export const RELEASES = [
         kind: 'fixed',
         icon: 'wrench',
         text: 'Expanded the touch areas for massing sliders, presets, the floor-line switch, parcel-size inputs, EGRID copy and point-cloud actions to 44px while keeping slider tracks and icon chips visually compact. The floor-line switch no longer overflows its control row.',
-        prs: [],
+        prs: [91],
       },
     ],
   },
