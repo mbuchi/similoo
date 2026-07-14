@@ -1,4 +1,5 @@
 /// <reference types="vite/client" />
+/// <reference types="vite-plugin-pwa/react" />
 
 // The preserved engine modules under src/js are plain untyped ES modules. We
 // import only a couple of them from the .tsx shell (the boot orchestrator);

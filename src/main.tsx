@@ -1,6 +1,7 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { AuthProvider, GlassProvider, initTheme, initOpenReplay } from '@aireon/shared';
+import { initThemeColorSync } from '@aireon/shared/pwa';
 import App from './App';
 import { SimilooAccessGate } from './components/SimilooAccessGate';
 
@@ -14,6 +15,12 @@ import { SimilooAccessGate } from './components/SimilooAccessGate';
 // first paint; this re-affirms it once the bundle loads. App.tsx owns the toggle
 // and keeps both `.dark` and `data-theme` in sync afterward.
 initTheme('light');
+
+// Keep the browser-chrome color (Android status bar / PWA titlebar) in step
+// with the app theme. Observes the `.dark` class and `[data-theme="dark"]`
+// attribute App.tsx mirrors, so it stays correct after an in-app theme toggle —
+// replacing the static prefers-color-scheme theme-color metas in index.html.
+initThemeColorSync();
 
 // Tailwind layers + suite font tokens. MUST be first so Tailwind's preflight
 // (base reset) lands at the bottom of the cascade — the bespoke design-token

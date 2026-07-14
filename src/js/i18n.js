@@ -456,6 +456,18 @@ const translations = {
       'Comparables are computed server-side from the Swiss Building & Dwelling Register (GWR) via the /score/similoo service. If that service is unreachable, the sidebar falls back to clearly-labeled demo data so the flow stays explorable - the “Demo data” / “Live” tag under the list tells you which one you are seeing.',
     'help.footer': 'Adjust the years window or parcel-size range in the sidebar to refine the set.',
     'help.close': 'Close',
+
+    // ---------- pwa (installable app) ----------
+    'pwa.offline': 'You\'re offline. Map data can\'t load.',
+    'pwa.back_online': 'Back online',
+    'pwa.update_available': 'A new version is ready',
+    'pwa.update_now': 'Update',
+    'pwa.dismiss': 'Dismiss',
+    'pwa.install_app': 'Install app',
+    'pwa.install_title': 'Install similoo',
+    'pwa.ios_step_share': 'Tap the Share button in Safari',
+    'pwa.ios_step_add': 'Scroll down and tap \'Add to Home Screen\'',
+    'pwa.ios_step_confirm': 'Tap \'Add\' to finish',
   },
 
   fr: {
@@ -869,6 +881,18 @@ const translations = {
       'Les comparables sont calculés côté serveur à partir du Registre des bâtiments et des logements (RegBL) via le service /score/similoo. Si ce service est inaccessible, la barre latérale bascule sur des données de démonstration clairement étiquetées afin que le parcours reste explorable - l\'étiquette « Données démo » / « En direct » sous la liste indique laquelle vous voyez.',
     'help.footer': 'Ajustez la fenêtre d\'années ou la plage de surface dans la barre latérale pour affiner l\'ensemble.',
     'help.close': 'Fermer',
+
+    // ---------- pwa (application installable) ----------
+    'pwa.offline': 'Vous êtes hors ligne. Les données cartographiques ne peuvent pas se charger.',
+    'pwa.back_online': 'De nouveau en ligne',
+    'pwa.update_available': 'Une nouvelle version est prête',
+    'pwa.update_now': 'Mettre à jour',
+    'pwa.dismiss': 'Fermer',
+    'pwa.install_app': 'Installer l\'app',
+    'pwa.install_title': 'Installer similoo',
+    'pwa.ios_step_share': 'Appuyez sur le bouton Partager dans Safari',
+    'pwa.ios_step_add': 'Faites défiler vers le bas et appuyez sur « Sur l\'écran d\'accueil »',
+    'pwa.ios_step_confirm': 'Appuyez sur « Ajouter » pour terminer',
   },
 
   de: {
@@ -1282,6 +1306,18 @@ const translations = {
       'Vergleichsobjekte werden serverseitig aus dem Eidgenössischen Gebäude- und Wohnungsregister (GWR) über den Dienst /score/similoo berechnet. Ist dieser Dienst nicht erreichbar, weicht die Seitenleiste auf klar gekennzeichnete Demodaten aus, damit der Ablauf erkundbar bleibt - die Markierung «Demodaten» / «Live» unter der Liste zeigt an, welche Sie gerade sehen.',
     'help.footer': 'Passen Sie das Jahresfenster oder den Flächenbereich in der Seitenleiste an, um die Auswahl zu verfeinern.',
     'help.close': 'Schliessen',
+
+    // ---------- pwa (installierbare App) ----------
+    'pwa.offline': 'Sie sind offline. Kartendaten können nicht geladen werden.',
+    'pwa.back_online': 'Wieder online',
+    'pwa.update_available': 'Eine neue Version ist verfügbar',
+    'pwa.update_now': 'Aktualisieren',
+    'pwa.dismiss': 'Schliessen',
+    'pwa.install_app': 'App installieren',
+    'pwa.install_title': 'similoo installieren',
+    'pwa.ios_step_share': 'Tippen Sie in Safari auf das Teilen-Symbol',
+    'pwa.ios_step_add': 'Scrollen Sie nach unten und tippen Sie auf «Zum Home-Bildschirm»',
+    'pwa.ios_step_confirm': 'Tippen Sie zum Abschluss auf «Hinzufügen»',
   },
 
   it: {
@@ -1694,6 +1730,18 @@ const translations = {
       'I comparabili sono calcolati lato server dal Registro federale degli edifici e delle abitazioni (RegBL) tramite il servizio /score/similoo. Se questo servizio non è raggiungibile, la barra laterale ripiega su dati dimostrativi chiaramente etichettati affinché il percorso resti esplorabile - l\'etichetta «Dati demo» / «Live» sotto l\'elenco indica quale stai vedendo.',
     'help.footer': 'Regola la finestra di anni o l\'intervallo di superficie nella barra laterale per affinare l\'insieme.',
     'help.close': 'Chiudi',
+
+    // ---------- pwa (app installabile) ----------
+    'pwa.offline': 'Sei offline. I dati della mappa non possono caricarsi.',
+    'pwa.back_online': 'Di nuovo online',
+    'pwa.update_available': 'È pronta una nuova versione',
+    'pwa.update_now': 'Aggiorna',
+    'pwa.dismiss': 'Chiudi',
+    'pwa.install_app': 'Installa l\'app',
+    'pwa.install_title': 'Installa similoo',
+    'pwa.ios_step_share': 'Tocca il pulsante Condividi in Safari',
+    'pwa.ios_step_add': 'Scorri verso il basso e tocca «Aggiungi a Home»',
+    'pwa.ios_step_confirm': 'Tocca «Aggiungi» per completare',
   },
 };
 
