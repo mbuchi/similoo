@@ -41,6 +41,22 @@ export const KIND_META = {
 
 export const RELEASES = [
   {
+    version: '0.23.2',
+    date: 'July 15, 2026',
+    codename: 'On the suite map',
+    summary:
+      'The addresses you search in similoo now show up as recent activity on the shared Aireon suite map, like every other Aireon app.',
+    items: [
+      {
+        kind: 'new',
+        icon: 'Sparkles',
+        text:
+          'Searching an address now records an anonymous usage signal, so the location appears as recent activity on scoops, the suite-wide signals map. similoo now contributes its lookups like the rest of the Aireon apps.',
+        prs: [],
+      },
+    ],
+  },
+  {
     version: '0.23.1',
     date: 'July 14, 2026',
     codename: 'Light means light',

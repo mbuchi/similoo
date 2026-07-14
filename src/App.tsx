@@ -29,6 +29,7 @@ import { useInstallPrompt, IosInstallSheet } from '@aireon/shared/pwa';
 import { HelpCircle, Info, Share2, Sun, Moon, Tag, Download } from 'lucide-react';
 import PwaLayer from './pwa/PwaLayer';
 import LandingView from './components/LandingView';
+import { signal } from './lib/signal';
 import ComparisonView from './components/ComparisonView';
 import SavedImagesPanel from './components/SavedImagesPanel';
 import ScreenshotOverlay from './components/ScreenshotOverlay';
@@ -136,6 +137,7 @@ export default function App() {
     setContextParcel(null);
   }, []);
   const handleNavSearch = useCallback((r: AddressSearchResult) => {
+    void signal.send('Address search', { address: r.label, lat: r.lat, lng: r.lng });
     window.dispatchEvent(
       new CustomEvent('similoo:search', {
         detail: { lat: r.lat, lng: r.lng, label: r.label },
