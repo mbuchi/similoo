@@ -88,6 +88,18 @@ export function boot() {
             // re-probe whenever the map settles — this lights them up the moment
             // the user pans/flies them into view (and on a cold tile cache).
             map.on('idle', refreshHighlightsOnIdle);
+            map.on('contextmenu', (event) => {
+                event.originalEvent.preventDefault();
+                window.dispatchEvent(new CustomEvent('similoo:map-context', {
+                    detail: {
+                        lat: event.lngLat.lat,
+                        lng: event.lngLat.lng,
+                        x: event.originalEvent.clientX,
+                        y: event.originalEvent.clientY,
+                        zoom: map.getZoom(),
+                    },
+                }));
+            });
             // Bottom-left legend explaining the red/green/pink highlights.
             legend = createMapLegend(map.getContainer());
         } catch (e) {
@@ -193,6 +205,14 @@ export function boot() {
     window.addEventListener('similoo:search', (e) => {
         const r = e?.detail;
         if (r && Number.isFinite(r.lat) && Number.isFinite(r.lng)) handlePick(r);
+    });
+
+    window.addEventListener('similoo:center', (e) => {
+        const r = e?.detail;
+        if (!r || !Number.isFinite(r.lat) || !Number.isFinite(r.lng)) return;
+        void ensureMap().then((activeMap) => {
+            activeMap.easeTo({ center: [r.lng, r.lat], duration: 500, essential: true });
+        });
     });
 
     // Probe the building vector tile under (lng, lat) and return the rendered

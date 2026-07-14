@@ -14,12 +14,16 @@ import {
   getShareStrings,
   createErrorLogger,
   ErrorLogBoundary,
+  fetchClaireContext,
+  MapContextMenu,
   useAuth,
   setTheme,
   type Locale,
   type PrmLocale,
   type MapUserMenuAction,
   type AddressSearchResult,
+  type MapContextMenuPoint,
+  type MapContextParcel,
 } from '@aireon/shared';
 import { useInstallPrompt, IosInstallSheet } from '@aireon/shared/pwa';
 import { HelpCircle, Info, Share2, Sun, Moon, Tag, Download } from 'lucide-react';
@@ -43,6 +47,25 @@ import { releases, CURRENT_VERSION, REPO_URL } from './data/releaseNotes';
 // shared suite chrome below; boot() no longer wires those.
 import { boot } from './js/main.js';
 
+async function resolveContextParcel(
+  lat: number,
+  lng: number,
+  signal?: AbortSignal,
+): Promise<MapContextParcel | null> {
+  const context = await fetchClaireContext(lng, lat, signal);
+  if (!context.parcelId) return null;
+  const municipality = context.municipality
+    || context.address?.split(',').pop()?.trim().replace(/^\d{4}\s+/, '')
+    || '';
+  return {
+    parcelId: context.parcelId,
+    label: context.address || context.parcelNumber || context.parcelId,
+    municipality,
+    area: 0,
+    subtitle: [municipality, context.canton].filter(Boolean).join(', ') || undefined,
+  };
+}
+
 export default function App() {
   // Run the imperative engine exactly once, after the React scaffold commits.
   const booted = useRef(false);
@@ -63,6 +86,9 @@ export default function App() {
   //     the same flow the landing search drives.
   const [currentAddress, setCurrentAddress] = useState('');
   const [openWithLocation, setOpenWithLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const [contextMenuPoint, setContextMenuPoint] = useState<MapContextMenuPoint | null>(null);
+  const [contextParcel, setContextParcel] = useState<MapContextParcel | null>(null);
+  const contextParcelAbortRef = useRef<AbortController | null>(null);
   useEffect(() => {
     // Catch up on an address the engine may have set before this listener
     // attached (e.g. a ?lat/?lng deep-link resolved during boot()).
@@ -79,6 +105,35 @@ export default function App() {
     };
     window.addEventListener('similoo:address', onAddress);
     return () => window.removeEventListener('similoo:address', onAddress);
+  }, []);
+  useEffect(() => {
+    const onMapContext = (event: Event) => {
+      const point = (event as CustomEvent<MapContextMenuPoint>).detail;
+      if (!point || !Number.isFinite(point.lat) || !Number.isFinite(point.lng)) return;
+      contextParcelAbortRef.current?.abort();
+      const controller = new AbortController();
+      contextParcelAbortRef.current = controller;
+      setContextParcel(null);
+      setContextMenuPoint(point);
+      void resolveContextParcel(point.lat, point.lng, controller.signal)
+        .then((parcel) => {
+          if (!controller.signal.aborted) setContextParcel(parcel);
+        })
+        .catch(() => {
+          if (!controller.signal.aborted) setContextParcel(null);
+        });
+    };
+    window.addEventListener('similoo:map-context', onMapContext);
+    return () => {
+      window.removeEventListener('similoo:map-context', onMapContext);
+      contextParcelAbortRef.current?.abort();
+    };
+  }, []);
+  const closeContextMenu = useCallback(() => {
+    contextParcelAbortRef.current?.abort();
+    contextParcelAbortRef.current = null;
+    setContextMenuPoint(null);
+    setContextParcel(null);
   }, []);
   const handleNavSearch = useCallback((r: AddressSearchResult) => {
     window.dispatchEvent(
@@ -151,7 +206,7 @@ export default function App() {
   }, []);
 
   // --- Account / chrome state --------------------------------------------
-  const { email } = useAuth();
+  const { email, isAuthenticated, getAccessToken, promptLogin } = useAuth();
   const errorLogger = useMemo(() => createErrorLogger({ appName: 'similoo' }), []);
   // Attach the global capture listeners once. Until now this logger only powered
   // the navbar-search onError and the bug-report dialog — nothing hooked the
@@ -375,6 +430,29 @@ export default function App() {
 
       <LandingView />
       <ComparisonView dark={isDark} locale={locale} />
+
+      <MapContextMenu
+        open={contextMenuPoint !== null}
+        point={contextMenuPoint}
+        parcel={contextParcel}
+        currentAppId="similoo"
+        locale={locale}
+        darkMode={isDark}
+        auth={{ isAuthenticated, getAccessToken, promptLogin }}
+        onLoadParcel={(point, parcel) => {
+          window.dispatchEvent(new CustomEvent('similoo:search', {
+            detail: {
+              lat: point.lat,
+              lng: point.lng,
+              label: parcel?.label || `${point.lat.toFixed(5)}, ${point.lng.toFixed(5)}`,
+            },
+          }));
+        }}
+        onCenterMap={(point) => {
+          window.dispatchEvent(new CustomEvent('similoo:center', { detail: point }));
+        }}
+        onClose={closeContextMenu}
+      />
 
       {showAbout && (
         <AboutModal
