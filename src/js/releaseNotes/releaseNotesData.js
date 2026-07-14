@@ -41,6 +41,21 @@ export const KIND_META = {
 
 export const RELEASES = [
   {
+    version: '0.23.1',
+    date: 'July 14, 2026',
+    codename: 'Light means light',
+    summary:
+      'The account button no longer shows as a dark circle when you are signed out in light mode.',
+    items: [
+      {
+        kind: 'fixed',
+        icon: 'bug',
+        text: 'When you opened similoo signed out, the account button in the navbar rendered as a high-contrast dark circle that clashed with the light theme. It now uses the same neutral scheme as every other map control: light grey in light mode, slate in dark mode.',
+        prs: [],
+      },
+    ],
+  },
+  {
     version: '0.23.0',
     date: 'July 14, 2026',
     codename: 'A map with answers',
