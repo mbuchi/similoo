@@ -51,11 +51,13 @@ export const RELEASES = [
         kind: 'new',
         icon: 'smartphone',
         text: 'Install similoo as an app: a new "Install app" option in the account menu adds it to your phone home screen or desktop, opening in its own window without the browser chrome. On iPhone and iPad a short Add-to-Home-Screen guide walks you through it.',
+        prs: [94],
       },
       {
         kind: 'new',
         icon: 'cloud',
         text: 'A quiet pill now tells you when you have gone offline (and when you are back online), and a small prompt offers a one-tap refresh whenever a new version has been deployed - so you are never stuck on a stale build. Map tiles and live data are never cached, so what you see stays current.',
+        prs: [94],
       },
     ],
   },
