@@ -41,6 +41,22 @@ export const KIND_META = {
 
 export const RELEASES = [
   {
+    version: '0.23.0',
+    date: 'July 14, 2026',
+    codename: 'A map with answers',
+    summary:
+      'Right-click anywhere on the comparison map for parcel actions, PRM saving, cross-app handoffs, sharing, and precise coordinates.',
+    highlight: true,
+    items: [
+      {
+        kind: 'new',
+        icon: 'mouse-pointer-click',
+        text: 'Right-click any location to open the shared Aireon map menu. Load comparable-building data there, center the map, copy coordinates or a deep link, open the same place in another Aireon app, and save the resolved cadastral parcel to PRM when signed in.',
+        prs: [],
+      },
+    ],
+  },
+  {
     version: '0.22.0',
     date: 'July 14, 2026',
     codename: 'Install similoo',
