@@ -41,6 +41,21 @@ export const KIND_META = {
 
 export const RELEASES = [
   {
+    version: '0.23.3',
+    date: 'July 15, 2026',
+    codename: 'Reach the zoom',
+    summary:
+      'The map zoom controls no longer disappear behind the comparison panel while you browse comparable buildings.',
+    items: [
+      {
+        kind: 'fixed',
+        icon: 'bug',
+        text: 'The +/−/reset-north zoom control sat underneath the "Comparable Buildings" panel the whole time it was open, making it invisible and unclickable during the app\'s main use. It now slides out from under the panel — matching the map\'s other controls — so it stays reachable, and collapses back on mobile where the panel goes full-width.',
+        prs: [],
+      },
+    ],
+  },
+  {
     version: '0.23.2',
     date: 'July 15, 2026',
     codename: 'On the suite map',
