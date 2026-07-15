@@ -41,6 +41,20 @@ export const KIND_META = {
 
 export const RELEASES = [
   {
+    version: '0.23.4',
+    date: 'July 15, 2026',
+    codename: 'About, made clear',
+    summary: 'About similoo is easier to read and now provides a direct route to the complete Aireon application catalog.',
+    items: [
+      {
+        kind: 'improved',
+        icon: 'info',
+        text: 'Redesigned the About dialog for dependable contrast, a more professional hierarchy, keyboard focus handling, mobile-safe scrolling, localized labels, and a prominent button that opens all Aireon applications in the hub.',
+        prs: [],
+      },
+    ],
+  },
+  {
     version: '0.23.3',
     date: 'July 15, 2026',
     codename: 'Reach the zoom',
