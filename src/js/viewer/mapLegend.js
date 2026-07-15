@@ -8,10 +8,11 @@ import { t, onLocaleChange } from '../i18n.js';
 //   * pink   — comparable buildings (their extruded footprints)
 //
 // Until now those colours were unlabelled, so a first-time visitor had to
-// infer the meaning. This is the suite-standard bottom-left legend panel
-// (mirrors roofs / soolar) but built in plain DOM + the shared `--hood-*`
-// tokens, since similoo is React-free. Labels go through the vanilla i18n
-// `t()` and re-localise on language change via `onLocaleChange`.
+// infer the meaning. This is the desktop bottom-left legend panel, built in
+// plain DOM + the shared `--hood-*` tokens because the map engine mounts its
+// overlays imperatively. ComparisonView renders the same rows through the
+// shared collapsed legend chip on mobile. Labels go through vanilla i18n and
+// re-localise on language change via `onLocaleChange`.
 
 const ROWS = [
     { cls: 'target', key: 'legend.target' },

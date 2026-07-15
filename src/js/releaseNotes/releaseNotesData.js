@@ -45,12 +45,18 @@ export const RELEASES = [
     date: 'July 15, 2026',
     codename: 'Reach the zoom',
     summary:
-      'The map zoom controls no longer disappear behind the comparison panel while you browse comparable buildings.',
+      'Map controls stay reachable, and the legend starts collapsed on phones so comparable buildings remain visible.',
     items: [
       {
         kind: 'fixed',
         icon: 'bug',
         text: 'The +/−/reset-north zoom control sat underneath the "Comparable Buildings" panel the whole time it was open, making it invisible and unclickable during the app\'s main use. It now slides out from under the panel — matching the map\'s other controls — so it stays reachable, and collapses back on mobile where the panel goes full-width.',
+        prs: [],
+      },
+      {
+        kind: 'improved',
+        icon: 'layers',
+        text: 'On phones the three-row map legend no longer floats permanently over the comparison map. It now starts as a compact Legend chip and expands only when requested, while desktop keeps the full legend visible.',
         prs: [],
       },
     ],
