@@ -464,6 +464,9 @@ export default function App() {
             </>
           }
           description={t('about.description')}
+          aboutLabel={t('about.label')}
+          creditsLabel={t('about.credits')}
+          hubLabel={t('about.hub')}
           credits={[
             // Basemap is the ArcGIS World Imagery satellite mosaic (see
             // viewerConfig.js ARCGIS_ATTRIBUTION) — credit Esri here since the
