@@ -404,6 +404,7 @@ const translations = {
 
     // ---------- map legend ----------
     'legend.title': 'Legend',
+    'legend.collapse': 'Hide legend',
     'legend.target': 'Searched parcel & its buildings',
     'legend.same_zone': 'Same-zone parcels',
     'legend.comparable': 'Comparable buildings',
@@ -830,6 +831,7 @@ const translations = {
 
     // ---------- map legend ----------
     'legend.title': 'Légende',
+    'legend.collapse': 'Masquer la légende',
     'legend.target': 'Parcelle recherchée et ses bâtiments',
     'legend.same_zone': 'Parcelles de même zone',
     'legend.comparable': 'Bâtiments comparables',
@@ -1255,6 +1257,7 @@ const translations = {
 
     // ---------- map legend ----------
     'legend.title': 'Legende',
+    'legend.collapse': 'Legende ausblenden',
     'legend.target': 'Gesuchte Parzelle & ihre Gebäude',
     'legend.same_zone': 'Parzellen gleicher Zone',
     'legend.comparable': 'Vergleichbare Gebäude',
@@ -1679,6 +1682,7 @@ const translations = {
 
     // ---------- map legend ----------
     'legend.title': 'Legenda',
+    'legend.collapse': 'Nascondi legenda',
     'legend.target': 'Particella cercata e i suoi edifici',
     'legend.same_zone': 'Particelle della stessa zona',
     'legend.comparable': 'Edifici comparabili',

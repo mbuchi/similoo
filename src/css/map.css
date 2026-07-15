@@ -222,12 +222,22 @@ html[data-theme='dark'] .map-legend-swatch {
     border-color: rgba(255, 255, 255, 0.22);
 }
 
-@media (max-width: 640px) {
-    .map-legend {
+@media (max-width: 767px) {
+    /* The imperative legend remains the unchanged desktop treatment. On
+     * phones React renders the same content behind a collapsed legend chip. */
+    .map-legend:not(.map-legend--mobile) {
+        display: none;
+    }
+
+    .map-legend--mobile {
+        position: static;
+        left: auto;
+        bottom: auto;
         max-width: 200px;
         padding: 8px 10px;
-        bottom: 26px;
+        pointer-events: auto;
     }
+
     .map-legend-label {
         font-size: 12px;
     }
