@@ -36,7 +36,7 @@ export default function ZoomControl({ dark, className = '' }: ZoomControlProps) 
   const btn = `w-9 h-9 flex items-center justify-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 ${hover}`;
 
   return (
-    <div data-screenshot-ignore="true" className={`absolute z-10 ${className}`}>
+    <div data-screenshot-ignore="true" className={`absolute z-10 similoo-zoom-control ${className}`}>
       <div className={`flex flex-col rounded-xl shadow-xl backdrop-blur-sm border overflow-hidden ${panel}`}>
         <button type="button" onClick={handleZoomIn} aria-label={t('panel.zoom.in')} title={t('panel.zoom.in')} className={btn}>
           <Plus size={16} strokeWidth={2.25} />

@@ -121,11 +121,23 @@ body.cmp-shifted #mapContainer .maplibregl-ctrl-top-right {
     transition: transform 200ms ease;
 }
 
+/* Same shift for the suite-standard glass <ZoomControl> (React component,
+   anchored bottom-right inside .comparison-map). It replaced the native
+   MapLibre nav control but wasn't covered by the block above, so the 400px
+   comparison panel sat on top of it — slide it out with the same hook. */
+body.cmp-shifted .similoo-zoom-control {
+    transform: translateX(-400px);
+    transition: transform 200ms ease;
+}
+
 @media (max-width: 640px) {
     body.cmp-shifted .comparison-map {
         padding-right: 0;
     }
     body.cmp-shifted #mapContainer .maplibregl-ctrl-top-right {
+        transform: translateX(0);
+    }
+    body.cmp-shifted .similoo-zoom-control {
         transform: translateX(0);
     }
 }
