@@ -41,6 +41,20 @@ export const KIND_META = {
 
 export const RELEASES = [
   {
+    version: '0.25.1',
+    date: 'July 17, 2026',
+    codename: 'Searches that follow you',
+    summary: 'Addresses you search are now remembered across every Aireon app, even when you are not signed in.',
+    items: [
+      {
+        kind: 'improved',
+        icon: 'search',
+        text: 'Your recent address searches now follow you from one Aireon app to the next while signed out. Previously each app kept its own private list, so an address looked up in one app never appeared in another. Signed in, your history already syncs to your account and across devices.',
+        prs: [],
+      },
+    ],
+  },
+  {
     version: '0.25.0',
     date: 'July 17, 2026',
     codename: 'Trust, then verify',
