@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client';
 import { BuildableMassingSection } from '@aireon/shared';
 import { t, onLocaleChange, getLocale } from '../i18n.js';
 import { fetchSimilooComparables } from '../api/similoo.js';
+import { createSaveParcelButton } from './saveParcelButton.js';
 
 // Right-edge "Comparable Buildings" sidebar.
 //
@@ -59,6 +60,12 @@ const SKELETON_CARD = `
 export function createComparisonSidebar({ map, onClose, onFlyTo, onSelectComparable, onHoverComparable, onUnhoverComparable, onDataLoaded } = {}) {
     let aside = buildShell();
     document.body.appendChild(aside);
+
+    // "Track" (save to PRM) toggle for the target parcel. Created once and
+    // re-slotted into the identity header after each renderTarget() — the
+    // section is innerHTML-rebuilt, but this node (with its listeners and
+    // resolved tracked-state) survives across renders.
+    const saveParcel = createSaveParcelButton();
 
     let currentEgrid = null;
     let currentAddress = null;
@@ -154,6 +161,9 @@ export function createComparisonSidebar({ map, onClose, onFlyTo, onSelectCompara
         currentData = null;
         currentGeometry = null;
         currentLngLat = null;
+        // Drop the Track button's parcel binding so a stale tracked-state can't
+        // flash when the next parcel opens.
+        saveParcel.setParcel(null);
         // Tear the massing preview down (drops its RES fetch + 3D scene) so the
         // next parcel starts clean.
         renderMassing();
@@ -316,6 +326,30 @@ export function createComparisonSidebar({ map, onClose, onFlyTo, onSelectCompara
             </div>
         `;
         bindIdentityHeader();
+        mountTrackButton(egrid);
+    }
+
+    // Re-slot the persistent Track button into the freshly rebuilt identity
+    // header and point it at the current target parcel. The button module
+    // keeps its resolved tracked-state when the parcel id is unchanged (e.g.
+    // the copy-chip reset re-render), so this never re-queries PRM needlessly.
+    function mountTrackButton(egrid) {
+        const slot = els.targetSection.querySelector('.cmp-track-slot');
+        if (!slot) return;
+        slot.appendChild(saveParcel.root);
+        if (!egrid) {
+            saveParcel.setParcel(null);
+            return;
+        }
+        const target = currentData?.target;
+        saveParcel.setParcel({
+            id: egrid,
+            label: currentAddress || egrid,
+            municipality: target?.municipality || '',
+            area: Number.isFinite(target?.parcel_area_m2) ? target.parcel_area_m2 : 0,
+            lng: Array.isArray(currentLngLat) ? Number(currentLngLat[0]) : NaN,
+            lat: Array.isArray(currentLngLat) ? Number(currentLngLat[1]) : NaN,
+        });
     }
 
     // Suite-standard parcel identity header (mirrors the shared
@@ -351,6 +385,7 @@ export function createComparisonSidebar({ map, onClose, onFlyTo, onSelectCompara
                         ${COPY_SVG}
                     </button>
                     <span role="status" aria-live="polite" class="sr-only"></span>` : ''}
+                    <div class="cmp-track-slot"></div>
                 </div>
             </div>
         `;
@@ -611,6 +646,7 @@ export function createComparisonSidebar({ map, onClose, onFlyTo, onSelectCompara
                 try { root.unmount(); } catch { /* already gone */ }
             }, 0);
         }
+        saveParcel.destroy();
         aside?.remove();
         aside = null;
     }

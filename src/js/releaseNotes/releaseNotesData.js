@@ -41,6 +41,20 @@ export const KIND_META = {
 
 export const RELEASES = [
   {
+    version: '0.24.0',
+    date: 'July 17, 2026',
+    codename: 'Keep an eye on it',
+    summary: 'Track the parcel you are comparing: a new Track button saves it to your Aireon parcel list, and a second click removes it again.',
+    items: [
+      {
+        kind: 'new',
+        icon: 'bookmark',
+        text: 'The Comparable Buildings panel now has a Track button under the parcel EGRID. One click saves the target parcel to your suite-wide tracked list (it appears in proom and in My saved parcels across all Aireon apps); clicking Tracked removes it again. Signed-out visitors get a sign-in prompt instead, and the button remembers the tracked state when you return to a parcel.',
+        prs: [],
+      },
+    ],
+  },
+  {
     version: '0.23.4',
     date: 'July 15, 2026',
     codename: 'About, made clear',

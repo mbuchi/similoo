@@ -46,6 +46,9 @@ expectDeclarations('.cmp-massing-inner [role="switch"]', {
 expectDeclarations('.cmp-target-identity .aireon-pih-egrid', {
   'min-height': '44px',
 });
+expectDeclarations('.cmp-track', {
+  'min-height': '44px',
+});
 expectDeclarations('.cmp-size-sub input', {
   'min-height': '44px',
 });

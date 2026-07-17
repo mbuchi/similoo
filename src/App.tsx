@@ -209,6 +209,15 @@ export default function App() {
 
   // --- Account / chrome state --------------------------------------------
   const { email, isAuthenticated, getAccessToken, promptLogin } = useAuth();
+  // Engine → React sign-in hop: the imperative comparison sidebar's Track
+  // (save to PRM) button dispatches `similoo:login` when a signed-out user
+  // clicks it, and we open the shared login modal — the same window-event
+  // bridge pattern the address search uses.
+  useEffect(() => {
+    const onLoginRequest = () => promptLogin();
+    window.addEventListener('similoo:login', onLoginRequest);
+    return () => window.removeEventListener('similoo:login', onLoginRequest);
+  }, [promptLogin]);
   const errorLogger = useMemo(() => createErrorLogger({ appName: 'similoo' }), []);
   // Attach the global capture listeners once. Until now this logger only powered
   // the navbar-search onError and the bug-report dialog — nothing hooked the
