@@ -1,7 +1,7 @@
 {
   "name": "similoo",
   "private": true,
-  "version": "0.24.0",
+  "version": "0.25.0",
   "type": "module",
   "description": "similoo - comparable-buildings explorer: find buildings comparable to a Swiss address (same municipality and zone, recent construction) and inspect them as LOD 2.5 cubes plus a streamed swissSURFACE3D point-cloud detail view (Giro3D).",
   "repository": {
@@ -13,6 +13,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "typecheck": "node node_modules/typescript7/bin/tsc --noEmit",
+    "test": "node --test",
     "test:mobile-touch": "node scripts/mobile-touch-regression.mjs",
     "smoke": "node scripts/smoke.mjs"
   },
