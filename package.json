@@ -1,7 +1,7 @@
 {
   "name": "similoo",
   "private": true,
-  "version": "0.25.0",
+  "version": "0.26.0",
   "type": "module",
   "description": "similoo - comparable-buildings explorer: find buildings comparable to a Swiss address (same municipality and zone, recent construction) and inspect them as LOD 2.5 cubes plus a streamed swissSURFACE3D point-cloud detail view (Giro3D).",
   "repository": {
@@ -31,7 +31,7 @@
     "vite-plugin-pwa": "^1.3.0"
   },
   "dependencies": {
-    "@aireon/shared": "github:mbuchi/aireon-shared#v1.99.0",
+    "@aireon/shared": "github:mbuchi/aireon-shared#v1.101.0",
     "@giro3d/giro3d": "^2.0.3",
     "@openreplay/tracker": "^18.1.0",
     "html-to-image": "^1.11.13",
