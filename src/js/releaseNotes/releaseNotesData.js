@@ -50,6 +50,19 @@ export const RELEASES = [
         kind: 'new',
         icon: 'log-in',
         text: 'The starting address search is now the suite-standard Aireon welcome card, matching doorway and woom: pick a result to jump straight into the comparison, same as before. Signed-out visitors get a new Sign in button right on the card, and search history now roams across every Aireon app. On phones, the navbar\'s own search box stays out of the way until an address is picked, so there is no more duplicate search field before you have searched.',
+      },
+    ],
+  },
+  {
+    version: '0.25.1',
+    date: 'July 17, 2026',
+    codename: 'Searches that follow you',
+    summary: 'Addresses you search are now remembered across every Aireon app, even when you are not signed in.',
+    items: [
+      {
+        kind: 'improved',
+        icon: 'search',
+        text: 'Your recent address searches now follow you from one Aireon app to the next while signed out. Previously each app kept its own private list, so an address looked up in one app never appeared in another. Signed in, your history already syncs to your account and across devices.',
         prs: [],
       },
     ],
