@@ -41,6 +41,26 @@ export const KIND_META = {
 
 export const RELEASES = [
   {
+    version: '0.26.0',
+    date: 'July 17, 2026',
+    codename: 'One menu on the phone',
+    summary: 'A cleaner top bar on phones and small tablets: every control now lives in a single account menu next to the search box.',
+    items: [
+      {
+        kind: 'improved',
+        icon: 'smartphone',
+        text: 'On screens narrower than 1024px the top bar now shows just the similoo wordmark, the address search, and one account menu. Open with, How it works, Save Image, My Exports, the language picker, and the appearance setting all moved into that menu, so nothing overlaps the search box on small screens. The desktop layout is unchanged.',
+        prs: [],
+      },
+      {
+        kind: 'improved',
+        icon: 'pointer',
+        text: 'The account menu on phones now stops just above the bottom edge of the screen and scrolls on its own, and every row meets the 44px touch-target size, so all entries stay reachable with one thumb.',
+        prs: [],
+      },
+    ],
+  },
+  {
     version: '0.25.1',
     date: 'July 17, 2026',
     codename: 'Searches that follow you',

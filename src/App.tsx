@@ -7,7 +7,10 @@ import {
   ReleaseNotesPanel,
   ShareCopiedToast,
   OpenWithMenu,
+  LAUNCH_APPS,
+  openInApp,
   useGlass,
+  buildGlassMenuItem,
   buildGlassSettingsItem,
   useReleaseNotes,
   getReleaseNotesStrings,
@@ -26,7 +29,19 @@ import {
   type MapContextParcel,
 } from '@aireon/shared';
 import { useInstallPrompt, IosInstallSheet } from '@aireon/shared/pwa';
-import { HelpCircle, Info, Share2, Sun, Moon, Tag, Download } from 'lucide-react';
+import {
+  Camera,
+  Download,
+  ExternalLink,
+  HelpCircle,
+  Image as ImageIcon,
+  Info,
+  Languages,
+  Moon,
+  Share2,
+  Sun,
+  Tag,
+} from 'lucide-react';
 import PwaLayer from './pwa/PwaLayer';
 import LandingView from './components/LandingView';
 import { signal } from './lib/signal';
@@ -34,6 +49,7 @@ import ComparisonView from './components/ComparisonView';
 import SavedImagesPanel from './components/SavedImagesPanel';
 import ScreenshotOverlay from './components/ScreenshotOverlay';
 import { useScreenshot } from './hooks/useScreenshot';
+import { useCompactLayout } from './hooks/useCompactLayout';
 import type { ScreenshotMetadata } from './lib/imageService';
 import { getLocale, onLocaleChange, setLocale, applyTranslations, t } from './js/i18n.js';
 // Methodology ("how comparable buildings are calculated") help panel. The
@@ -47,6 +63,23 @@ import { releases, CURRENT_VERSION, REPO_URL } from './data/releaseNotes';
 // theme, locale, auth, release notes and bug report are now React-owned via the
 // shared suite chrome below; boot() no longer wires those.
 import { boot } from './js/main.js';
+
+// Compact (<1024px) account-menu shell overrides: cap the open dropdown just
+// under the 3.5rem navbar so every merged row stays reachable (its own
+// scrollbar takes over), and give the interactive rows the 44px touch floor.
+// Applied via an arbitrary-variant wrapper so the shared MapUserMenu itself
+// stays untouched; desktop keeps the plain 'contents' passthrough.
+const COMPACT_USER_MENU_CLASS_NAME = [
+  'contents similoo-compact-user-menu',
+  '[&_.map-shell-user-dropdown]:max-h-[calc(100dvh-3.5rem-env(safe-area-inset-bottom,0px)-1rem)]',
+  '[&_.map-shell-user-dropdown]:overflow-y-auto',
+  '[&_.map-shell-user-button]:min-h-11',
+  '[&_.map-shell-user-button]:min-w-11',
+  '[&_.map-shell-user-manage]:min-h-11',
+  '[&_.map-shell-user-manage]:min-w-11',
+  '[&_.map-shell-user-tool-item]:min-h-11',
+  '[&_.map-shell-user-menu-item]:min-h-11',
+].join(' ');
 
 async function resolveContextParcel(
   lat: number,
@@ -298,9 +331,74 @@ export default function App() {
   const shareStrings = getShareStrings(locale);
   const glassSettingsItem = buildGlassSettingsItem({ level: glassLevel, setLevel: setGlassLevel, locale });
 
+  // Compact (<1024px) suite layout: the navbar collapses to wordmark + search +
+  // ONE account menu. Every control the desktop bar spreads across the
+  // MapToolbar and the actionsExtra icon cluster folds into that menu below.
+  const isCompact = useCompactLayout();
+
+  // Rows that only exist at compact widths — each one mirrors a control removed
+  // from the navbar: Open with (cross-app launcher), How it works (methodology
+  // help icon), Save image / My Exports + Language + appearance (MapToolbar).
+  // All stay available signed-out, exactly as the desktop toolbar exposed them.
+  const compactMenuItems: MapUserMenuAction[] = [
+    ...(openWithLocation
+      ? [
+          {
+            key: 'open-with',
+            label: t('nav.open_with'),
+            icon: <ExternalLink size={16} aria-hidden="true" />,
+            signedOut: true,
+            children: LAUNCH_APPS.filter((app) => app.id !== 'similoo').map((app) => ({
+              key: `open-with-${app.id}`,
+              label: app.name,
+              onClick: () => openInApp(app.id, openWithLocation.lat, openWithLocation.lng),
+            })),
+          } as MapUserMenuAction,
+        ]
+      : []),
+    {
+      key: 'methodology',
+      label: t('help.eyebrow'),
+      icon: <HelpCircle size={16} aria-hidden="true" />,
+      onClick: openMethodology,
+      signedOut: true,
+    },
+    {
+      key: 'capture',
+      label: t('screenshot.save'),
+      icon: <Camera size={16} aria-hidden="true" />,
+      onClick: () => void capture(),
+      disabled: isCapturing,
+      signedOut: true,
+    },
+    {
+      key: 'exports',
+      label: t('screenshot.my_exports'),
+      icon: <ImageIcon size={16} aria-hidden="true" />,
+      onClick: () => setGalleryOpen(true),
+      signedOut: true,
+    },
+    {
+      key: 'language',
+      label: t('nav.select_language'),
+      icon: <Languages size={16} aria-hidden="true" />,
+      signedOut: true,
+      children: (['en', 'fr', 'de', 'it'] as const).map((language) => ({
+        key: `language-${language}`,
+        label: language.toUpperCase(),
+        badge: locale === language ? '✓' : undefined,
+        onClick: () => changeLocale(language),
+        keepOpenOnClick: true,
+      })),
+    },
+    buildGlassMenuItem({ level: glassLevel, setLevel: setGlassLevel, locale }),
+  ];
+
   // Account-menu "More tools" — Share · Theme · What's new · About, the suite
   // declutter pattern (these moved OUT of the navbar into the account menu).
+  // Compact mode prepends every action removed from the navbar above them.
   const toolbarItems: MapUserMenuAction[] = [
+    ...(isCompact ? compactMenuItems : []),
     ...(canInstall
       ? [
           {
@@ -352,6 +450,7 @@ export default function App() {
       <AppNavbar
         appName="similoo"
         dark={isDark}
+        hideHubLink={isCompact}
         position="fixed top-0 left-0 right-0 z-40 md:z-[60]"
         // Suite-standard navbar address search (replaces the old in-view "Search
         // again" bar). A pick drives the engine's comparison flow via the
@@ -372,7 +471,8 @@ export default function App() {
         // Map action cluster: Save image + My Exports (shared RES gallery),
         // the Settings gear (Liquid Glass picker) + Language switcher. similoo
         // has no locate button, so that action auto-hides (handler omitted).
-        toolbar={{
+        // Below 1024px the whole cluster folds into the account menu instead.
+        toolbar={isCompact ? undefined : {
           locale,
           onLocaleChange: changeLocale,
           onCapture: capture,
@@ -391,7 +491,7 @@ export default function App() {
             more: t('menu.more_tools'),
           },
         }}
-        actionsExtra={
+        actionsExtra={isCompact ? undefined :
           <div className="flex items-center gap-2 sm:gap-3">
             {openWithLocation && (
               <OpenWithMenu
@@ -416,26 +516,28 @@ export default function App() {
           </div>
         }
         userMenu={
-          <MapUserMenu
-            dark={isDark}
-            locale={locale as PrmLocale}
-            // similoo is a comparison tool — no saved-parcels / search-history
-            // surfaces, so suppress those built-in rows.
-            showSavedParcels={false}
-            showSearchHistory={false}
-            toolbarItems={toolbarItems}
-            toolbarLabel={t('menu.more_tools')}
-            bugReport={{ logger: errorLogger, email: email ?? undefined, metaData: { rollout: 'suite-ui-parity' } }}
-            labels={{
-              signIn: t('auth.sign_in'),
-              userMenu: t('auth.account'),
-              viewProfile: t('auth.view_profile'),
-              savedParcels: t('menu.saved_parcels'),
-              signOut: t('auth.sign_out'),
-              active: t('menu.active'),
-              fallbackUser: t('menu.user'),
-            }}
-          />
+          <div className={isCompact ? COMPACT_USER_MENU_CLASS_NAME : 'contents'}>
+            <MapUserMenu
+              dark={isDark}
+              locale={locale as PrmLocale}
+              // similoo is a comparison tool — no saved-parcels / search-history
+              // surfaces, so suppress those built-in rows.
+              showSavedParcels={false}
+              showSearchHistory={false}
+              toolbarItems={toolbarItems}
+              toolbarLabel={t('menu.more_tools')}
+              bugReport={{ logger: errorLogger, email: email ?? undefined, metaData: { rollout: 'suite-ui-parity' } }}
+              labels={{
+                signIn: t('auth.sign_in'),
+                userMenu: t('auth.account'),
+                viewProfile: t('auth.view_profile'),
+                savedParcels: t('menu.saved_parcels'),
+                signOut: t('auth.sign_out'),
+                active: t('menu.active'),
+                fallbackUser: t('menu.user'),
+              }}
+            />
+          </div>
         }
       />
 
