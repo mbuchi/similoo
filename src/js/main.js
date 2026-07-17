@@ -16,7 +16,6 @@ import {
 import { applyTranslations, t } from './i18n.js';
 import { createComparisonSidebar } from './comparison/sidebar.js';
 import { resolveEgridFromLngLat, normaliseEgrid } from './comparison/parcelLookup.js';
-import { bindLandingSearch } from './landing/addressSearch.js';
 import { createBuildingDetailModal } from './detail/buildingDetailModal.js';
 import { createMapLegend } from './viewer/mapLegend.js';
 import { initMethodologyHelp } from './help/methodologyPanel.js';
@@ -24,8 +23,11 @@ import { initMethodologyHelp } from './help/methodologyPanel.js';
 // similoo's imperative engine entry point.
 //
 // This module owns the full app behaviour: map setup, the Giro3D point-cloud
-// detail modal, the comparison sidebar + panels, address search, deep-linking,
-// theme/locale/overflow navbar wiring, auth and the bug-report widget. It was
+// detail modal, the comparison sidebar + panels, deep-linking, theme/locale/
+// overflow navbar wiring, auth and the bug-report widget. Address search is
+// React-owned (the shared WelcomeAddressCard on the landing, AppNavbar's own
+// search box once loaded) — both feed picks in here via the `similoo:search`
+// window-event listener below, same as a plain handlePick() call. It was
 // the vanilla `<script type="module">` entry; in the React shell it is invoked
 // once from a useEffect after App.tsx has rendered the static DOM scaffold
 // (navbar / landing view / comparison view) with the same ids/classes the
@@ -40,10 +42,13 @@ export function boot() {
     // the shared suite chrome in the React shell — boot() no longer wires them.
     initMethodologyHelp();
 
+    // #landingView / #comparisonView are the show/hide contract showComparison()
+    // toggles below — LandingView.tsx now renders the shared WelcomeAddressCard
+    // inside #landingView (its own search replaces the old #landingSearchInput /
+    // #landingResults form this engine used to bind directly), but the section
+    // keeps the same root id so this lookup — and the toggle — keep working.
     const landingView = document.getElementById('landingView');
     const comparisonView = document.getElementById('comparisonView');
-    const input = document.getElementById('landingSearchInput');
-    const list = document.getElementById('landingResults');
 
     // Mirror the active parcel's address up to the React navbar (its address
     // search box surfaces it). The old in-view "Search again" bar that used to
@@ -769,10 +774,11 @@ export function boot() {
         } catch { /* no-op */ }
     }
 
-    if (input && list) {
-        bindLandingSearch({ input, list, onPick: handlePick });
-        setTimeout(() => input.focus(), 80);
-    }
+    // The landing's own search (the shared WelcomeAddressCard, see
+    // LandingView.tsx) and the navbar search both call the same React
+    // `handleNavSearch`, which dispatches `similoo:search` — caught by the
+    // listener above and fed into handlePick. No DOM-level binding needed here
+    // any more (see the #landingView/#comparisonView comment near the top).
 
     // Deep-link bootstrap: ?lat=&lng= skips the landing view and renders
     // the comparison immediately. Useful for sharing and headless tests.

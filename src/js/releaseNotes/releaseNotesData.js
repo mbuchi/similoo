@@ -41,6 +41,19 @@ export const KIND_META = {
 
 export const RELEASES = [
   {
+    version: '0.26.0',
+    date: 'July 17, 2026',
+    codename: 'One way in',
+    summary: 'The starting search card now matches the rest of the Aireon suite, and signed-out visitors can sign in right from it.',
+    items: [
+      {
+        kind: 'new',
+        icon: 'log-in',
+        text: 'The starting address search is now the suite-standard Aireon welcome card, matching doorway and woom: pick a result to jump straight into the comparison, same as before. Signed-out visitors get a new Sign in button right on the card, and search history now roams across every Aireon app. On phones, the navbar\'s own search box stays out of the way until an address is picked, so there is no more duplicate search field before you have searched.',
+      },
+    ],
+  },
+  {
     version: '0.25.1',
     date: 'July 17, 2026',
     codename: 'Searches that follow you',
