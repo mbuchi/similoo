@@ -232,6 +232,7 @@ const translations = {
 
     // ---------- auth ----------
     'auth.sign_in': 'Sign in',
+    'auth.sign_in_hint': 'Sign in to use your saved searches in every Aireon app.',
     'auth.sign_out': 'Sign out',
     'auth.account': 'Account',
     'auth.signed_in': 'Signed in',
@@ -671,6 +672,7 @@ const translations = {
 
     // ---------- auth ----------
     'auth.sign_in': 'Se connecter',
+    'auth.sign_in_hint': 'Connectez-vous pour retrouver vos recherches enregistrées dans toutes les applications Aireon.',
     'auth.sign_out': 'Se déconnecter',
     'auth.account': 'Compte',
     'auth.signed_in': 'Connecté',
@@ -1108,6 +1110,7 @@ const translations = {
 
     // ---------- auth ----------
     'auth.sign_in': 'Anmelden',
+    'auth.sign_in_hint': 'Melden Sie sich an, um Ihre gespeicherten Suchen in allen Aireon-Apps zu nutzen.',
     'auth.sign_out': 'Abmelden',
     'auth.account': 'Konto',
     'auth.signed_in': 'Angemeldet',
@@ -1544,6 +1547,7 @@ const translations = {
 
     // ---------- auth ----------
     'auth.sign_in': 'Accedi',
+    'auth.sign_in_hint': 'Accedi per usare le tue ricerche salvate in tutte le app Aireon.',
     'auth.sign_out': 'Esci',
     'auth.account': 'Account',
     'auth.signed_in': 'Connesso',

@@ -20,6 +20,7 @@ import {
   fetchClaireContext,
   MapContextMenu,
   useAuth,
+  useIsMobile,
   setTheme,
   type Locale,
   type PrmLocale,
@@ -119,6 +120,14 @@ export default function App() {
   //     {lat,lng,label}, which boot()'s handler feeds straight into handlePick —
   //     the same flow the landing search drives.
   const [currentAddress, setCurrentAddress] = useState('');
+  // Suite welcome-card standard (spec §5): on phones the navbar search would sit
+  // right above the landing card's own search — hide the navbar one until an
+  // address is picked. `currentAddress` is the reliable "landing dismissed"
+  // signal (unlike `openWithLocation`, it is correctly seeded from
+  // `window.__similooAddress` for a ?lat/?lng deep-link that resolves before the
+  // `similoo:address` listener below attaches — see that effect's comment).
+  // Desktop keeps the navbar search visible at all times (plenty of room).
+  const isMobile = useIsMobile();
   const [openWithLocation, setOpenWithLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [contextMenuPoint, setContextMenuPoint] = useState<MapContextMenuPoint | null>(null);
   const [contextParcel, setContextParcel] = useState<MapContextParcel | null>(null);
@@ -241,7 +250,7 @@ export default function App() {
   }, []);
 
   // --- Account / chrome state --------------------------------------------
-  const { email, isAuthenticated, getAccessToken, promptLogin } = useAuth();
+  const { email, isAuthenticated, getAccessToken, promptLogin, status: authStatus, login } = useAuth();
   // Engine → React sign-in hop: the imperative comparison sidebar's Track
   // (save to PRM) button dispatches `similoo:login` when a signed-out user
   // clicks it, and we open the shared login modal — the same window-event
@@ -394,6 +403,15 @@ export default function App() {
     buildGlassMenuItem({ level: glassLevel, setLevel: setGlassLevel, locale }),
   ];
 
+  // Suite welcome-card standard (spec §2): sign-in affordance on the landing
+  // card, signed-out visitors only. `status === 'anonymous'` (not
+  // `!isAuthenticated`) avoids a flash during the silent-SSO 'loading' state;
+  // login() starts the redirect flow directly, per the shared card's contract.
+  const welcomeSignIn =
+    authStatus === 'anonymous'
+      ? { label: t('auth.sign_in'), hint: t('auth.sign_in_hint'), onClick: () => void login() }
+      : undefined;
+
   // Account-menu "More tools" — Share · Theme · What's new · About, the suite
   // declutter pattern (these moved OUT of the navbar into the account menu).
   // Compact mode prepends every action removed from the navbar above them.
@@ -456,18 +474,27 @@ export default function App() {
         // again" bar). A pick drives the engine's comparison flow via the
         // window-event bridge above; once a parcel is loaded its address shows as
         // the box's placeholder so the user can see — and re-search from — it.
-        search={{
-          locale,
-          onSelect: handleNavSearch,
-          onError: (err) => errorLogger.capture(err, { severity: 'warning', source: 'navbar-search' }),
-          labels: {
-            placeholder: currentAddress || t('nav.search_placeholder'),
-            loading: t('nav.search_loading'),
-            noResults: t('nav.search_no_results'),
-            clear: t('nav.clear_search'),
-            resultsCount: (n) => t('nav.search_results_count', { count: n }),
-          },
-        }}
+        // On phones, while the welcome-card landing is still showing, this box
+        // would duplicate the card's own search right below it — omit `search`
+        // (the documented way to hide the box) until an address is picked; it
+        // returns immediately afterward for re-searching (spec §5). Desktop has
+        // room for both, so it always shows.
+        search={
+          isMobile && !currentAddress
+            ? undefined
+            : {
+                locale,
+                onSelect: handleNavSearch,
+                onError: (err) => errorLogger.capture(err, { severity: 'warning', source: 'navbar-search' }),
+                labels: {
+                  placeholder: currentAddress || t('nav.search_placeholder'),
+                  loading: t('nav.search_loading'),
+                  noResults: t('nav.search_no_results'),
+                  clear: t('nav.clear_search'),
+                  resultsCount: (n) => t('nav.search_results_count', { count: n }),
+                },
+              }
+        }
         // Map action cluster: Save image + My Exports (shared RES gallery),
         // the Settings gear (Liquid Glass picker) + Language switcher. similoo
         // has no locate button, so that action auto-hides (handler omitted).
@@ -541,7 +568,13 @@ export default function App() {
         }
       />
 
-      <LandingView />
+      <LandingView
+        dark={isDark}
+        locale={locale}
+        glassLevel={glassLevel}
+        onSelect={handleNavSearch}
+        signIn={welcomeSignIn}
+      />
       <ComparisonView dark={isDark} locale={locale} />
 
       <MapContextMenu

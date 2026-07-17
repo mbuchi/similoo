@@ -41,7 +41,7 @@ export const KIND_META = {
 
 export const RELEASES = [
   {
-    version: '0.26.0',
+    version: '0.27.0',
     date: 'July 17, 2026',
     codename: 'One menu on the phone',
     summary: 'A cleaner top bar on phones and small tablets: every control now lives in a single account menu next to the search box.',
@@ -56,6 +56,20 @@ export const RELEASES = [
         kind: 'improved',
         icon: 'pointer',
         text: 'The account menu on phones now stops just above the bottom edge of the screen and scrolls on its own, and every row meets the 44px touch-target size, so all entries stay reachable with one thumb.',
+        prs: [],
+      },
+    ],
+  },
+  {
+    version: '0.26.0',
+    date: 'July 17, 2026',
+    codename: 'One way in',
+    summary: 'The starting search card now matches the rest of the Aireon suite, and signed-out visitors can sign in right from it.',
+    items: [
+      {
+        kind: 'new',
+        icon: 'log-in',
+        text: 'The starting address search is now the suite-standard Aireon welcome card, matching doorway and woom: pick a result to jump straight into the comparison, same as before. Signed-out visitors get a new Sign in button right on the card, and search history now roams across every Aireon app. On phones, the navbar\'s own search box stays out of the way until an address is picked, so there is no more duplicate search field before you have searched.',
         prs: [],
       },
     ],
