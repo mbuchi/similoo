@@ -41,6 +41,20 @@ export const KIND_META = {
 
 export const RELEASES = [
   {
+    version: '0.25.0',
+    date: 'July 17, 2026',
+    codename: 'Trust, then verify',
+    summary: 'similoo now ships with an automated test suite that checks the comparables API, translations, and mobile touch targets before every release.',
+    items: [
+      {
+        kind: 'new',
+        icon: 'flask-conical',
+        text: 'Added an automated test suite covering the comparables and parcel API proxies, the deterministic comparables fallback, EGRID validation, the lookup cache, completeness of all four interface languages, release-notes metadata, and the mobile touch-target contract. Nothing changes on screen; every future release is now verified against these checks first.',
+        prs: [],
+      },
+    ],
+  },
+  {
     version: '0.24.0',
     date: 'July 17, 2026',
     codename: 'Keep an eye on it',
