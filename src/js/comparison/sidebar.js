@@ -688,8 +688,9 @@ function buildShell() {
              when the component finds no footprint to render. -->
         <div class="cmp-massing"></div>
 
-        <section class="cmp-section cmp-filters">
-            <h3 class="cmp-section-title cmp-filters-title"></h3>
+        <details class="cmp-section cmp-filters">
+            <summary class="cmp-section-title cmp-filters-title"></summary>
+            <div class="cmp-filter-body">
             <div class="cmp-filter-row cmp-filter-years">
                 <label class="cmp-years-label" for="cmp-years-range"></label>
                 <div class="cmp-years-control">
@@ -711,7 +712,8 @@ function buildShell() {
                     </label>
                 </div>
             </div>
-        </section>
+            </div>
+        </details>
 
         <section class="cmp-section cmp-list-wrap">
             <div class="cmp-list-header">
