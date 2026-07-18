@@ -484,6 +484,7 @@ export default function App() {
             ? undefined
             : {
                 locale,
+                activeAddress: currentAddress || null,
                 onSelect: handleNavSearch,
                 onError: (err) => errorLogger.capture(err, { severity: 'warning', source: 'navbar-search' }),
                 labels: {
