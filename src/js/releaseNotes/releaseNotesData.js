@@ -41,6 +41,20 @@ export const KIND_META = {
 
 export const RELEASES = [
   {
+    version: '0.27.4',
+    date: 'July 19, 2026',
+    codename: 'The full-screen comparison',
+    summary: 'On phones the comparison panel now behaves like a proper bottom sheet.',
+    items: [
+      {
+        kind: 'improved',
+        icon: 'smartphone',
+        text: 'On phones the Comparable Buildings panel now slides up as a full-height sheet that fills the screen below the top bar, and the top bar stays visible and usable while it is open. A grab handle at the top of the sheet lets you swipe down to dismiss it, and the layout leaves room for the home indicator on newer phones.',
+        prs: [],
+      },
+    ],
+  },
+  {
     version: '0.27.3',
     date: 'July 18, 2026',
     codename: 'Comparables, not controls',
