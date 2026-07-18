@@ -41,6 +41,20 @@ export const KIND_META = {
 
 export const RELEASES = [
   {
+    version: '0.27.2',
+    date: 'July 18, 2026',
+    codename: 'The comparison address stays in view',
+    summary: 'The navbar search now keeps showing the address of the property currently being compared.',
+    items: [
+      {
+        kind: 'improved',
+        icon: 'search',
+        text: 'Once you choose an address and similoo finishes loading its parcel and comparable buildings, that confirmed address now remains in the navbar search field. Previously it appeared only as faint placeholder text, so it was easy to miss which property was active. You can still click the field and type another address immediately.',
+        prs: [],
+      },
+    ],
+  },
+  {
     version: '0.27.1',
     date: 'July 18, 2026',
     codename: 'Straight answer',
