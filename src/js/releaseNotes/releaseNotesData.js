@@ -41,6 +41,20 @@ export const KIND_META = {
 
 export const RELEASES = [
   {
+    version: '0.27.1',
+    date: 'July 18, 2026',
+    codename: 'Straight answer',
+    summary: 'Housekeeping in the comparison list\'s status message.',
+    items: [
+      {
+        kind: 'fixed',
+        icon: 'bug',
+        text: 'Cleaned up a dead check behind the comparison list\'s status line: both sides of it resolved to the same "no comparable buildings" state, so the panel now sets that state directly. The message you see when the list comes back empty — including when your parcel-size filter excludes every match — is unchanged.',
+        prs: [],
+      },
+    ],
+  },
+  {
     version: '0.27.0',
     date: 'July 17, 2026',
     codename: 'One menu on the phone',
