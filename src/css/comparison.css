@@ -30,6 +30,11 @@
     pointer-events: auto;
 }
 
+/* Mobile-sheet grab handle — desktop keeps the right-docked panel, no handle. */
+.cmp-grab {
+    display: none;
+}
+
 /* ---------- header ---------- */
 .cmp-header {
     position: relative;
@@ -715,6 +720,7 @@ body.cmp-shifted .basemap-selector {
 
     .cmp-filters,
     .cmp-close,
+    .cmp-grab,
     .cmp-track-slot,
     .cmp-card-pc,
     .cmp-massing {
@@ -733,6 +739,24 @@ body.cmp-shifted .basemap-selector {
     .cmp {
         width: 100%;
         top: 56px;
+        /* Bottom-sheet entrance: hidden state rests 24px down, and
+           [data-state="visible"] resets the transform (translateX(0) is the
+           identity), so the sheet slides UP into place instead of sideways. */
+        transform: translateY(24px);
+        padding-bottom: env(safe-area-inset-bottom);
+    }
+    .cmp-grab {
+        display: flex;
+        justify-content: center;
+        padding: 8px 0 4px;
+        touch-action: none;
+        cursor: grab;
+    }
+    .cmp-grab-bar {
+        width: 40px;
+        height: 4px;
+        border-radius: 9999px;
+        background: var(--hood-panel-faint);
     }
     body.cmp-shifted .basemap-selector {
         transform: translateX(0);

@@ -84,6 +84,7 @@ export function createComparisonSidebar({ map, onClose, onFlyTo, onSelectCompara
     let fetchSeq = 0;
 
     const els = {
+        grab: aside.querySelector('.cmp-grab'),
         closeBtn: aside.querySelector('.cmp-close'),
         targetSection: aside.querySelector('.cmp-target'),
         targetEmpty: aside.querySelector('.cmp-target-empty'),
@@ -101,6 +102,41 @@ export function createComparisonSidebar({ map, onClose, onFlyTo, onSelectCompara
     els.closeBtn.addEventListener('click', () => {
         hide();
         if (typeof onClose === 'function') onClose();
+    });
+
+    // Drag-down-to-dismiss on the mobile grab handle (Aireon mobile
+    // parcel-sheet standard). The handle only renders on phones — desktop
+    // hides it via comparison.css — so the pointer wiring is inert there.
+    let dragStartY = null;
+    function clearDragStyles() {
+        // Inline styles only live during an active drag; clearing them hands
+        // control back to the CSS data-state transitions.
+        aside.style.transform = '';
+        aside.style.transition = '';
+    }
+    els.grab.addEventListener('pointerdown', (e) => {
+        dragStartY = e.clientY;
+        els.grab.setPointerCapture(e.pointerId);
+        aside.style.transition = 'none';
+    });
+    els.grab.addEventListener('pointermove', (e) => {
+        if (dragStartY === null) return;
+        const dy = Math.max(0, e.clientY - dragStartY);
+        aside.style.transform = `translateY(${dy}px)`;
+    });
+    els.grab.addEventListener('pointerup', (e) => {
+        if (dragStartY === null) return;
+        const dy = e.clientY - dragStartY;
+        dragStartY = null;
+        clearDragStyles();
+        if (dy > 90) {
+            hide();
+            if (typeof onClose === 'function') onClose();
+        }
+    });
+    els.grab.addEventListener('pointercancel', () => {
+        dragStartY = null;
+        clearDragStyles();
     });
 
     els.yearsRange.addEventListener('input', () => {
@@ -145,6 +181,7 @@ export function createComparisonSidebar({ map, onClose, onFlyTo, onSelectCompara
         // The parcel polygon + centroid drive the buildable-massing simulator.
         currentGeometry = geometry || null;
         currentLngLat = Array.isArray(lngLat) && lngLat.length === 2 ? lngLat : null;
+        clearDragStyles();
         aside.setAttribute('data-state', 'visible');
         aside.setAttribute('aria-hidden', 'false');
         // Paint the massing panel straight away off the geometry (real parcel-area
@@ -154,6 +191,7 @@ export function createComparisonSidebar({ map, onClose, onFlyTo, onSelectCompara
     }
 
     function hide() {
+        clearDragStyles();
         aside.setAttribute('data-state', 'hidden');
         aside.setAttribute('aria-hidden', 'true');
         currentEgrid = null;
@@ -670,6 +708,7 @@ function buildShell() {
     aside.setAttribute('role', 'complementary');
     aside.setAttribute('aria-label', 'Comparable buildings');
     aside.innerHTML = `
+        <div class="cmp-grab" aria-hidden="true"><span class="cmp-grab-bar"></span></div>
         <header class="cmp-header">
             <div class="cmp-eyebrow"></div>
             <h2 class="cmp-title"></h2>
