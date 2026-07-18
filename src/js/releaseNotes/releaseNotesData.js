@@ -41,6 +41,20 @@ export const KIND_META = {
 
 export const RELEASES = [
   {
+    version: '0.27.3',
+    date: 'July 18, 2026',
+    codename: 'Comparables, not controls',
+    summary: 'The common comparison stays focused, with filters optional and the result ready to print.',
+    items: [
+      {
+        kind: 'improved',
+        icon: 'file-text',
+        text: 'Parcel-size and year-window filters now start inside a compact optional section instead of taking space from every comparison. Printing produces a clean target-and-comparables brief with the ranked metrics, while navigation, map controls, filters and action buttons stay out of the paper copy.',
+        prs: [],
+      },
+    ],
+  },
+  {
     version: '0.27.2',
     date: 'July 18, 2026',
     codename: 'The comparison address stays in view',

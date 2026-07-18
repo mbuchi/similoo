@@ -101,6 +101,25 @@
     color: var(--hood-panel-muted);
 }
 
+.cmp-filters > summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 44px;
+    margin: -10px 0;
+    cursor: pointer;
+    list-style: none;
+}
+.cmp-filters > summary::-webkit-details-marker { display: none; }
+.cmp-filters > summary::after {
+    content: '+';
+    color: var(--hood-panel-muted);
+    font-size: 18px;
+    font-weight: 400;
+}
+.cmp-filters[open] > summary::after { content: '−'; }
+.cmp-filter-body { padding-top: 16px; }
+
 /* ---------- buildable-massing simulator (shared React component) ---------- */
 /* The .cmp-massing div is mounted by sidebar.js. It collapses entirely when the
    component renders null (no parcel footprint + no spare_space candidate); when
@@ -651,6 +670,62 @@
 body.cmp-shifted .basemap-selector {
     transform: translateX(-400px);
     transition: transform 200ms ease;
+}
+
+/* The comparison sidebar is the printable decision artifact: target metrics
+   followed by the ranked comparable set. Filters and action chrome are not. */
+@media print {
+    @page {
+        size: A4 portrait;
+        margin: 10mm;
+    }
+
+    body {
+        overflow: visible !important;
+        background: #fff !important;
+    }
+
+    body > :not(.cmp) {
+        display: none !important;
+    }
+
+    .cmp[data-state="visible"] {
+        --hood-panel-bg: #fff;
+        --hood-panel-text: #334155;
+        --hood-panel-title: #0f172a;
+        --hood-panel-muted: #64748b;
+        --hood-panel-faint: #94a3b8;
+        --hood-panel-border: #cbd5e1;
+        --hood-panel-divider: #e2e8f0;
+        --hood-panel-row-bg: #f8fafc;
+        --hood-panel-row-bg-hover: #f1f5f9;
+        position: static !important;
+        display: block !important;
+        width: 100% !important;
+        height: auto !important;
+        overflow: visible !important;
+        transform: none !important;
+        opacity: 1 !important;
+        border: 0 !important;
+        background: #fff !important;
+        box-shadow: none !important;
+        color: #111827 !important;
+        backdrop-filter: none !important;
+    }
+
+    .cmp-filters,
+    .cmp-close,
+    .cmp-track-slot,
+    .cmp-card-pc,
+    .cmp-massing {
+        display: none !important;
+    }
+
+    .cmp-card,
+    .cmp-target-wrap {
+        break-inside: avoid;
+        page-break-inside: avoid;
+    }
 }
 
 /* ---------- mobile ---------- */
