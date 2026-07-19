@@ -745,6 +745,10 @@ body.cmp-shifted .basemap-selector {
         transform: translateY(24px);
         padding-bottom: env(safe-area-inset-bottom);
     }
+    /* 16px stops the iOS focus auto-zoom on the size-filter inputs. */
+    .cmp-size-sub input {
+        font-size: 16px;
+    }
     .cmp-grab {
         display: flex;
         justify-content: center;

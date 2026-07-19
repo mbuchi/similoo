@@ -588,4 +588,8 @@
     .rn-body {
         padding: 1rem;
     }
+    /* 16px stops the iOS focus auto-zoom on the release-notes search. */
+    .rn-search-input {
+        font-size: 16px;
+    }
 }
