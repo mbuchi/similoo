@@ -41,6 +41,20 @@ export const KIND_META = {
 
 export const RELEASES = [
   {
+    version: '0.27.6',
+    date: 'July 19, 2026',
+    codename: 'Coordinates CAD can use',
+    summary: 'The map\'s right-click "Copy coordinates" now copies LV95 alongside WGS84.',
+    items: [
+      {
+        kind: 'fixed',
+        icon: 'copy',
+        text: 'Right-click "Copy coordinates" on the comparison map used to copy only the WGS84 lat/lng, which is not directly usable in QGIS, cantonal GIS data or AutoCAD. It now also copies the LV95 (Swiss EPSG:2056) easting/northing pair, previewed right in the menu row before you click, inherited from the shared Aireon map context menu.',
+        prs: [],
+      },
+    ],
+  },
+  {
     version: '0.27.5',
     date: 'July 19, 2026',
     codename: 'No more surprise zoom',
