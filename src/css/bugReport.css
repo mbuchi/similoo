@@ -285,4 +285,10 @@
     .aireon-bug-dialog {
         padding: 16px;
     }
+
+    /* 16px stops the iOS focus auto-zoom on the bug-report form fields. */
+    .aireon-bug-field textarea,
+    .aireon-bug-field input {
+        font-size: 16px;
+    }
 }

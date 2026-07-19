@@ -11,3 +11,12 @@
   --hood-display: 'Varela Round', system-ui, sans-serif;
   --hood-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, 'Cascadia Code', Consolas, monospace;
 }
+
+/* 16px stops the iOS focus auto-zoom (Safari zooms any input below 16px and
+   leaves the page stuck wider than the screen). The `input.` prefix out-ranks
+   the shared map-ui.css rule (0.875rem), which loads after this file. */
+@media (max-width: 768px) {
+  input.aireon-search-input {
+    font-size: 16px;
+  }
+}

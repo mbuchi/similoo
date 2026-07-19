@@ -41,6 +41,20 @@ export const KIND_META = {
 
 export const RELEASES = [
   {
+    version: '0.27.5',
+    date: 'July 19, 2026',
+    codename: 'No more surprise zoom',
+    summary: 'Focusing a search or filter field on a phone no longer zooms the page in and leaves it stuck.',
+    items: [
+      {
+        kind: 'fixed',
+        icon: 'smartphone',
+        text: 'Stopped iOS Safari from auto-zooming the page when the address search is focused on phones, which left the page stuck wider than the screen. Search text is now 16px on phones and the page scale stays at 100%. The comparison size filters, bug-report form and release-notes search got the same treatment.',
+        prs: [],
+      },
+    ],
+  },
+  {
     version: '0.27.4',
     date: 'July 19, 2026',
     codename: 'The full-screen comparison',
