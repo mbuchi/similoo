@@ -91,6 +91,107 @@
 }
 .cmp-close i { width: 16px; height: 16px; }
 
+/* ---------- "{}" raw-JSON developer view ---------- */
+/* Header toggle sits just left of the close chip, styled to match it. */
+.cmp-raw-toggle {
+    position: absolute;
+    top: 6px;
+    right: 50px;
+    width: 44px;
+    height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    background: transparent;
+    color: var(--hood-panel-muted);
+    cursor: pointer;
+    transition: color 150ms ease;
+}
+.cmp-raw-toggle::before {
+    content: "";
+    position: absolute;
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    background: var(--hood-panel-row-bg);
+    transition: background-color 150ms ease;
+    z-index: -1;
+}
+.cmp-raw-toggle:hover:not(:disabled) { color: var(--hood-panel-title); }
+.cmp-raw-toggle:hover:not(:disabled)::before { background: var(--hood-panel-row-bg-hover); }
+.cmp-raw-toggle:disabled { opacity: 0.4; cursor: default; }
+.cmp-raw-toggle[aria-pressed="true"] { color: #f59e0b; }
+.cmp-raw-toggle[aria-pressed="true"]::before { background: rgba(245, 158, 11, 0.16); }
+.cmp-raw-toggle i,
+.cmp-raw-toggle svg { width: 16px; height: 16px; }
+
+/* Body/raw swap: the raw section is hidden until the panel opts into it. */
+.cmp-raw-wrap { display: none; }
+.cmp[data-raw="true"] .cmp-raw-wrap { display: block; }
+.cmp[data-raw="true"] .cmp-target-wrap,
+.cmp[data-raw="true"] .cmp-massing,
+.cmp[data-raw="true"] .cmp-filters,
+.cmp[data-raw="true"] .cmp-list-wrap { display: none; }
+
+.cmp-raw-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+}
+.cmp-raw-title {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #f59e0b;
+}
+.cmp-raw-copy {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    border: none;
+    background: var(--hood-panel-row-bg);
+    color: var(--hood-panel-muted);
+    font-family: var(--hood-font);
+    font-size: 12px;
+    font-weight: 500;
+    padding: 5px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 150ms ease, color 150ms ease;
+}
+.cmp-raw-copy:hover { background: var(--hood-panel-row-bg-hover); color: var(--hood-panel-title); }
+.cmp-raw-copy.is-copied { color: #10b981; }
+.cmp-raw-copy i,
+.cmp-raw-copy svg { width: 13px; height: 13px; }
+
+/* Code-editor surface so the bright token colours read on both themes. */
+.cmp-raw {
+    margin: 0;
+    padding: 14px;
+    background: #0f172a;
+    border: 1px solid rgba(148, 163, 184, 0.18);
+    border-radius: 10px;
+    font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+    font-size: 11.5px;
+    line-height: 1.55;
+    color: #cbd5e1;
+    white-space: pre-wrap;
+    word-break: break-word;
+    overflow-x: auto;
+}
+.cmp-raw-key { color: #38bdf8; }
+.cmp-raw-str { color: #34d399; }
+.cmp-raw-bool { color: #fbbf24; }
+.cmp-raw-null { color: #f87171; }
+.cmp-raw-num { color: #fdba74; }
+.cmp-raw-punct { color: #64748b; }
+
 /* ---------- sections ---------- */
 .cmp-section {
     padding: 16px 22px;
@@ -720,11 +821,19 @@ body.cmp-shifted .basemap-selector {
 
     .cmp-filters,
     .cmp-close,
+    .cmp-raw-toggle,
+    .cmp-raw-wrap,
     .cmp-grab,
     .cmp-track-slot,
     .cmp-card-pc,
     .cmp-massing {
         display: none !important;
+    }
+
+    /* Always print the normal report body, even if the raw view was left open. */
+    .cmp[data-raw="true"] .cmp-target-wrap,
+    .cmp[data-raw="true"] .cmp-list-wrap {
+        display: block !important;
     }
 
     .cmp-card,
