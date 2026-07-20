@@ -82,10 +82,18 @@ export function createComparisonSidebar({ map, onClose, onFlyTo, onSelectCompara
     let sizeTo = null;
     let sortBy = 'similarity';
     let fetchSeq = 0;
+    // Developer "{}" raw-JSON view state — mirrors groove's InfoPanel showRaw.
+    let showRaw = false;
+    let rawCopyTimer = null;
 
     const els = {
         grab: aside.querySelector('.cmp-grab'),
         closeBtn: aside.querySelector('.cmp-close'),
+        rawToggle: aside.querySelector('.cmp-raw-toggle'),
+        rawTitle: aside.querySelector('.cmp-raw-title'),
+        rawCopy: aside.querySelector('.cmp-raw-copy'),
+        rawCopyLabel: aside.querySelector('.cmp-raw-copy-label'),
+        rawPre: aside.querySelector('.cmp-raw'),
         targetSection: aside.querySelector('.cmp-target'),
         targetEmpty: aside.querySelector('.cmp-target-empty'),
         massing: aside.querySelector('.cmp-massing'),
@@ -169,6 +177,30 @@ export function createComparisonSidebar({ map, onClose, onFlyTo, onSelectCompara
         renderList();
     });
 
+    // "{}" toggle — flip the panel into the raw-JSON developer view (and back).
+    // Inert while there's no data to serialize.
+    els.rawToggle.addEventListener('click', () => {
+        if (!currentData) return;
+        setRaw(!showRaw);
+    });
+
+    // Copy the pretty-printed JSON to the clipboard, flashing "Copied" for ~1.5s.
+    els.rawCopy.addEventListener('click', async () => {
+        const text = safeStringify(currentData);
+        try {
+            await navigator.clipboard?.writeText(text);
+        } catch {
+            return;
+        }
+        els.rawCopy.classList.add('is-copied');
+        els.rawCopyLabel.textContent = t('comparison.copied');
+        if (rawCopyTimer) clearTimeout(rawCopyTimer);
+        rawCopyTimer = setTimeout(() => {
+            els.rawCopy.classList.remove('is-copied');
+            els.rawCopyLabel.textContent = t('comparison.copy');
+        }, 1500);
+    });
+
     function show(egrid, address, geometry, lngLat) {
         if (!egrid) return;
         // New parcel → drop the previous parcel's data so the next load shows a
@@ -199,6 +231,8 @@ export function createComparisonSidebar({ map, onClose, onFlyTo, onSelectCompara
         currentData = null;
         currentGeometry = null;
         currentLngLat = null;
+        // Data is gone — disable the "{}" toggle and drop back to the normal body.
+        syncRawAvailability();
         // Drop the Track button's parcel binding so a stale tracked-state can't
         // flash when the next parcel opens.
         saveParcel.setParcel(null);
@@ -270,6 +304,10 @@ export function createComparisonSidebar({ map, onClose, onFlyTo, onSelectCompara
             // estimate is sized off the true parcel size.
             renderMassing();
             setStatus(data?.comparables?.length ? 'ready' : 'empty');
+            // Enable the "{}" toggle now that there's data; keep the raw view in
+            // sync if it's already open (e.g. a slider refetch of the same parcel).
+            syncRawAvailability();
+            if (showRaw) renderRaw();
             if (typeof onDataLoaded === 'function') onDataLoaded(data);
         } catch (err) {
             if (seq !== fetchSeq) return;
@@ -638,12 +676,46 @@ export function createComparisonSidebar({ map, onClose, onFlyTo, onSelectCompara
         `;
     }
 
+    // --- Raw-JSON developer view ---------------------------------------------
+    //
+    // Flip between the normal comparison body and a syntax-highlighted dump of
+    // the full /api/similoo response ({ target, comparables, meta }). Which one
+    // shows is driven entirely by the `data-raw` attribute on the aside (CSS
+    // hides the body sections and reveals `.cmp-raw-wrap` when it is "true"), so
+    // the normal body renders unchanged whenever showRaw is false.
+    function setRaw(on) {
+        showRaw = !!on && !!currentData;
+        els.rawToggle.setAttribute('aria-pressed', showRaw ? 'true' : 'false');
+        aside.setAttribute('data-raw', showRaw ? 'true' : 'false');
+        if (showRaw) renderRaw();
+    }
+
+    function renderRaw() {
+        if (!els.rawPre) return;
+        els.rawPre.innerHTML = highlightJson(currentData);
+    }
+
+    // Enable the "{}" toggle only when there's data to serialize; drop back to
+    // the normal body if the data went away while the raw view was open.
+    function syncRawAvailability() {
+        const has = !!currentData;
+        els.rawToggle.disabled = !has;
+        if (!has && showRaw) setRaw(false);
+    }
+
     function relabel() {
         // Re-render every translatable string when the locale flips.
         aside.setAttribute('aria-label', t('comparison.title'));
         aside.querySelector('.cmp-eyebrow').textContent = t('comparison.eyebrow');
         aside.querySelector('.cmp-title').textContent = t('comparison.title');
         aside.querySelector('.cmp-close').setAttribute('aria-label', t('comparison.close'));
+        els.rawToggle.setAttribute('title', t('comparison.toggle_raw_json'));
+        els.rawToggle.setAttribute('aria-label', t('comparison.toggle_raw_json'));
+        els.rawTitle.textContent = t('comparison.raw_json');
+        // Don't clobber a mid-flash "Copied" label when the locale flips.
+        if (!els.rawCopy.classList.contains('is-copied')) {
+            els.rawCopyLabel.textContent = t('comparison.copy');
+        }
         aside.querySelector('.cmp-filters-title').textContent = t('comparison.filters_title');
         aside.querySelector('.cmp-years-label').textContent = t('comparison.years_window');
         aside.querySelector('.cmp-size-label').textContent = t('comparison.parcel_size_range');
@@ -712,10 +784,30 @@ function buildShell() {
         <header class="cmp-header">
             <div class="cmp-eyebrow"></div>
             <h2 class="cmp-title"></h2>
+            <button class="cmp-raw-toggle" type="button" aria-pressed="false" disabled>
+                <i data-lucide="braces"></i>
+            </button>
             <button class="cmp-close" type="button" aria-label="Close">
                 <i data-lucide="x"></i>
             </button>
         </header>
+
+        <!-- Developer "{}" raw-JSON view. Replaces the normal panel body when the
+             header toggle is on; renders the full /api/similoo response (target +
+             comparables + meta) as syntax-highlighted JSON. Hidden by default and
+             collapsed via CSS unless the panel carries data-raw="true". Note the
+             payload is often the deterministic MOCK (meta.source === "mock") until
+             the RES /score/similoo backend is live. -->
+        <section class="cmp-section cmp-raw-wrap">
+            <div class="cmp-raw-head">
+                <span class="cmp-raw-title"></span>
+                <button class="cmp-raw-copy" type="button">
+                    <i data-lucide="copy"></i>
+                    <span class="cmp-raw-copy-label"></span>
+                </button>
+            </div>
+            <pre class="cmp-raw"></pre>
+        </section>
 
         <section class="cmp-section cmp-target-wrap">
             <div class="cmp-target"></div>
@@ -830,4 +922,45 @@ function escapeHtml(str) {
         .replace(/>/g, '&gt;')
         .replace(/"/g, '&quot;')
         .replace(/'/g, '&#39;');
+}
+
+// Pretty-print any value to JSON, falling back to String() if it can't be
+// serialized (e.g. a cyclic structure) so the copy/raw view never throws.
+function safeStringify(value) {
+    try {
+        const json = JSON.stringify(value, null, 2);
+        return json === undefined ? String(value) : json;
+    } catch {
+        return String(value);
+    }
+}
+
+// Colourise a JSON dump for the "{}" raw view, mirroring groove's JsonHighlight:
+// keys sky, strings emerald, booleans amber, null red, numbers orange, the rest
+// muted. Each token is HTML-escaped before it goes into the span so the result
+// is safe to assign via innerHTML.
+function highlightJson(value) {
+    const json = safeStringify(value);
+    const tokenRe = /("(?:[^"\\]|\\.)*"(?:\s*:)?|\b(?:true|false|null)\b|-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?)/g;
+    let out = '';
+    let lastIndex = 0;
+    let match;
+    while ((match = tokenRe.exec(json)) !== null) {
+        if (match.index > lastIndex) {
+            out += `<span class="cmp-raw-punct">${escapeHtml(json.slice(lastIndex, match.index))}</span>`;
+        }
+        const token = match[0];
+        let cls;
+        if (/^"[^"]*"\s*:$/.test(token)) cls = 'cmp-raw-key';
+        else if (/^"/.test(token)) cls = 'cmp-raw-str';
+        else if (/^(true|false)$/.test(token)) cls = 'cmp-raw-bool';
+        else if (/^null$/.test(token)) cls = 'cmp-raw-null';
+        else cls = 'cmp-raw-num';
+        out += `<span class="${cls}">${escapeHtml(token)}</span>`;
+        lastIndex = match.index + token.length;
+    }
+    if (lastIndex < json.length) {
+        out += `<span class="cmp-raw-punct">${escapeHtml(json.slice(lastIndex))}</span>`;
+    }
+    return out;
 }

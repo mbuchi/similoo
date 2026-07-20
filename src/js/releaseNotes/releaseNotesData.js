@@ -41,6 +41,20 @@ export const KIND_META = {
 
 export const RELEASES = [
   {
+    version: '0.27.7',
+    date: 'July 20, 2026',
+    codename: 'Peek at the data',
+    summary: 'A "{}" button in the comparison panel header reveals the raw data behind the results.',
+    items: [
+      {
+        kind: 'new',
+        icon: 'braces',
+        text: 'Added a "{}" toggle to the Comparable Buildings panel header, next to the close button. It swaps the panel body for a syntax-highlighted, copyable dump of the raw data behind the comparison (the target parcel, every comparable, and the query metadata), then swaps back when you turn it off. Handy for spotting exactly which figures drove a match. The tag under the list still tells you whether you are looking at live or demo data.',
+        prs: [],
+      },
+    ],
+  },
+  {
     version: '0.27.6',
     date: 'July 19, 2026',
     codename: 'Coordinates CAD can use',
