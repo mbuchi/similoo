@@ -1,6 +1,11 @@
 import { createElement } from 'react';
 import { createRoot } from 'react-dom/client';
-import { BuildableMassingSection } from '@aireon/shared';
+import {
+    BuildableMassingSection,
+    ParcelOpenInMenu,
+    aerialThumbnailZoom,
+    buildSwisstopoAerialUrl,
+} from '@aireon/shared';
 import { t, onLocaleChange, getLocale } from '../i18n.js';
 import { fetchSimilooComparables } from '../api/similoo.js';
 import { createSaveParcelButton } from './saveParcelButton.js';
@@ -27,13 +32,19 @@ const DEBOUNCE_MS = 250;
 const SORT_KEYS = ['similarity', 'ratioV', 'size', 'year'];
 
 // Inline lucide SVGs matching the shared <ParcelIdentityHeader> (MapPin 11px for
-// the subtitle, Copy/Check 13px for the EGRID chip). Inlined because this
+// the subtitle, Copy/Check 13px for the identifier chips). Inlined because this
 // imperative card builds its DOM via innerHTML rather than the React icon
 // components; the markup + `.aireon-pih-*` classes are otherwise identical to
 // the shared component so the header renders the same across the suite.
 const PIN_SVG = '<svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/></svg>';
-const COPY_SVG = '<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="aireon-pih-egrid-icon" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>';
-const CHECK_SVG = '<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="aireon-pih-egrid-icon" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>';
+const COPY_SVG = '<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="cmp-id-chip-icon" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>';
+const CHECK_SVG = '<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="cmp-id-chip-icon" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>';
+
+// Aerial thumbnail rendered size (CSS px) — matches the shared
+// <ParcelAerialThumbnail> default the ParcelPanelShell apps use, so the
+// compact header reads the same across the suite. The WMS request doubles it
+// for retina (buildSwisstopoAerialUrl does that internally).
+const AERIAL_SIZE_PX = 88;
 
 // One placeholder comparable card (mirrors `cmp-card`), shown while the first
 // fetch for a parcel is in flight. Suite standard: a skeleton, never a spinner.
@@ -77,6 +88,7 @@ export function createComparisonSidebar({ map, onClose, onFlyTo, onSelectCompara
     let currentLngLat = null;
     let massingRoot = null;
     let massingThemeObserver = null;
+    let footerRoot = null;
     let years = DEFAULT_YEARS;
     let sizeFrom = null;
     let sizeTo = null;
@@ -105,6 +117,7 @@ export function createComparisonSidebar({ map, onClose, onFlyTo, onSelectCompara
         list: aside.querySelector('.cmp-list'),
         status: aside.querySelector('.cmp-status'),
         meta: aside.querySelector('.cmp-meta'),
+        footer: aside.querySelector('.cmp-footer'),
     };
 
     els.closeBtn.addEventListener('click', () => {
@@ -219,6 +232,8 @@ export function createComparisonSidebar({ map, onClose, onFlyTo, onSelectCompara
         // Paint the massing panel straight away off the geometry (real parcel-area
         // fills in once /score/similoo resolves — see loadFor).
         renderMassing();
+        // The phone footer's "Open in" hand-off follows the picked point.
+        renderFooter();
         loadFor(egrid);
     }
 
@@ -239,7 +254,39 @@ export function createComparisonSidebar({ map, onClose, onFlyTo, onSelectCompara
         // Tear the massing preview down (drops its RES fetch + 3D scene) so the
         // next parcel starts clean.
         renderMassing();
+        // Coordinates are gone → the footer "Open in" empties out (CSS collapses
+        // the empty slot entirely).
+        renderFooter();
         onUnhoverComparable?.();
+    }
+
+    // --- Mobile footer: full-width "Open in" hand-off (shared React menu) -----
+    //
+    // similoo has no Claire assistant, so the Aireon mobile data-card footer is
+    // the single full-width "Open in" row (no 85/15 split). The shared drop-up
+    // is a React component; like the massing simulator it mounts imperatively
+    // into a stable `.cmp-footer` slot via its own lazily created root. With no
+    // coordinates it renders nothing and the slot collapses via CSS. Desktop
+    // keeps the footer hidden entirely (comparison.css shows it only inside the
+    // phone media block).
+    function renderFooter() {
+        if (!els.footer) return;
+        if (!footerRoot) footerRoot = createRoot(els.footer);
+        const lng = Array.isArray(currentLngLat) ? Number(currentLngLat[0]) : null;
+        const lat = Array.isArray(currentLngLat) ? Number(currentLngLat[1]) : null;
+        const hasCoords = Number.isFinite(lat) && Number.isFinite(lng);
+        footerRoot.render(
+            hasCoords
+                ? createElement(ParcelOpenInMenu, {
+                    lat,
+                    lng,
+                    label: t('comparison.open_in'),
+                    darkMode: document.documentElement.classList.contains('dark'),
+                    currentAppId: 'similoo',
+                    fullWidth: true,
+                })
+                : null,
+        );
     }
 
     // --- Buildable-massing simulator (shared React component) ----------------
@@ -273,12 +320,16 @@ export function createComparisonSidebar({ map, onClose, onFlyTo, onSelectCompara
     }
 
     // The app theme is React-controlled (App.tsx flips both `.dark` and
-    // `data-theme` on <html>); re-render the massing preview when it changes so
-    // its palette follows live — the same MutationObserver pattern the detail
-    // modal uses. Created once, on first render.
+    // `data-theme` on <html>); re-render the massing preview AND the footer
+    // "Open in" menu when it changes so their palettes follow live — the same
+    // MutationObserver pattern the detail modal uses. Created once, on first
+    // render.
     function watchMassingTheme() {
         if (massingThemeObserver) return;
-        massingThemeObserver = new MutationObserver(() => renderMassing());
+        massingThemeObserver = new MutationObserver(() => {
+            renderMassing();
+            renderFooter();
+        });
         massingThemeObserver.observe(document.documentElement, {
             attributes: true,
             attributeFilter: ['class', 'data-theme'],
@@ -348,13 +399,16 @@ export function createComparisonSidebar({ map, onClose, onFlyTo, onSelectCompara
         els.targetEmpty.hidden = true;
         els.targetSection.hidden = false;
         els.targetSection.innerHTML = `
-            <div class="cmp-target-head">
-                <div class="skeleton" style="height:64px;width:96px;border-radius:14px;"></div>
+            <div class="cmp-idh-row" style="margin-bottom:10px;">
+                <div class="skeleton" style="height:${AERIAL_SIZE_PX}px;width:${AERIAL_SIZE_PX}px;border-radius:8px;flex:none;"></div>
                 <div class="cmp-target-meta">
-                    <div class="skeleton" style="height:12px;width:85%;"></div>
-                    <div class="skeleton" style="height:12px;width:68%;"></div>
-                    <div class="skeleton" style="height:12px;width:78%;"></div>
+                    <div class="skeleton" style="height:14px;width:85%;"></div>
+                    <div class="skeleton" style="height:12px;width:60%;"></div>
                 </div>
+            </div>
+            <div class="cmp-id-grid" style="margin-bottom:12px;">
+                <div class="skeleton" style="height:44px;border-radius:6px;"></div>
+                <div class="skeleton" style="height:44px;border-radius:6px;"></div>
             </div>
             <div class="cmp-target-grid">
                 ${'<div class="skeleton" style="height:42px;border-radius:8px;"></div>'.repeat(6)}
@@ -428,14 +482,17 @@ export function createComparisonSidebar({ map, onClose, onFlyTo, onSelectCompara
         });
     }
 
-    // Suite-standard parcel identity header (mirrors the shared
-    // @aireon/shared <ParcelIdentityHeader>, reusing its shipped `.aireon-pih-*`
-    // classes from map-ui.css). Titles the subject card with the searched
-    // address (falling back to the municipality, then a localized "Selected
-    // parcel"), shows the municipality as the muted subtitle, and renders the
-    // EGRID as a monospace chip that copies itself to the clipboard on click.
-    // similoo's engine themes off [data-theme="dark"], which the shipped
-    // `.aireon-pih-*` rules already target, so no --dark flag is needed here.
+    // Suite-standard compact parcel identity header (Aireon mobile data-card
+    // standard; mirrors the shared <ParcelPanelShell> compact header, reusing
+    // its shipped `.aireon-pih-*` title/subtitle classes from map-ui.css).
+    // Layout: a small swisstopo aerial thumbnail at the very top-left, the
+    // searched address as the title (falling back to the municipality, then a
+    // localized "Selected parcel" — title text only, never a badge) with the
+    // municipality as the muted subtitle beside it, then the two half/half
+    // copyable identifier pills (EGRID + Lat/Lng) on their own row. A pill
+    // alone spans the full row. similoo's engine themes off
+    // [data-theme="dark"], which both the shipped `.aireon-pih-*` rules and
+    // the local `.cmp-id-chip` rules target, so no --dark flag is needed here.
     function identityHeaderHtml(egrid) {
         const target = currentData?.target;
         const municipality = target?.municipality || null;
@@ -444,59 +501,82 @@ export function createComparisonSidebar({ map, onClose, onFlyTo, onSelectCompara
         // the title (i.e. we have a real searched address up top) — otherwise it
         // would just repeat the title line.
         const subtitle = currentAddress && municipality ? municipality : null;
-        const copyLabel = t('comparison.copy_egrid');
+        const copyEgridLabel = t('comparison.copy_egrid');
+        const copyLatLngLabel = t('comparison.copy_latlng');
+        const lng = Array.isArray(currentLngLat) ? Number(currentLngLat[0]) : null;
+        const lat = Array.isArray(currentLngLat) ? Number(currentLngLat[1]) : null;
+        const hasCoords = Number.isFinite(lat) && Number.isFinite(lng);
+        const latLngText = hasCoords ? `${lat.toFixed(6)}, ${lng.toFixed(6)}` : null;
+        const areaM2 = Number.isFinite(target?.parcel_area_m2) ? target.parcel_area_m2 : null;
+        const aerialUrl = hasCoords
+            ? buildSwisstopoAerialUrl(lng, lat, aerialThumbnailZoom(areaM2, lat, AERIAL_SIZE_PX), AERIAL_SIZE_PX)
+            : null;
+        const egridChip = egrid ? `
+                    <button type="button" class="cmp-id-chip${latLngText ? '' : ' cmp-id-chip--full'}" data-copy="${escapeHtml(egrid)}" title="${escapeHtml(copyEgridLabel)}" aria-label="${escapeHtml(copyEgridLabel)}">
+                        <span class="cmp-id-chip-label" aria-hidden="true">EGRID</span>
+                        <span class="cmp-id-chip-value">${escapeHtml(egrid)}</span>
+                        ${COPY_SVG}
+                    </button>` : '';
+        const latLngChip = latLngText ? `
+                    <button type="button" class="cmp-id-chip${egrid ? '' : ' cmp-id-chip--full'}" data-copy="${escapeHtml(latLngText)}" title="${escapeHtml(copyLatLngLabel)}" aria-label="${escapeHtml(copyLatLngLabel)}">
+                        <span class="cmp-id-chip-label" aria-hidden="true">Lat/Lng</span>
+                        <span class="cmp-id-chip-value">${escapeHtml(latLngText)}</span>
+                        ${COPY_SVG}
+                    </button>` : '';
         return `
             <div class="aireon-pih cmp-target-identity">
-                <div class="aireon-pih-main">
-                    <h2 class="aireon-pih-title">${escapeHtml(title)}</h2>
-                    ${subtitle ? `
-                    <p class="aireon-pih-subtitle">
-                        ${PIN_SVG}
-                        <span class="aireon-pih-subtitle-text">${escapeHtml(subtitle)}</span>
-                    </p>` : ''}
-                    ${egrid ? `
-                    <button type="button" class="aireon-pih-egrid" data-egrid="${escapeHtml(egrid)}" title="${escapeHtml(copyLabel)}" aria-label="${escapeHtml(copyLabel)}">
-                        <span class="aireon-pih-egrid-eyebrow" aria-hidden="true">EGRID</span>
-                        <span class="aireon-pih-egrid-value">${escapeHtml(egrid)}</span>
-                        ${COPY_SVG}
-                    </button>
-                    <span role="status" aria-live="polite" class="sr-only"></span>` : ''}
-                    <div class="cmp-track-slot"></div>
+                <div class="cmp-idh-row">
+                    ${aerialUrl ? `<img class="cmp-idh-aerial" src="${escapeHtml(aerialUrl)}" alt="${escapeHtml(t('comparison.aerial_alt'))}" width="${AERIAL_SIZE_PX}" height="${AERIAL_SIZE_PX}" loading="lazy" decoding="async" />` : ''}
+                    <div class="aireon-pih-main">
+                        <h2 class="aireon-pih-title">${escapeHtml(title)}</h2>
+                        ${subtitle ? `
+                        <p class="aireon-pih-subtitle">
+                            ${PIN_SVG}
+                            <span class="aireon-pih-subtitle-text">${escapeHtml(subtitle)}</span>
+                        </p>` : ''}
+                    </div>
                 </div>
+                ${(egridChip || latLngChip) ? `
+                <div class="cmp-id-grid">${egridChip}${latLngChip}</div>
+                <span role="status" aria-live="polite" class="sr-only"></span>` : ''}
+                <div class="cmp-track-slot"></div>
             </div>
         `;
     }
 
-    // Wire the copy-to-clipboard chip after each renderTarget(). Mirrors the
-    // shared component's behavior: copy the EGRID, swap the label + icon to
-    // "Copied" for ~1.5s, announce it politely, then revert.
+    // Wire the copy-to-clipboard identifier pills after each renderTarget().
+    // Mirrors the shared component's behavior: copy the chip's value (EGRID or
+    // "lat, lng"), swap the value + icon to "Copied" for ~1.5s, announce it
+    // politely, then revert via a full header re-render.
     let copyTimer = null;
     function bindIdentityHeader() {
-        const chip = els.targetSection.querySelector('.aireon-pih-egrid');
-        if (!chip) return;
+        const chips = els.targetSection.querySelectorAll('.cmp-id-chip');
+        if (!chips.length) return;
         const status = els.targetSection.querySelector('.aireon-pih [role="status"]');
-        chip.addEventListener('click', async () => {
-            const egrid = chip.dataset.egrid;
-            if (!egrid) return;
-            try {
-                await navigator.clipboard?.writeText(egrid);
-            } catch {
-                return;
-            }
-            const copiedLabel = t('comparison.copied');
-            const valueEl = chip.querySelector('.aireon-pih-egrid-value');
-            const iconEl = chip.querySelector('.aireon-pih-egrid-icon');
-            chip.classList.add('aireon-pih-egrid--copied');
-            if (valueEl) valueEl.textContent = copiedLabel;
-            if (iconEl) iconEl.outerHTML = CHECK_SVG;
-            chip.title = copiedLabel;
-            chip.setAttribute('aria-label', copiedLabel);
-            if (status) status.textContent = copiedLabel;
-            if (copyTimer) clearTimeout(copyTimer);
-            copyTimer = setTimeout(() => {
-                // Re-render the header to restore the idle EGRID/icon state.
-                if (els.targetSection && currentData) renderTarget();
-            }, 1500);
+        chips.forEach((chip) => {
+            chip.addEventListener('click', async () => {
+                const text = chip.dataset.copy;
+                if (!text) return;
+                try {
+                    await navigator.clipboard?.writeText(text);
+                } catch {
+                    return;
+                }
+                const copiedLabel = t('comparison.copied');
+                const valueEl = chip.querySelector('.cmp-id-chip-value');
+                const iconEl = chip.querySelector('.cmp-id-chip-icon');
+                chip.classList.add('cmp-id-chip--copied');
+                if (valueEl) valueEl.textContent = copiedLabel;
+                if (iconEl) iconEl.outerHTML = CHECK_SVG;
+                chip.title = copiedLabel;
+                chip.setAttribute('aria-label', copiedLabel);
+                if (status) status.textContent = copiedLabel;
+                if (copyTimer) clearTimeout(copyTimer);
+                copyTimer = setTimeout(() => {
+                    // Re-render the header to restore the idle value/icon state.
+                    if (els.targetSection && currentData) renderTarget();
+                }, 1500);
+            });
         });
     }
 
@@ -706,7 +786,6 @@ export function createComparisonSidebar({ map, onClose, onFlyTo, onSelectCompara
     function relabel() {
         // Re-render every translatable string when the locale flips.
         aside.setAttribute('aria-label', t('comparison.title'));
-        aside.querySelector('.cmp-eyebrow').textContent = t('comparison.eyebrow');
         aside.querySelector('.cmp-title').textContent = t('comparison.title');
         aside.querySelector('.cmp-close').setAttribute('aria-label', t('comparison.close'));
         els.rawToggle.setAttribute('title', t('comparison.toggle_raw_json'));
@@ -736,6 +815,8 @@ export function createComparisonSidebar({ map, onClose, onFlyTo, onSelectCompara
         renderMeta();
         // Re-render the massing panel so its localized labels flip with the app.
         renderMassing();
+        // Same for the footer "Open in" trigger label.
+        renderFooter();
         if (els.status.dataset.state) setStatus(els.status.dataset.state);
     }
 
@@ -746,12 +827,19 @@ export function createComparisonSidebar({ map, onClose, onFlyTo, onSelectCompara
         onUnhoverComparable?.();
         massingThemeObserver?.disconnect();
         massingThemeObserver = null;
-        // Unmount the React root asynchronously — unmounting synchronously from
+        // Unmount the React roots asynchronously — unmounting synchronously from
         // within another render pass trips a React warning; the container node
-        // ref survives the aside.remove() below.
+        // refs survive the aside.remove() below.
         if (massingRoot) {
             const root = massingRoot;
             massingRoot = null;
+            setTimeout(() => {
+                try { root.unmount(); } catch { /* already gone */ }
+            }, 0);
+        }
+        if (footerRoot) {
+            const root = footerRoot;
+            footerRoot = null;
             setTimeout(() => {
                 try { root.unmount(); } catch { /* already gone */ }
             }, 0);
@@ -782,7 +870,6 @@ function buildShell() {
     aside.innerHTML = `
         <div class="cmp-grab" aria-hidden="true"><span class="cmp-grab-bar"></span></div>
         <header class="cmp-header">
-            <div class="cmp-eyebrow"></div>
             <h2 class="cmp-title"></h2>
             <button class="cmp-raw-toggle" type="button" aria-pressed="false" disabled>
                 <i data-lucide="braces"></i>
@@ -863,6 +950,13 @@ function buildShell() {
             <div class="cmp-list"></div>
             <div class="cmp-meta"></div>
         </section>
+
+        <!-- Phone footer (Aireon mobile data-card standard): the shared
+             "Open in" drop-up mounts here via React (see renderFooter). similoo
+             has no Claire assistant, so this is the single full-width variant.
+             Kept empty (and collapsed by CSS) on desktop and while no parcel
+             coordinates are loaded. -->
+        <div class="cmp-footer"></div>
     `;
     return aside;
 }

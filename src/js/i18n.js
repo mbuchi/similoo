@@ -305,7 +305,6 @@ const translations = {
     'building.label_school': 'School',
 
     // ---------- comparison sidebar ----------
-    'comparison.eyebrow': 'Target parcel',
     'comparison.title': 'Comparable buildings',
     'comparison.close': 'Close comparison',
     'comparison.target_empty': 'Select a building on the map to load comparables.',
@@ -314,6 +313,9 @@ const translations = {
     'comparison.metric_egrid': 'EGRID',
     'comparison.identity_fallback_title': 'Selected parcel',
     'comparison.copy_egrid': 'Copy EGRID',
+    'comparison.copy_latlng': 'Copy coordinates',
+    'comparison.aerial_alt': 'Aerial view of the parcel',
+    'comparison.open_in': 'Open in',
     'comparison.copied': 'Copied',
     'comparison.toggle_raw_json': 'Toggle raw JSON',
     'comparison.raw_json': 'Raw JSON',
@@ -749,7 +751,6 @@ const translations = {
     'building.label_school': 'École',
 
     // ---------- comparison sidebar ----------
-    'comparison.eyebrow': 'Parcelle cible',
     'comparison.title': 'Bâtiments comparables',
     'comparison.close': 'Fermer la comparaison',
     'comparison.target_empty': 'Sélectionnez un bâtiment sur la carte pour charger les comparables.',
@@ -758,6 +759,9 @@ const translations = {
     'comparison.metric_egrid': 'EGRID',
     'comparison.identity_fallback_title': 'Parcelle sélectionnée',
     'comparison.copy_egrid': "Copier l'EGRID",
+    'comparison.copy_latlng': 'Copier les coordonnées',
+    'comparison.aerial_alt': 'Vue aérienne de la parcelle',
+    'comparison.open_in': 'Ouvrir dans',
     'comparison.copied': 'Copié',
     'comparison.toggle_raw_json': 'Afficher/masquer le JSON brut',
     'comparison.raw_json': 'JSON brut',
@@ -1190,7 +1194,6 @@ const translations = {
     'building.label_school': 'Schule',
 
     // ---------- comparison sidebar ----------
-    'comparison.eyebrow': 'Zielparzelle',
     'comparison.title': 'Vergleichbare Gebäude',
     'comparison.close': 'Vergleich schliessen',
     'comparison.target_empty': 'Wählen Sie ein Gebäude auf der Karte, um Vergleichbare zu laden.',
@@ -1199,6 +1202,9 @@ const translations = {
     'comparison.metric_egrid': 'EGRID',
     'comparison.identity_fallback_title': 'Ausgewählte Parzelle',
     'comparison.copy_egrid': 'EGRID kopieren',
+    'comparison.copy_latlng': 'Koordinaten kopieren',
+    'comparison.aerial_alt': 'Luftbild der Parzelle',
+    'comparison.open_in': 'Öffnen in',
     'comparison.copied': 'Kopiert',
     'comparison.toggle_raw_json': 'Rohes JSON ein-/ausblenden',
     'comparison.raw_json': 'Rohes JSON',
@@ -1630,7 +1636,6 @@ const translations = {
     'building.label_school': 'Scuola',
 
     // ---------- comparison sidebar ----------
-    'comparison.eyebrow': 'Particella di riferimento',
     'comparison.title': 'Edifici comparabili',
     'comparison.close': 'Chiudi confronto',
     'comparison.target_empty': 'Seleziona un edificio sulla mappa per caricare i comparabili.',
@@ -1639,6 +1644,9 @@ const translations = {
     'comparison.metric_egrid': 'EGRID',
     'comparison.identity_fallback_title': 'Particella selezionata',
     'comparison.copy_egrid': "Copia l'EGRID",
+    'comparison.copy_latlng': 'Copia le coordinate',
+    'comparison.aerial_alt': 'Vista aerea della particella',
+    'comparison.open_in': 'Apri in',
     'comparison.copied': 'Copiato',
     'comparison.toggle_raw_json': 'Mostra/nascondi JSON grezzo',
     'comparison.raw_json': 'JSON grezzo',

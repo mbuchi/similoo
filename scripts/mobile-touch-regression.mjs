@@ -43,7 +43,7 @@ expectDeclarations('.cmp-massing-inner [role="switch"]', {
   width: '44px',
   height: '44px',
 });
-expectDeclarations('.cmp-target-identity .aireon-pih-egrid', {
+expectDeclarations('.cmp-id-chip', {
   'min-height': '44px',
 });
 expectDeclarations('.cmp-track', {

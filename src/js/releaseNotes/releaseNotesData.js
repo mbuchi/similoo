@@ -41,6 +41,38 @@ export const KIND_META = {
 
 export const RELEASES = [
   {
+    version: '0.28.0',
+    date: 'July 21, 2026',
+    codename: 'Card carrying',
+    summary: 'The comparison panel adopts the suite mobile data-card look: aerial photo header, copyable EGRID and Lat/Lng pills, and an "Open in" shortcut on phones.',
+    items: [
+      {
+        kind: 'new',
+        icon: 'image',
+        text: 'The target parcel now leads with a compact identity header: a small swisstopo aerial photo of the parcel sits beside the address and municipality at the top of the panel, so you can confirm you are looking at the right plot at a glance.',
+        prs: [],
+      },
+      {
+        kind: 'new',
+        icon: 'copy',
+        text: 'The EGRID chip has a new companion: a Lat/Lng pill with the picked point\'s WGS84 coordinates. The two sit side by side as half-width pills, and tapping either one copies its value to the clipboard.',
+        prs: [],
+      },
+      {
+        kind: 'new',
+        icon: 'external-link',
+        text: 'On phones an "Open in" launcher now sits at the end of the comparison details: scroll to the bottom of the sheet to hand the selected parcel off to another Aireon map app at the same spot, matching the suite-wide mobile card layout.',
+        prs: [],
+      },
+      {
+        kind: 'improved',
+        icon: 'layout',
+        text: 'Removed the redundant "Target parcel" label above the panel title. The header now goes straight to the point, in line with the rest of the suite.',
+        prs: [],
+      },
+    ],
+  },
+  {
     version: '0.27.7',
     date: 'July 20, 2026',
     codename: 'Peek at the data',

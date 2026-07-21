@@ -41,14 +41,6 @@
     padding: 18px 22px 14px;
     border-bottom: 1px solid var(--hood-panel-border);
 }
-.cmp-eyebrow {
-    font-size: 12px;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: var(--hood-panel-source);
-    font-weight: 600;
-    margin-bottom: 4px;
-}
 .cmp-title {
     margin: 0;
     font-size: 18px;
@@ -394,8 +386,99 @@
     margin-bottom: 12px;
     border-bottom: 1px solid var(--hood-panel-border);
 }
-.cmp-target-identity .aireon-pih-egrid {
+/* The shared .aireon-pih base is a flex ROW (title beside actions); this
+   compact header stacks three rows (aerial+title, pill grid, Track), so flow
+   them as blocks instead. Compound selector because map-ui.css loads AFTER
+   this file (main.tsx import order) and would win a same-specificity tie. */
+.aireon-pih.cmp-target-identity {
+    display: block;
+}
+/* Compact-header top row: small swisstopo aerial thumbnail beside the
+   title/subtitle block (Aireon mobile data-card standard; mirrors the shared
+   ParcelPanelShell header, aerial 88px rounded square). */
+.cmp-idh-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+}
+.cmp-idh-aerial {
+    width: 88px;
+    height: 88px;
+    flex: none;
+    object-fit: cover;
+    border-radius: 8px;
+    border: 1px solid var(--hood-panel-border);
+    background: var(--hood-panel-row-bg);
+}
+/* Identifier pills: two half/half copyable chips (EGRID + Lat/Lng) on one row;
+   a chip alone spans the full row. Colors replicate the shared shell's pill
+   row (white/ring-slate-200 chips in light, black/25 in dark). */
+.cmp-id-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-top: 10px;
+}
+.cmp-id-chip {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
     min-height: 44px;
+    padding: 6px 10px;
+    border-radius: 6px;
+    border: 1px solid #e2e8f0;
+    background: #ffffff;
+    color: #334155;
+    font-family: var(--hood-font);
+    text-align: left;
+    cursor: pointer;
+    transition: border-color 150ms ease, background-color 150ms ease;
+}
+.cmp-id-chip:hover,
+.cmp-id-chip:focus-visible {
+    border-color: var(--hood-red);
+    outline: none;
+}
+[data-theme="dark"] .cmp-id-chip {
+    border-color: transparent;
+    background: rgba(0, 0, 0, 0.25);
+    color: #cbd5e1;
+}
+[data-theme="dark"] .cmp-id-chip:hover,
+[data-theme="dark"] .cmp-id-chip:focus-visible {
+    border-color: var(--hood-red);
+}
+.cmp-id-chip--full {
+    grid-column: 1 / -1;
+}
+.cmp-id-chip-label {
+    flex-shrink: 0;
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #64748b;
+}
+[data-theme="dark"] .cmp-id-chip-label {
+    color: #94a3b8;
+}
+.cmp-id-chip-value {
+    min-width: 0;
+    flex: 1;
+    word-break: break-all;
+    font-family: var(--hood-mono);
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 1.25;
+}
+.cmp-id-chip-icon {
+    flex: none;
+    color: #94a3b8;
+}
+.cmp-id-chip--copied .cmp-id-chip-value,
+.cmp-id-chip--copied .cmp-id-chip-icon {
+    color: #10b981;
 }
 /* "Track" (save to PRM) toggle under the EGRID chip. Quiet bordered pill in
    its idle state; flips to the brand red treatment once the parcel is tracked
@@ -767,6 +850,15 @@
 }
 .cmp-meta:empty { display: none; }
 
+/* ---------- phone "Open in" footer ---------- */
+/* Aireon mobile data-card standard footer slot. similoo carries no Claire
+   assistant, so the row is the single full-width shared "Open in" drop-up
+   (mounted by sidebar.js via React). Hidden on desktop and whenever empty;
+   the phone media block below reveals it. */
+.cmp-footer {
+    display: none;
+}
+
 /* ---------- right-side control shift ---------- */
 /* The map's own controls (MapLibre top-right nav/zoom + the basemap
    selector) are slid out from under this panel in map.css via the
@@ -826,6 +918,7 @@ body.cmp-shifted .basemap-selector {
     .cmp-grab,
     .cmp-track-slot,
     .cmp-card-pc,
+    .cmp-footer,
     .cmp-massing {
         display: none !important;
     }
@@ -884,5 +977,18 @@ body.cmp-shifted .basemap-selector {
     }
     .cmp-target-grid {
         grid-template-columns: repeat(2, 1fr);
+    }
+    /* "Open in" footer row: the last section of the sheet's scrollable
+       details, sitting in normal flow so you scroll to the end to reach it
+       (Aireon v1.112.1 in-flow primary-actions standard). Full-bleed against
+       the sheet's safe-area bottom padding via the negative margin, with its
+       own home-indicator padding instead. Collapses while empty (no parcel
+       coordinates yet) so no stray border shows. */
+    .cmp-footer:not(:empty) {
+        display: block;
+        margin-top: 16px;
+        margin-bottom: calc(-1 * env(safe-area-inset-bottom));
+        padding: 10px 16px calc(10px + env(safe-area-inset-bottom));
+        border-top: 1px solid var(--hood-panel-border);
     }
 }
