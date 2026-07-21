@@ -410,21 +410,39 @@
     border: 1px solid var(--hood-panel-border);
     background: var(--hood-panel-row-bg);
 }
-/* Identifier pills: two half/half copyable chips (EGRID + Lat/Lng) on one row;
-   a chip alone spans the full row. Colors replicate the shared shell's pill
-   row (white/ring-slate-200 chips in light, black/25 in dark). */
+/* Identifier pills: copyable chips (EGRID + Lat/Lng) whose value always renders
+   on exactly ONE line (Aireon data-card header standard, R2 — the CSS mirror of
+   the shared <ParcelPanelShell> pill row `mt-2.5 flex flex-wrap gap-2` +
+   `min-w-[min(fit-content,100%)] max-w-full flex-1 basis-0`).
+
+   The row is a wrapping, content-sized flex row, NOT a rigid 50/50 grid: a
+   half-width chip on a phone leaves ~65px for a value that needs ~126px, which
+   is what used to shred the coordinate across four lines. Each chip now refuses
+   to shrink below its own content, so the two sit side by side when they fit
+   and stack onto their own full-width rows when they don't — one line either
+   way. `max-width: 100%` caps a pathological identifier so it ellipsizes
+   instead of pushing the sheet into horizontal overflow. A lone chip fills the
+   row via `flex: 1` (no full-width modifier needed any more).
+
+   Colors replicate the shared shell's pill row (white/ring-slate-200 chips in
+   light, black/25 in dark). */
 .cmp-id-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
+    display: flex;
+    flex-wrap: wrap;
     gap: 8px;
     margin-top: 10px;
 }
 .cmp-id-chip {
+    /* R1: a 44px touch floor is a HIT AREA, not a paint size. The chip keeps its
+       compact ~28px design box and the centred transparent ::before carries the
+       44x44 target — the CSS equivalent of the shared PANEL_TOUCH_TARGET. */
+    position: relative;
     display: flex;
     align-items: center;
     gap: 8px;
-    min-width: 0;
-    min-height: 44px;
+    min-width: min(fit-content, 100%);
+    max-width: 100%;
+    flex: 1 1 0;
     padding: 6px 10px;
     border-radius: 6px;
     border: 1px solid #e2e8f0;
@@ -434,6 +452,15 @@
     text-align: left;
     cursor: pointer;
     transition: border-color 150ms ease, background-color 150ms ease;
+}
+.cmp-id-chip::before {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 44px;
+    height: 44px;
+    transform: translate(-50%, -50%);
 }
 .cmp-id-chip:hover,
 .cmp-id-chip:focus-visible {
@@ -449,9 +476,6 @@
 [data-theme="dark"] .cmp-id-chip:focus-visible {
     border-color: var(--hood-red);
 }
-.cmp-id-chip--full {
-    grid-column: 1 / -1;
-}
 .cmp-id-chip-label {
     flex-shrink: 0;
     font-size: 10px;
@@ -464,9 +488,14 @@
     color: #94a3b8;
 }
 .cmp-id-chip-value {
+    /* One line, always — ellipsize rather than wrap (R2). The old
+       `word-break: break-all` is exactly what let a 6-decimal coordinate spill
+       onto four lines inside a half-width chip. */
     min-width: 0;
     flex: 1;
-    word-break: break-all;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
     font-family: var(--hood-mono);
     font-size: 11px;
     font-weight: 600;

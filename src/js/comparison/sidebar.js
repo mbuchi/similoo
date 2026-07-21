@@ -407,8 +407,8 @@ export function createComparisonSidebar({ map, onClose, onFlyTo, onSelectCompara
                 </div>
             </div>
             <div class="cmp-id-grid" style="margin-bottom:12px;">
-                <div class="skeleton" style="height:44px;border-radius:6px;"></div>
-                <div class="skeleton" style="height:44px;border-radius:6px;"></div>
+                <div class="skeleton" style="height:28px;border-radius:6px;flex:1 1 0;"></div>
+                <div class="skeleton" style="height:28px;border-radius:6px;flex:1 1 0;"></div>
             </div>
             <div class="cmp-target-grid">
                 ${'<div class="skeleton" style="height:42px;border-radius:8px;"></div>'.repeat(6)}
@@ -488,9 +488,11 @@ export function createComparisonSidebar({ map, onClose, onFlyTo, onSelectCompara
     // Layout: a small swisstopo aerial thumbnail at the very top-left, the
     // searched address as the title (falling back to the municipality, then a
     // localized "Selected parcel" — title text only, never a badge) with the
-    // municipality as the muted subtitle beside it, then the two half/half
-    // copyable identifier pills (EGRID + Lat/Lng) on their own row. A pill
-    // alone spans the full row. similoo's engine themes off
+    // municipality as the muted subtitle beside it, then the two copyable
+    // identifier pills (EGRID + Lat/Lng) on their own content-sized flex row —
+    // side by side when they fit, each on its own full-width row when they do
+    // not, but never with a wrapped value (data-card header standard R2). A
+    // lone pill fills the row on its own. similoo's engine themes off
     // [data-theme="dark"], which both the shipped `.aireon-pih-*` rules and
     // the local `.cmp-id-chip` rules target, so no --dark flag is needed here.
     function identityHeaderHtml(egrid) {
@@ -512,13 +514,13 @@ export function createComparisonSidebar({ map, onClose, onFlyTo, onSelectCompara
             ? buildSwisstopoAerialUrl(lng, lat, aerialThumbnailZoom(areaM2, lat, AERIAL_SIZE_PX), AERIAL_SIZE_PX)
             : null;
         const egridChip = egrid ? `
-                    <button type="button" class="cmp-id-chip${latLngText ? '' : ' cmp-id-chip--full'}" data-copy="${escapeHtml(egrid)}" title="${escapeHtml(copyEgridLabel)}" aria-label="${escapeHtml(copyEgridLabel)}">
+                    <button type="button" class="cmp-id-chip" data-copy="${escapeHtml(egrid)}" title="${escapeHtml(copyEgridLabel)}" aria-label="${escapeHtml(copyEgridLabel)}">
                         <span class="cmp-id-chip-label" aria-hidden="true">EGRID</span>
                         <span class="cmp-id-chip-value">${escapeHtml(egrid)}</span>
                         ${COPY_SVG}
                     </button>` : '';
         const latLngChip = latLngText ? `
-                    <button type="button" class="cmp-id-chip${egrid ? '' : ' cmp-id-chip--full'}" data-copy="${escapeHtml(latLngText)}" title="${escapeHtml(copyLatLngLabel)}" aria-label="${escapeHtml(copyLatLngLabel)}">
+                    <button type="button" class="cmp-id-chip" data-copy="${escapeHtml(latLngText)}" title="${escapeHtml(copyLatLngLabel)}" aria-label="${escapeHtml(copyLatLngLabel)}">
                         <span class="cmp-id-chip-label" aria-hidden="true">Lat/Lng</span>
                         <span class="cmp-id-chip-value">${escapeHtml(latLngText)}</span>
                         ${COPY_SVG}
