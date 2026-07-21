@@ -978,18 +978,17 @@ body.cmp-shifted .basemap-selector {
     .cmp-target-grid {
         grid-template-columns: repeat(2, 1fr);
     }
-    /* Sticky "Open in" footer row: pinned to the bottom of the sheet's own
-       scroller, padded past the home-indicator inset, panel-toned so cards
-       scrolling beneath don't show through. Collapses while empty (no parcel
+    /* "Open in" footer row: the last section of the sheet's scrollable
+       details, sitting in normal flow so you scroll to the end to reach it
+       (Aireon v1.112.1 in-flow primary-actions standard). Full-bleed against
+       the sheet's safe-area bottom padding via the negative margin, with its
+       own home-indicator padding instead. Collapses while empty (no parcel
        coordinates yet) so no stray border shows. */
     .cmp-footer:not(:empty) {
         display: block;
-        position: sticky;
-        bottom: 0;
+        margin-top: 16px;
+        margin-bottom: calc(-1 * env(safe-area-inset-bottom));
         padding: 10px 16px calc(10px + env(safe-area-inset-bottom));
         border-top: 1px solid var(--hood-panel-border);
-        background: var(--hood-panel-bg);
-        backdrop-filter: blur(14px);
-        -webkit-backdrop-filter: blur(14px);
     }
 }

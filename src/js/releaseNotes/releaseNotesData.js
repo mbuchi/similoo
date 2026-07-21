@@ -61,7 +61,7 @@ export const RELEASES = [
       {
         kind: 'new',
         icon: 'external-link',
-        text: 'On phones the comparison sheet gains a sticky "Open in" footer that hands the selected parcel off to another Aireon map app at the same spot, matching the suite-wide mobile card layout.',
+        text: 'On phones an "Open in" launcher now sits at the end of the comparison details: scroll to the bottom of the sheet to hand the selected parcel off to another Aireon map app at the same spot, matching the suite-wide mobile card layout.',
         prs: [],
       },
       {
