@@ -41,6 +41,32 @@ export const KIND_META = {
 
 export const RELEASES = [
   {
+    version: '0.28.1',
+    date: 'July 22, 2026',
+    codename: 'One line, always',
+    summary: 'The parcel card header is tighter on phones, and the EGRID and Lat/Lng pills now always read on a single line.',
+    items: [
+      {
+        kind: 'fixed',
+        icon: 'text-cursor-input',
+        text: 'The EGRID and Lat/Lng pills no longer wrap. They used to share a fixed half-and-half row, which on a phone left far too little room for a 6-decimal coordinate and broke it across several lines. Each pill is now sized to its own content: the two sit side by side when they fit and take a full row each when they do not, but the value always stays on one line.',
+        prs: [],
+      },
+      {
+        kind: 'improved',
+        icon: 'move-vertical',
+        text: 'The parcel card header is more compact on phones. The copy pills keep their comfortable tap area but no longer inflate to a 44px block, so the header takes noticeably less of the sheet before the comparison results start.',
+        prs: [],
+      },
+      {
+        kind: 'improved',
+        icon: 'package',
+        text: 'Updated the shared @aireon/shared library to v1.113.0, which carries the suite data-card header standard.',
+        prs: [],
+      },
+    ],
+  },
+  {
     version: '0.28.0',
     date: 'July 21, 2026',
     codename: 'Card carrying',
