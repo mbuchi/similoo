@@ -5,9 +5,10 @@ import 'maplibre-gl/dist/maplibre-gl.css';
 // MapLibre viewer for similoo.
 //
 // Layer stack (bottom → top):
-//   1. ArcGIS World Imagery raster — the suite-standard satellite basemap
-//      (same source the Cesium-based apps + project_RES legacy frontend
-//      default to via "Basemap Satellite").
+//   1. swisstopo SWISSIMAGE raster — the suite-standard satellite basemap.
+//      Switzerland-only coverage, which is fine here: every input to this
+//      viewer (EGRID parcels, GWR buildings, the geo.admin.ch geocoder) is
+//      Swiss, so the map never travels outside the imagery footprint.
 //   2. Parcel vector tiles painted by zoning (`cz_local`):
 //        - red    parcel matching the searched address
 //        - green  every other parcel sharing the same `cz_local`
@@ -25,12 +26,20 @@ import 'maplibre-gl/dist/maplibre-gl.css';
 const BUILDING_TILES_URL = 'https://res-mbtiles-footprint-x.gisjoe.com/footprint_cityjson';
 const PARCEL_TILES_URL = 'https://res-mbtiles-x.gisjoe.com/parcel_2025_07_z12_16';
 
-// ArcGIS World Imagery — global satellite mosaic, no API key required.
-const ARCGIS_IMAGERY_TILE =
-    'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
-const ARCGIS_ATTRIBUTION =
-    'Imagery &copy; <a href="https://www.esri.com/" target="_blank" rel="noopener">Esri</a>, ' +
-    'Maxar, Earthstar Geographics, USDA, USGS, AeroGRID, IGN, GIS User Community';
+// swisstopo SWISSIMAGE — the official Swiss orthophoto mosaic, served as
+// WMTS/pseudo-Mercator (EPSG:3857) tiles, no API key required.
+//
+// NOTE the axis order: swisstopo's WMTS path is {z}/{x}/{y}, NOT the {z}/{y}/{x}
+// used by the ArcGIS REST tile endpoint this replaced. Swapping the two
+// transposes the map (and mostly 400s), so do not "fix" this to match other
+// tile providers.
+//
+// Coverage is Switzerland only; requests outside the country 404. The `bg`
+// background layer below is what shows through in that case.
+const SWISSIMAGE_TILE =
+    'https://wmts.geo.admin.ch/1.0.0/ch.swisstopo.swissimage/default/current/3857/{z}/{x}/{y}.jpeg';
+const SWISSIMAGE_ATTRIBUTION =
+    '&copy; <a href="https://www.swisstopo.admin.ch/" target="_blank" rel="noopener">swisstopo</a>';
 
 export const BUILDING_SOURCE = 'buildings';
 export const BUILDING_SOURCE_LAYER = 'footprint_cityjson';
@@ -87,7 +96,7 @@ export async function initializeViewer(containerId) {
         bearing: DEFAULT_BEARING,
         hash: false,
         // No on-map attribution control — suite policy keeps the map canvas
-        // clean. The required basemap credit (Esri World Imagery) is surfaced
+        // clean. The required basemap credit (swisstopo SWISSIMAGE) is surfaced
         // in the About panel instead (see App.tsx <AboutModal> credits).
         attributionControl: false,
     });
@@ -167,10 +176,10 @@ function buildStyle() {
         sources: {
             basemap: {
                 type: 'raster',
-                tiles: [ARCGIS_IMAGERY_TILE],
+                tiles: [SWISSIMAGE_TILE],
                 tileSize: 256,
                 maxzoom: 19,
-                attribution: ARCGIS_ATTRIBUTION,
+                attribution: SWISSIMAGE_ATTRIBUTION,
             },
             [PARCEL_SOURCE]: {
                 type: 'vector',
@@ -190,8 +199,10 @@ function buildStyle() {
             },
         },
         layers: [
-            // Deep-slate background only shows through where the raster
-            // has no coverage (very rare globally; effectively a fallback).
+            // Deep-slate background shows through wherever the raster has no
+            // coverage, i.e. anywhere outside Switzerland. Every code path that
+            // moves this map is driven by Swiss parcel/building data, so in
+            // practice this only paints the sliver beyond the border.
             { id: 'bg', type: 'background', paint: { 'background-color': '#0b1220' } },
             { id: 'basemap', type: 'raster', source: 'basemap', minzoom: 0, maxzoom: 22 },
             // Parcel zone fill — invisible until applyZoneHighlight() runs

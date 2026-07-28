@@ -309,7 +309,7 @@ export default function App() {
         if (typeof map.getZoom === 'function') meta.zoom = map.getZoom();
         if (typeof map.getBearing === 'function') meta.bearing_degree = map.getBearing();
         if (typeof map.getPitch === 'function') meta.tilt_degree = map.getPitch();
-        // similoo renders LOD 2.5 building cubes on an ArcGIS World Imagery
+        // similoo renders LOD 2.5 building cubes on the swisstopo SWISSIMAGE
         // satellite basemap; both are constant for this app.
         meta.basemap = 'satellite';
         meta.is_3d_mode = true;
@@ -613,10 +613,10 @@ export default function App() {
           creditsLabel={t('about.credits')}
           hubLabel={t('about.hub')}
           credits={[
-            // Basemap is the ArcGIS World Imagery satellite mosaic (see
-            // viewerConfig.js ARCGIS_ATTRIBUTION) — credit Esri here since the
-            // on-map attribution control is now off.
-            { label: t('about.map_data'), name: '© Esri · Maxar · Earthstar Geographics', href: 'https://www.esri.com/' },
+            // Basemap is the swisstopo SWISSIMAGE orthophoto mosaic (see
+            // viewerConfig.js SWISSIMAGE_ATTRIBUTION) — credit swisstopo here
+            // since the on-map attribution control is off.
+            { label: t('about.map_data'), name: '© swisstopo', href: 'https://www.swisstopo.admin.ch/' },
             { label: t('about.renderer'), name: 'MapLibre GL · Three.js', href: 'https://maplibre.org' },
             { label: t('about.data'), name: 'Parcels © swisstopo · Buildings GWR', href: 'https://www.housing-stat.ch' },
           ]}
