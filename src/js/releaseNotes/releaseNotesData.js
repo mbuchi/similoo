@@ -41,6 +41,20 @@ export const KIND_META = {
 
 export const RELEASES = [
   {
+    version: '0.28.2',
+    date: 'July 28, 2026',
+    codename: 'Swiss made',
+    summary: 'The satellite basemap is now swisstopo SWISSIMAGE, the official Swiss orthophoto, in place of the third-party global mosaic.',
+    items: [
+      {
+        kind: 'improved',
+        icon: 'satellite',
+        text: 'The satellite basemap switched from the Esri World Imagery global mosaic to swisstopo SWISSIMAGE, the official federal orthophoto. Imagery is sharper and more current over Switzerland, it is the same source the rest of the suite already renders, and the map credit in the About panel is now "© swisstopo".',
+        prs: [],
+      },
+    ],
+  },
+  {
     version: '0.28.1',
     date: 'July 22, 2026',
     codename: 'One line, always',
