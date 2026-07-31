@@ -41,6 +41,20 @@ export const KIND_META = {
 
 export const RELEASES = [
   {
+    version: '0.28.4',
+    date: 'July 31, 2026',
+    codename: 'Stay put',
+    summary: 'Links to the Aireon hub now open in a new browser tab.',
+    items: [
+      {
+        kind: 'improved',
+        icon: 'external-link',
+        text: 'Links to the Aireon hub, including the See all Aireon applications button in the About dialog and the Aireon badge in the navbar, now open in a new browser tab so your work in similoo stays open.',
+        prs: [],
+      },
+    ],
+  },
+  {
     version: '0.28.3',
     date: 'July 31, 2026',
     codename: 'Look away',
