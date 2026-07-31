@@ -41,6 +41,20 @@ export const KIND_META = {
 
 export const RELEASES = [
   {
+    version: '0.28.3',
+    date: 'July 31, 2026',
+    codename: 'Solid volumes',
+    summary: 'The 3D buildings now start at the new suite-wide default of 75% opacity.',
+    items: [
+      {
+        kind: 'improved',
+        icon: 'box',
+        text: 'Every Aireon app that draws 3D buildings now starts them at the same 75% opacity, so the masses look identical whichever app you open. Here that is a change from 92%.',
+        prs: [],
+      },
+    ],
+  },
+  {
     version: '0.28.2',
     date: 'July 28, 2026',
     codename: 'Swiss made',
