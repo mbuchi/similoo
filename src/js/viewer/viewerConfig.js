@@ -69,9 +69,10 @@ const DEFAULT_ZOOM = DEFAULT_MAP_ZOOM;
 const DEFAULT_PITCH = 50;
 const DEFAULT_BEARING = -25;
 
-// Building opacity. LOD 2.5 is purely about the cube shapes — keep them
-// near-opaque so the comparison reads as a solid-volume comparison.
-export const BUILDING_OPACITY_DEFAULT = 0.92;
+// Building opacity. The suite-wide default for 3D mode across the Aireon apps:
+// solid enough that LOD 2.5 still reads as a solid-volume comparison, while the
+// parcel colours underneath stay legible.
+export const BUILDING_OPACITY_DEFAULT = 0.75;
 
 // Zone palette. Mild opacity so the satellite imagery stays readable;
 // the selected parcel is rendered first in the case-expression so it
