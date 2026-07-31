@@ -41,7 +41,7 @@ export const KIND_META = {
 
 export const RELEASES = [
   {
-    version: '0.28.3',
+    version: '0.28.5',
     date: 'July 31, 2026',
     codename: 'Solid volumes',
     summary: 'The 3D buildings now start at the new suite-wide default of 75% opacity.',
@@ -50,6 +50,34 @@ export const RELEASES = [
         kind: 'improved',
         icon: 'box',
         text: 'Every Aireon app that draws 3D buildings now starts them at the same 75% opacity, so the masses look identical whichever app you open. Here that is a change from 92%.',
+        prs: [],
+      },
+    ],
+  },
+  {
+    version: '0.28.4',
+    date: 'July 31, 2026',
+    codename: 'Stay put',
+    summary: 'Links to the Aireon hub now open in a new browser tab.',
+    items: [
+      {
+        kind: 'improved',
+        icon: 'external-link',
+        text: 'Links to the Aireon hub, including the See all Aireon applications button in the About dialog and the Aireon badge in the navbar, now open in a new browser tab so your work in similoo stays open.',
+        prs: [],
+      },
+    ],
+  },
+  {
+    version: '0.28.3',
+    date: 'July 31, 2026',
+    codename: 'Look away',
+    summary: 'Navbar tooltips no longer stay pinned open after clicking a button.',
+    items: [
+      {
+        kind: 'fixed',
+        icon: 'mouse-pointer-click',
+        text: 'Toolbar tooltips no longer stay open after clicking a button. Updated the shared @aireon/shared library to v1.122.1, which reveals tooltips only on hover or keyboard focus.',
         prs: [],
       },
     ],
