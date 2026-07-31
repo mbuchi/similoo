@@ -41,6 +41,20 @@ export const KIND_META = {
 
 export const RELEASES = [
   {
+    version: '0.28.3',
+    date: 'July 31, 2026',
+    codename: 'Look away',
+    summary: 'Navbar tooltips no longer stay pinned open after clicking a button.',
+    items: [
+      {
+        kind: 'fixed',
+        icon: 'mouse-pointer-click',
+        text: 'Toolbar tooltips no longer stay open after clicking a button. Updated the shared @aireon/shared library to v1.122.1, which reveals tooltips only on hover or keyboard focus.',
+        prs: [],
+      },
+    ],
+  },
+  {
     version: '0.28.2',
     date: 'July 28, 2026',
     codename: 'Swiss made',
