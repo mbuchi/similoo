@@ -41,6 +41,20 @@ export const KIND_META = {
 
 export const RELEASES = [
   {
+    version: '0.28.6',
+    date: 'August 2, 2026',
+    codename: 'You are here',
+    summary: 'The red location pin now actually appears in the 3D point-cloud view.',
+    items: [
+      {
+        kind: 'fixed',
+        icon: 'map-pin',
+        text: 'Opening a building in the 3D point-cloud view now shows the red pin marking that building inside the tile. The pin had never rendered: the 3D engine skips world-transform updates for objects it does not own, so the pin was being drawn 2,500 km away at the coordinate-system origin instead of on the building.',
+        prs: [],
+      },
+    ],
+  },
+  {
     version: '0.28.5',
     date: 'July 31, 2026',
     codename: 'Solid volumes',

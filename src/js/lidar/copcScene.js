@@ -249,8 +249,17 @@ export function createCopcScene({ container }) {
         const next = buildLocationBeacon(marker?.lat, marker?.lng, pointCloud.getBoundingBox());
         if (next) {
             instance.threeObjects.add(next);
+            // Giro3D sets `scene.matrixWorldAutoUpdate = false`
+            // (core/Instance.js), so three's renderer never walks the graph to
+            // refresh world matrices — Giro3D updates its own entities and
+            // nothing else. A plain Object3D parked under `threeObjects`
+            // therefore keeps an IDENTITY matrixWorld and is drawn at the LV95
+            // origin, ~2500 km from any Swiss tile, i.e. never visible.
+            // Updating the beacon's subtree explicitly is what puts the pin
+            // where its geometry says it is.
+            next.updateMatrixWorld(true);
             beacon = next;
-            instance.notifyChange();
+            instance.notifyChange(undefined, { immediate: true });
         }
     }
 
