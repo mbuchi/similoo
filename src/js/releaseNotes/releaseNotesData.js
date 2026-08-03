@@ -41,6 +41,20 @@ export const KIND_META = {
 
 export const RELEASES = [
   {
+    version: '0.28.7',
+    date: 'August 3, 2026',
+    codename: 'Frosted',
+    summary: 'The confirmation that appears after you copy a share link now lets the map show through.',
+    items: [
+      {
+        kind: 'improved',
+        icon: 'copy',
+        text: 'Choosing "Share this view" in the account menu used to drop a solid green bar over the map. That confirmation is now translucent frosted glass, so the buildings behind it stay visible, and its wording sits in a darker, sharper tone that is easier to read at a glance. The same pill confirms a saved image, so those messages pick up the new look too.',
+        prs: [],
+      },
+    ],
+  },
+  {
     version: '0.28.6',
     date: 'August 2, 2026',
     codename: 'You are here',
