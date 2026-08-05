@@ -47,6 +47,9 @@
     font-weight: 600;
     letter-spacing: -0.01em;
     color: var(--hood-panel-title);
+    /* Clear the three absolutely-positioned header chips (Track + "{}" +
+       close span right: 6..138px; the header's own right padding is 22px). */
+    padding-right: 118px;
 }
 .cmp-close {
     position: absolute;
@@ -117,6 +120,59 @@
 .cmp-raw-toggle[aria-pressed="true"]::before { background: rgba(245, 158, 11, 0.16); }
 .cmp-raw-toggle i,
 .cmp-raw-toggle svg { width: 16px; height: 16px; }
+
+/* Track (save to PRM) bookmark chip — leads the header action cluster
+   (Track -> "{}" -> Close, suite panel-actions standard). Same 44px hit
+   area / 28px painted chip as the raw toggle; the tracked state swaps to
+   the brand red treatment. Visible signed-out too: the chip then carries
+   the localized "Sign in to track" tooltip and clicking routes to login. */
+.cmp-track {
+    position: absolute;
+    top: 6px;
+    right: 94px;
+    width: 44px;
+    height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    background: transparent;
+    color: var(--hood-panel-muted);
+    cursor: pointer;
+    transition: color 150ms ease;
+}
+/* The chip hides via the [hidden] attribute while no parcel is loaded;
+   without this the display above would override the UA hidden rule. */
+.cmp-track[hidden] { display: none; }
+.cmp-track::before {
+    content: "";
+    position: absolute;
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    background: var(--hood-panel-row-bg);
+    transition: background-color 150ms ease;
+    z-index: -1;
+}
+.cmp-track:hover:not(:disabled),
+.cmp-track:focus-visible {
+    color: var(--hood-red);
+    outline: none;
+}
+.cmp-track:hover:not(:disabled)::before { background: var(--hood-panel-row-bg-hover); }
+.cmp-track:disabled { opacity: 0.65; cursor: progress; }
+.cmp-track[data-state='saved'] { color: var(--hood-red); }
+.cmp-track[data-state='saved']::before { background: rgba(220, 38, 38, 0.14); }
+.cmp-track[data-state='error'] { color: #B45309; }
+[data-theme="dark"] .cmp-track[data-state='error'] { color: #FBBF24; }
+.cmp-track-icon {
+    display: inline-flex;
+    flex: none;
+}
+.cmp-track-icon svg {
+    width: 16px;
+    height: 16px;
+}
 
 /* Body/raw swap: the raw section is hidden until the panel opts into it. */
 .cmp-raw-wrap { display: none; }
@@ -509,59 +565,6 @@
 .cmp-id-chip--copied .cmp-id-chip-icon {
     color: #10b981;
 }
-/* "Track" (save to PRM) toggle under the EGRID chip. Quiet bordered pill in
-   its idle state; flips to the brand red treatment once the parcel is tracked
-   (mirrors the suite's Bookmark/BookmarkCheck save buttons). */
-.cmp-track-slot {
-    display: flex;
-    margin-top: 8px;
-}
-.cmp-track {
-    display: inline-flex;
-    align-items: center;
-    gap: 7px;
-    min-height: 44px;
-    padding: 7px 16px;
-    border: 1px solid var(--hood-panel-border);
-    border-radius: 10px;
-    background: var(--hood-panel-row-bg);
-    color: var(--hood-panel-text);
-    font-size: 13px;
-    font-weight: 600;
-    line-height: 1;
-    cursor: pointer;
-    transition: color 150ms ease, border-color 150ms ease, background-color 150ms ease;
-}
-.cmp-track:hover,
-.cmp-track:focus-visible {
-    border-color: var(--hood-red);
-    color: var(--hood-red);
-    outline: none;
-}
-.cmp-track:disabled {
-    opacity: 0.65;
-    cursor: progress;
-}
-.cmp-track[data-state='saved'] {
-    background: rgba(220, 38, 38, 0.10);
-    border-color: rgba(220, 38, 38, 0.35);
-    color: var(--hood-red);
-}
-.cmp-track[data-state='error'] {
-    border-color: rgba(245, 158, 11, 0.55);
-    color: #B45309;
-}
-[data-theme="dark"] .cmp-track[data-state='error'] {
-    color: #FBBF24;
-}
-.cmp-track-icon {
-    display: inline-flex;
-    flex: none;
-}
-.cmp-track-icon svg {
-    width: 14px;
-    height: 14px;
-}
 .cmp-target-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -945,7 +948,7 @@ body.cmp-shifted .basemap-selector {
     .cmp-raw-toggle,
     .cmp-raw-wrap,
     .cmp-grab,
-    .cmp-track-slot,
+    .cmp-track,
     .cmp-card-pc,
     .cmp-footer,
     .cmp-massing {

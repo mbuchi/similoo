@@ -7,6 +7,11 @@
 // clicking again while "Tracked" deletes that record. All three PRM
 // helpers come from `@aireon/shared` and hit res.zeroo.ch.
 //
+// Rendered as a compact icon chip in the panel header's action cluster
+// (Track -> raw-JSON "{}" -> Close, per the suite panel-actions standard);
+// the state text ("Track this parcel", "Sign in to track", ...) rides on
+// the tooltip + aria-label instead of a visible label.
+//
 // Auth: PRM endpoints require a Zitadel token. similoo's engine no longer
 // runs the imperative cesium-app auth (the React shell owns sign-in via
 // the shared <AuthProvider>), but both read the SAME oidc-client-ts
@@ -31,11 +36,9 @@ export function createSaveParcelButton() {
     btn.className = 'cmp-track';
     btn.innerHTML = `
         <span class="cmp-track-icon"></span>
-        <span class="cmp-track-label"></span>
     `;
 
     const iconEl = btn.querySelector('.cmp-track-icon');
-    const labelEl = btn.querySelector('.cmp-track-label');
 
     // parcel = { id, label, municipality, area, lng, lat } — id is the EGRID.
     let currentParcel = null;
@@ -71,14 +74,19 @@ export function createSaveParcelButton() {
         btn.disabled = busy;
         btn.setAttribute('aria-pressed', saved ? 'true' : 'false');
         if (iconEl) iconEl.innerHTML = saved ? bookmarkCheckIcon() : bookmarkIcon();
-        let key = 'comparison.track';
+        // Icon-only chip: the state text becomes the tooltip + accessible
+        // name. Transitional / CTA states surface their own label (notably
+        // the signed-out "Sign in to track"); the resting states keep the
+        // action-describing track/untrack titles. All strings are the same
+        // localized i18n keys the labelled button used.
+        let key = null;
         if (currentState === 'saving') key = 'comparison.track_saving';
         else if (currentState === 'unsaving') key = 'comparison.track_unsaving';
-        else if (saved) key = 'comparison.tracked';
         else if (currentState === 'auth') key = 'comparison.track_sign_in';
         else if (currentState === 'error') key = 'comparison.track_error';
-        if (labelEl) labelEl.textContent = t(key);
-        const title = saved ? t('comparison.untrack_title') : t('comparison.track_title');
+        const title = key
+            ? t(key)
+            : (saved ? t('comparison.untrack_title') : t('comparison.track_title'));
         btn.title = title;
         btn.setAttribute('aria-label', title);
     }

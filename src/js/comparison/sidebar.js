@@ -120,6 +120,14 @@ export function createComparisonSidebar({ map, onClose, onFlyTo, onSelectCompara
         footer: aside.querySelector('.cmp-footer'),
     };
 
+    // Header action cluster order (suite panel-actions standard): Track
+    // bookmark first, raw-JSON "{}" second, Close last. The Track chip is a
+    // JS-built control (saveParcelButton.js), so slot it into the header
+    // ahead of the raw toggle here rather than in the static shell HTML. It
+    // renders whenever a target parcel is loaded — signed-out too, where a
+    // click routes to the shared login modal.
+    aside.querySelector('.cmp-header').insertBefore(saveParcel.root, els.rawToggle);
+
     els.closeBtn.addEventListener('click', () => {
         hide();
         if (typeof onClose === 'function') onClose();
@@ -422,6 +430,8 @@ export function createComparisonSidebar({ map, onClose, onFlyTo, onSelectCompara
         if (!target) {
             els.targetSection.hidden = true;
             els.targetEmpty.hidden = false;
+            // No target on show -> no Track chip in the header either.
+            saveParcel.setParcel(null);
             return;
         }
         els.targetEmpty.hidden = true;
@@ -456,17 +466,14 @@ export function createComparisonSidebar({ map, onClose, onFlyTo, onSelectCompara
             </div>
         `;
         bindIdentityHeader();
-        mountTrackButton(egrid);
+        syncTrackButton(egrid);
     }
 
-    // Re-slot the persistent Track button into the freshly rebuilt identity
-    // header and point it at the current target parcel. The button module
-    // keeps its resolved tracked-state when the parcel id is unchanged (e.g.
-    // the copy-chip reset re-render), so this never re-queries PRM needlessly.
-    function mountTrackButton(egrid) {
-        const slot = els.targetSection.querySelector('.cmp-track-slot');
-        if (!slot) return;
-        slot.appendChild(saveParcel.root);
+    // Point the persistent header Track chip at the current target parcel.
+    // The button module keeps its resolved tracked-state when the parcel id
+    // is unchanged (e.g. the copy-chip reset re-render), so this never
+    // re-queries PRM needlessly.
+    function syncTrackButton(egrid) {
         if (!egrid) {
             saveParcel.setParcel(null);
             return;
@@ -541,7 +548,6 @@ export function createComparisonSidebar({ map, onClose, onFlyTo, onSelectCompara
                 ${(egridChip || latLngChip) ? `
                 <div class="cmp-id-grid">${egridChip}${latLngChip}</div>
                 <span role="status" aria-live="polite" class="sr-only"></span>` : ''}
-                <div class="cmp-track-slot"></div>
             </div>
         `;
     }

@@ -78,8 +78,16 @@ assert.equal(
   '.cmp-id-chip-value must not set word-break — identifiers stay on one line',
 );
 
+// Track bookmark chip (header action cluster, Track -> "{}" -> Close): like
+// the close and raw-JSON chips, the button's own box IS the 44px hit area
+// while the visible 28px chip is painted by ::before.
 expectDeclarations('.cmp-track', {
-  'min-height': '44px',
+  width: '44px',
+  height: '44px',
+});
+expectDeclarations('.cmp-track::before', {
+  width: '28px',
+  height: '28px',
 });
 expectDeclarations('.cmp-size-sub input', {
   'min-height': '44px',
