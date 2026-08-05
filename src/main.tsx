@@ -60,12 +60,13 @@ initOpenReplay({ projectKey: import.meta.env.VITE_OPENREPLAY_PROJECT_KEY as stri
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    {/* Suite OIDC: the shared AuthProvider drives the account menu and the
-        cross-app silent SSO (same Zitadel client similoo used before), so the
-        engine's removed imperative setupAuth() is fully replaced. Anonymous
-        visitors are never gated — the login modal only opens on demand. */}
+    {/* Suite OIDC: the shared AuthProvider drives the account menu with the
+        same Zitadel client similoo used before. Silent SSO is deliberately off:
+        anonymous visitors are never gated and login opens only on demand. */}
     <AuthProvider
       appName="similoo"
+      silentSso={false}
+      loginPromptOnFirstVisit={false}
       loginDescription="Create a free account or sign in to unlock the full Aireon suite."
       loginFeatures={[
         { label: 'Comparable-buildings explorer with 3D inspection' },

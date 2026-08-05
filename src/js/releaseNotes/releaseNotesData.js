@@ -48,6 +48,12 @@ export const RELEASES = [
     items: [
       {
         kind: 'improved',
+        icon: 'shield-check',
+        text: 'Opening similoo is now anonymous-first: it does not attempt silent Zitadel SSO, even when the browser carries the Aireon SSO hint. The public comparable-buildings explorer stays usable while logged out, and Zitadel opens only after an explicit Sign in action.',
+        prs: [],
+      },
+      {
+        kind: 'improved',
         icon: 'copy',
         text: 'Choosing "Share this view" in the account menu used to drop a solid green bar over the map. That confirmation is now translucent frosted glass, so the buildings behind it stay visible, and its wording sits in a darker, sharper tone that is easier to read at a glance. The same pill confirms a saved image, so those messages pick up the new look too.',
         prs: [],
