@@ -41,6 +41,20 @@ export const KIND_META = {
 
 export const RELEASES = [
   {
+    version: '0.28.9',
+    date: 'August 5, 2026',
+    codename: 'Stay in comparison',
+    summary: 'Signing in now keeps the exact page, selected parcel, comparison view and in-progress work in place.',
+    items: [
+      {
+        kind: 'fixed',
+        icon: 'shield-check',
+        text: 'Sign in now completes without reloading similoo, so the current address, selected parcel, 3D comparison state, open panels and unfinished work remain exactly as they were.',
+        prs: [],
+      },
+    ],
+  },
+  {
     version: '0.28.8',
     date: 'August 5, 2026',
     codename: 'One Aireon mark',
