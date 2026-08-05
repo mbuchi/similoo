@@ -41,6 +41,20 @@ export const KIND_META = {
 
 export const RELEASES = [
   {
+    version: '0.28.10',
+    date: 'August 6, 2026',
+    codename: 'Track up top',
+    summary: 'The Track control now sits in the panel header next to the raw-JSON and close buttons, as a compact bookmark chip.',
+    items: [
+      {
+        kind: 'improved',
+        icon: 'bookmark',
+        text: 'Moved the Track (save parcel) control from the parcel identity card into the panel header action cluster, ahead of the raw-JSON toggle, as a compact bookmark chip with the full state text on its tooltip - including the sign-in prompt for signed-out visitors.',
+        prs: [],
+      },
+    ],
+  },
+  {
     version: '0.28.9',
     date: 'August 5, 2026',
     codename: 'Stay in comparison',
