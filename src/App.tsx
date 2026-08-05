@@ -29,10 +29,8 @@ import {
   type MapContextMenuPoint,
   type MapContextParcel,
 } from '@aireon/shared';
-import { useInstallPrompt, IosInstallSheet } from '@aireon/shared/pwa';
 import {
   Camera,
-  Download,
   ExternalLink,
   HelpCircle,
   Image as ImageIcon,
@@ -43,7 +41,6 @@ import {
   Sun,
   Tag,
 } from 'lucide-react';
-import PwaLayer from './pwa/PwaLayer';
 import LandingView from './components/LandingView';
 import { signal } from './lib/signal';
 import ComparisonView from './components/ComparisonView';
@@ -274,17 +271,6 @@ export default function App() {
   });
   const [showAbout, setShowAbout] = useState(false);
 
-  // --- Installable PWA ----------------------------------------------------
-  // The account menu gains an "Install app" row only when the browser can
-  // install: Chromium fires a native prompt (promptInstall), iOS Safari has no
-  // prompt API so we show the manual Add-to-Home-Screen sheet. Already-installed
-  // / unsupported browsers get no row. The offline pill + prompt-to-update toast
-  // live in <PwaLayer /> below.
-  const { availability: installAvailability, promptInstall } = useInstallPrompt();
-  const [showInstallSheet, setShowInstallSheet] = useState(false);
-  const canInstall =
-    installAvailability === 'native-prompt' || installAvailability === 'ios-manual';
-
   // --- Save image + gallery (shared RES image service) --------------------
   // "Save image" captures the current map view (html-to-image → WebP) and
   // uploads it to the shared RES gallery; "My Exports" opens the SavedImagesPanel
@@ -417,20 +403,6 @@ export default function App() {
   // Compact mode prepends every action removed from the navbar above them.
   const toolbarItems: MapUserMenuAction[] = [
     ...(isCompact ? compactMenuItems : []),
-    ...(canInstall
-      ? [
-          {
-            key: 'install',
-            label: t('pwa.install_app'),
-            icon: <Download size={16} aria-hidden="true" />,
-            onClick: () => {
-              if (installAvailability === 'native-prompt') void promptInstall();
-              else setShowInstallSheet(true);
-            },
-            signedOut: true,
-          } as MapUserMenuAction,
-        ]
-      : []),
     {
       key: 'share',
       label: shareStrings.share,
@@ -650,23 +622,6 @@ export default function App() {
       <ScreenshotOverlay isCapturing={isCapturing} darkMode={isDark} />
       <ShareCopiedToast show={!!notice} label={notice ?? ''} dark={isDark} />
 
-      {/* Installable-PWA chrome: offline pill + prompt-to-update toast (always
-          mounted), and the iOS Add-to-Home-Screen walkthrough (opened from the
-          account menu's "Install app" row on iOS Safari). */}
-      <PwaLayer />
-      {showInstallSheet && (
-        <IosInstallSheet
-          open
-          onClose={() => setShowInstallSheet(false)}
-          dark={isDark}
-          labels={{
-            title: t('pwa.install_title'),
-            stepShare: t('pwa.ios_step_share'),
-            stepAdd: t('pwa.ios_step_add'),
-            stepConfirm: t('pwa.ios_step_confirm'),
-          }}
-        />
-      )}
     </ErrorLogBoundary>
   );
 }

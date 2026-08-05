@@ -41,6 +41,26 @@ export const KIND_META = {
 
 export const RELEASES = [
   {
+    version: '0.28.8',
+    date: 'August 5, 2026',
+    codename: 'One Aireon mark',
+    summary: 'similoo pauses installable-app support and uses the Hub favicon as its single browser icon.',
+    items: [
+      {
+        kind: 'improved',
+        icon: 'package',
+        text: 'Install app prompts, the iOS add-to-home walkthrough, offline shell caching and service-worker update notices are paused while the suite focuses on the browser experience. A cleanup worker removes the old cached app shell and unregisters itself for people who previously installed similoo.',
+        prs: [],
+      },
+      {
+        kind: 'improved',
+        icon: 'globe',
+        text: 'The browser tab now has one favicon source: the canonical red-and-white Aireon mark served by the Hub. Local icon variants and install manifests no longer compete with it.',
+        prs: [],
+      },
+    ],
+  },
+  {
     version: '0.28.7',
     date: 'August 3, 2026',
     codename: 'Frosted',
