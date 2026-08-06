@@ -376,9 +376,12 @@
     text-align: center;
     padding: 12px 0;
 }
+/* ratioV headline band. It used to share this row with a zoning key/value line;
+   the zone is a data pill now (see .cmp-target-pills), so the hero owns the
+   full width as a single-column KPI band. */
 .cmp-target-head {
     display: grid;
-    grid-template-columns: auto 1fr;
+    grid-template-columns: 1fr;
     gap: 14px;
     align-items: stretch;
     padding: 4px 0 12px;
@@ -406,6 +409,7 @@
     color: var(--hood-panel-muted);
     font-weight: 600;
 }
+/* Title/subtitle column of the loading skeleton's identity row. */
 .cmp-target-meta {
     display: flex;
     flex-direction: column;
@@ -413,26 +417,13 @@
     gap: 4px;
     min-width: 0;
 }
-.cmp-target-line {
-    display: grid;
-    grid-template-columns: 80px 1fr;
-    gap: 8px;
-    align-items: baseline;
-    font-size: 12px;
-    min-width: 0;
-}
-.cmp-target-key {
-    color: var(--hood-panel-muted);
-    text-transform: uppercase;
-    font-size: 12px;
-    letter-spacing: 0.06em;
-}
-.cmp-target-val {
-    color: var(--hood-panel-text);
-    font-weight: 500;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+/* Suite data pills (DATA_PILLS_STANDARD.md): the subject parcel's attributes as
+   two compact sections ("Parcel", "Building") of fit-content pills, replacing
+   the old three-column key/value cell grid and the zoning key/value line.
+   Geometry and skin ship in @aireon/shared/map-ui.css (.aireon-datapill*) — this
+   wrapper only supplies the spacing under the ratioV band. */
+.cmp-target-pills {
+    margin-top: 4px;
 }
 /* Suite parcel identity header (shared .aireon-pih-* block) at the top of the
    subject card: give it a little breathing room + a hairline divider before the
@@ -565,32 +556,6 @@
 .cmp-id-chip--copied .cmp-id-chip-icon {
     color: #10b981;
 }
-.cmp-target-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 6px;
-    margin-top: 4px;
-}
-.cmp-target-cell {
-    background: var(--hood-panel-row-bg);
-    border: 1px solid var(--hood-panel-border);
-    border-radius: 8px;
-    padding: 8px;
-    text-align: center;
-}
-.cmp-target-cell-key {
-    font-size: 12px;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    color: var(--hood-panel-muted);
-}
-.cmp-target-cell-val {
-    margin-top: 3px;
-    font-size: 12px;
-    font-weight: 600;
-    color: var(--hood-panel-title);
-}
-
 /* ---------- filters ---------- */
 .cmp-filter-row {
     display: flex;
@@ -1000,15 +965,6 @@ body.cmp-shifted .basemap-selector {
         transform: translateX(0);
         opacity: 0;
         pointer-events: none;
-    }
-    .cmp-target-head {
-        grid-template-columns: 1fr;
-    }
-    .cmp-target-meta {
-        order: 2;
-    }
-    .cmp-target-grid {
-        grid-template-columns: repeat(2, 1fr);
     }
     /* "Open in" footer row: the last section of the sheet's scrollable
        details, sitting in normal flow so you scroll to the end to reach it
