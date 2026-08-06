@@ -41,6 +41,20 @@ export const KIND_META = {
 
 export const RELEASES = [
   {
+    version: '0.28.11',
+    date: 'August 6, 2026',
+    codename: 'Two-line address',
+    summary: 'The comparison panel now titles the subject parcel with just the street and house number, and moves the postal code and city to the line below.',
+    items: [
+      {
+        kind: 'improved',
+        icon: 'map-pin',
+        text: 'The subject parcel heading used to repeat the full search label in one long line, such as "Nüschelerstrasse 30 8001 Zürich". The title now carries only the street and house number, while the postal code and city sit on the muted line underneath, the same way every other Aireon map app presents an address. When no street address is available, the municipality still takes over the title.',
+        prs: [],
+      },
+    ],
+  },
+  {
     version: '0.28.10',
     date: 'August 6, 2026',
     codename: 'Track up top',

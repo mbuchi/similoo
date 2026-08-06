@@ -5,6 +5,7 @@ import {
     ParcelOpenInMenu,
     aerialThumbnailZoom,
     buildSwisstopoAerialUrl,
+    parseSwissAddress,
 } from '@aireon/shared';
 import { t, onLocaleChange, getLocale } from '../i18n.js';
 import { fetchSimilooComparables } from '../api/similoo.js';
@@ -493,9 +494,11 @@ export function createComparisonSidebar({ map, onClose, onFlyTo, onSelectCompara
     // standard; mirrors the shared <ParcelPanelShell> compact header, reusing
     // its shipped `.aireon-pih-*` title/subtitle classes from map-ui.css).
     // Layout: a small swisstopo aerial thumbnail at the very top-left, the
-    // searched address as the title (falling back to the municipality, then a
-    // localized "Selected parcel" — title text only, never a badge) with the
-    // municipality as the muted subtitle beside it, then the two copyable
+    // searched street + house number as the title (split out of the flat
+    // geocoder label per data-card header standard R6, falling back to the
+    // municipality, then a localized "Selected parcel" — title text only,
+    // never a badge) with the "ZIP · City" locality (fallback municipality)
+    // as the muted subtitle beside it, then the two copyable
     // identifier pills (EGRID + Lat/Lng) on their own content-sized flex row —
     // side by side when they fit, each on its own full-width row when they do
     // not, but never with a wrapped value (data-card header standard R2). A
@@ -505,11 +508,18 @@ export function createComparisonSidebar({ map, onClose, onFlyTo, onSelectCompara
     function identityHeaderHtml(egrid) {
         const target = currentData?.target;
         const municipality = target?.municipality || null;
-        const title = currentAddress || municipality || t('comparison.identity_fallback_title');
-        // Show the municipality as the muted subtitle only when it isn't already
-        // the title (i.e. we have a real searched address up top) — otherwise it
-        // would just repeat the title line.
-        const subtitle = currentAddress && municipality ? municipality : null;
+        // Identity feed (data-card header standard R6): the geocoder hands the
+        // sidebar a flat label ("Nüschelerstrasse 30 8001 Zürich"), which must
+        // never be the title verbatim. Split it so the title carries only
+        // street + house number and the "ZIP · City" locality drops to the
+        // muted line below. Display-time only — `currentAddress` itself keeps
+        // the full label because saveParcel and the deep-link consume it.
+        const parts = parseSwissAddress(currentAddress);
+        const title = parts.street ?? currentAddress ?? municipality ?? t('comparison.identity_fallback_title');
+        // Locality line under the title, falling back to the municipality —
+        // suppressed when it would just repeat the title (i.e. the
+        // municipality is already up top because there is no address).
+        const subtitle = parts.locality ?? (municipality && municipality !== title ? municipality : null);
         const copyEgridLabel = t('comparison.copy_egrid');
         const copyLatLngLabel = t('comparison.copy_latlng');
         const lng = Array.isArray(currentLngLat) ? Number(currentLngLat[0]) : null;
