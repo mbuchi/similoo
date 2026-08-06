@@ -14,9 +14,10 @@ import { createSaveParcelButton } from './saveParcelButton.js';
 // Right-edge "Comparable Buildings" sidebar.
 //
 // Three stacked sections:
-//   1. Target parcel metrics — municipality, zoning, EGRID, parcel size,
-//      building volume + footprint + height + floors, construction year,
-//      ratioV (headline metric, big number).
+//   1. Target parcel — identity header (address, EGRID, coordinates), the
+//      ratioV headline metric, then the attributes as suite data pills
+//      (DATA_PILLS_STANDARD.md): a "Parcel" section (size, zoning) and a
+//      "Building" section (footprint, floors, year, height, volume).
 //   2. Filters — "years window" slider (1–30, default 10) and parcel-size
 //      from/to inputs.
 //   3. Comparable buildings list — sortable cards (similarity / ratioV /
@@ -68,6 +69,21 @@ const SKELETON_CARD = `
         </div>
     </article>
 `;
+
+// Loading placeholder for one data-pill section: the eyebrow heading plus a
+// wrapping row of pill-shaped blanks at the widths the real pills take, so the
+// swap to real content does not shift the panel.
+function skeletonPillGroup(widths) {
+    const pills = widths
+        .map((w) => `<div class="skeleton" style="height:22px;width:${w}px;border-radius:9999px;"></div>`)
+        .join('');
+    return `
+        <section class="aireon-datapill-group" aria-hidden="true">
+            <div class="skeleton" style="height:10px;width:52px;margin-bottom:6px;"></div>
+            <div class="aireon-datapill-row">${pills}</div>
+        </section>
+    `;
+}
 
 export function createComparisonSidebar({ map, onClose, onFlyTo, onSelectComparable, onHoverComparable, onUnhoverComparable, onDataLoaded } = {}) {
     let aside = buildShell();
@@ -419,8 +435,9 @@ export function createComparisonSidebar({ map, onClose, onFlyTo, onSelectCompara
                 <div class="skeleton" style="height:28px;border-radius:6px;flex:1 1 0;"></div>
                 <div class="skeleton" style="height:28px;border-radius:6px;flex:1 1 0;"></div>
             </div>
-            <div class="cmp-target-grid">
-                ${'<div class="skeleton" style="height:42px;border-radius:8px;"></div>'.repeat(6)}
+            <div class="cmp-target-pills">
+                ${skeletonPillGroup([70, 96])}
+                ${skeletonPillGroup([78, 62, 70, 58, 88])}
             </div>
         `;
         els.list.innerHTML = SKELETON_CARD.repeat(6);
@@ -443,6 +460,13 @@ export function createComparisonSidebar({ map, onClose, onFlyTo, onSelectCompara
                 ? target.building_volume_m3 / target.parcel_area_m2
                 : null);
         const egrid = target.egrid || currentEgrid || null;
+        // Attribute block: two compact pill sections (Parcel → Building) in the
+        // canonical order of DATA_PILLS_STANDARD.md — area/size first, then
+        // counts and dimensions. The ratioV hero above is a headline figure, not
+        // a raw attribute, so it stays outside the groups; EGRID and the
+        // coordinates stay in the identity header and are never repeated as
+        // pills. Missing values drop their pill entirely (never a row of
+        // dashes), and a section with nothing to show renders nothing.
         els.targetSection.innerHTML = `
             ${identityHeaderHtml(egrid)}
             <div class="cmp-target-head">
@@ -450,20 +474,40 @@ export function createComparisonSidebar({ map, onClose, onFlyTo, onSelectCompara
                     <div class="cmp-target-ratiov-value">${formatRatio(ratioV)}</div>
                     <div class="cmp-target-ratiov-label">${escapeHtml(t('comparison.metric_ratiov'))}</div>
                 </div>
-                <div class="cmp-target-meta">
-                    <div class="cmp-target-line">
-                        <span class="cmp-target-key">${escapeHtml(t('comparison.metric_zoning'))}</span>
-                        <span class="cmp-target-val">${escapeHtml(target.cz_local || target.cz_abbrev || dash())}</span>
-                    </div>
-                </div>
             </div>
-            <div class="cmp-target-grid">
-                ${targetCell('comparison.metric_parcel_size', formatM2(target.parcel_area_m2))}
-                ${targetCell('comparison.metric_volume', formatM3(target.building_volume_m3))}
-                ${targetCell('comparison.metric_footprint', formatM2(target.footprint_m2))}
-                ${targetCell('comparison.metric_height', formatM(target.height_m))}
-                ${targetCell('comparison.metric_floors', target.floors != null ? String(target.floors) : dash())}
-                ${targetCell('comparison.metric_year', target.construction_year != null ? String(target.construction_year) : dash())}
+            <div class="cmp-target-pills">
+                ${dataPillGroupHtml(t('comparison.section_parcel'), [
+                    {
+                        value: Number.isFinite(target.parcel_area_m2) ? formatM2(target.parcel_area_m2) : null,
+                        title: t('comparison.metric_parcel_size'),
+                    },
+                    {
+                        label: t('comparison.metric_zoning'),
+                        value: target.cz_local || target.cz_abbrev || null,
+                    },
+                ])}
+                ${dataPillGroupHtml(t('comparison.section_building'), [
+                    {
+                        value: Number.isFinite(target.footprint_m2) ? formatM2(target.footprint_m2) : null,
+                        title: t('comparison.metric_footprint'),
+                    },
+                    {
+                        label: t('comparison.metric_floors'),
+                        value: target.floors != null ? String(target.floors) : null,
+                    },
+                    {
+                        label: t('comparison.metric_year'),
+                        value: target.construction_year != null ? String(target.construction_year) : null,
+                    },
+                    {
+                        value: Number.isFinite(target.height_m) ? formatM(target.height_m) : null,
+                        title: t('comparison.metric_height'),
+                    },
+                    {
+                        value: Number.isFinite(target.building_volume_m3) ? formatM3(target.building_volume_m3) : null,
+                        title: t('comparison.metric_volume'),
+                    },
+                ])}
             </div>
         `;
         bindIdentityHeader();
@@ -765,15 +809,6 @@ export function createComparisonSidebar({ map, onClose, onFlyTo, onSelectCompara
         els.meta.textContent = [tag, month].filter(Boolean).join(' · ');
     }
 
-    function targetCell(labelKey, value) {
-        return `
-            <div class="cmp-target-cell">
-                <div class="cmp-target-cell-key">${escapeHtml(t(labelKey))}</div>
-                <div class="cmp-target-cell-val">${escapeHtml(value)}</div>
-            </div>
-        `;
-    }
-
     // --- Raw-JSON developer view ---------------------------------------------
     //
     // Flip between the normal comparison body and a syntax-highlighted dump of
@@ -1025,6 +1060,50 @@ function formatPct(n) {
 
 function dash() {
     return '-';
+}
+
+// --- Suite data pills (DATA_PILLS_STANDARD.md, @aireon/shared v1.135.0) -------
+//
+// The shared <DataPillGroup> / <DataPill> pair is React; this sidebar builds its
+// DOM from innerHTML strings, so it hand-rolls the exact same markup and
+// `.aireon-datapill*` classes that ship in map-ui.css — the approach the
+// identity header above already takes with `.aireon-pih-*`. Keeping the class
+// contract identical means the pills render the same here as in every React app
+// in the suite. similoo themes off [data-theme="dark"], which the shipped rules
+// target directly, so no `--dark` flag is needed.
+
+// One fit-content pill. A nullish/empty value renders nothing so callers can
+// list every candidate field and let the missing ones fall away. `label` is a
+// short uppercase prefix for values that are ambiguous on their own ("FLOORS:
+// 3"); `title` is the hover/a11y meaning for values that already carry a unit
+// ("658 m²").
+function dataPillHtml({ label, value, title, mono, emphasis } = {}) {
+    if (value == null || value === '') return '';
+    const cls = [
+        'aireon-datapill',
+        mono ? 'aireon-datapill--mono' : '',
+        emphasis ? 'aireon-datapill--em' : '',
+    ].filter(Boolean).join(' ');
+    const meaning = title ?? label ?? '';
+    const labelHtml = label
+        ? `<span class="aireon-datapill-label">${escapeHtml(label)}:</span>`
+        : '';
+    return `<span class="${cls}"${meaning ? ` title="${escapeHtml(meaning)}"` : ''}>`
+        + `${labelHtml}<span class="aireon-datapill-value">${escapeHtml(String(value))}</span></span>`;
+}
+
+// One titled section ("Parcel", "Building") whose pills sit on a tightly
+// wrapping row. A group whose items are all empty renders nothing at all — no
+// stray eyebrow heading over an empty row.
+function dataPillGroupHtml(heading, items) {
+    const pills = items.map(dataPillHtml).filter(Boolean);
+    if (!pills.length) return '';
+    return `
+        <section class="aireon-datapill-group" aria-label="${escapeHtml(heading)}">
+            <h3 class="aireon-datapill-heading">${escapeHtml(heading)}</h3>
+            <div class="aireon-datapill-row">${pills.join('')}</div>
+        </section>
+    `;
 }
 
 function escapeHtml(str) {

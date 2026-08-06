@@ -41,6 +41,20 @@ export const KIND_META = {
 
 export const RELEASES = [
   {
+    version: '0.29.0',
+    date: 'August 7, 2026',
+    codename: 'Data pills',
+    summary: 'The subject parcel now reads as compact pills, tightly stacked and always in the same order.',
+    items: [
+      {
+        kind: 'improved',
+        icon: 'tags',
+        text: 'The subject parcel used to spend a fixed three-column cell on every figure, so a two-character zone code took as much room as a full parcel size. Its attributes now sit in two compact pill sections, "Parcel" (size, zoning) and "Building" (footprint, floors, year built, height, volume). Each pill takes only the width it needs, they stack tightly on a wrapping row, and the order never changes, so the block is far faster to scan. Zoning moved out of the ratioV band and into the Parcel section, values that are missing for a parcel simply drop out instead of showing a dash, and the ratioV headline metric now spans the full panel width.',
+        prs: [],
+      },
+    ],
+  },
+  {
     version: '0.28.11',
     date: 'August 6, 2026',
     codename: 'Two-line address',
