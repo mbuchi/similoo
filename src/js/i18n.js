@@ -42,6 +42,11 @@ import {
   registerI18n,
   setLocale as setSharedLocale,
 } from '@aireon/shared/cesium-app/i18n/engine.js';
+// `?lang=de` (URL_PARAMS_STANDARD.md, appearance) is an ephemeral, per-page-load
+// override — it must win as the initial locale but never persist. It is a pure
+// read (getLocaleOverride never writes anything), so no restore-wrapper is
+// needed around it, unlike a locale library that auto-persists on init.
+import { getLocaleOverride } from '@aireon/shared/url-params';
 
 export const SUPPORTED_LOCALES = ['en', 'fr', 'de', 'it'];
 const STORAGE_KEY = 'similoo:locale';
@@ -1806,6 +1811,8 @@ registerI18n({
 });
 
 function detectInitialLocale() {
+  const override = getLocaleOverride();
+  if (override && SUPPORTED_LOCALES.includes(override)) return override;
   try {
     const stored = localStorage.getItem(STORAGE_KEY);
     if (stored && SUPPORTED_LOCALES.includes(stored)) return stored;

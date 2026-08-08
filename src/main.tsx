@@ -1,6 +1,7 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
-import { AuthProvider, GlassProvider, initTheme, initOpenReplay } from '@aireon/shared';
+import { AuthProvider, GlassProvider, initTheme, applyTheme, initOpenReplay } from '@aireon/shared';
+import { getThemeOverride } from '@aireon/shared/url-params';
 import App from './App';
 import { SimilooAccessGate } from './components/SimilooAccessGate';
 
@@ -13,7 +14,17 @@ import { SimilooAccessGate } from './components/SimilooAccessGate';
 // resolution — incl. `<html data-theme>` for similoo's bespoke CSS — before
 // first paint; this re-affirms it once the bundle loads. App.tsx owns the toggle
 // and keeps both `.dark` and `data-theme` in sync afterward.
-initTheme('light');
+//
+// `?theme=dark|light` (URL_PARAMS_STANDARD.md) wins for this page load only:
+// initTheme() still runs first (it applies the real stored/OS-default theme
+// and never persists), then an override forces the `.dark` class to match
+// without writing the cookie/localStorage — only setTheme() persists. The
+// index.html pre-paint script already consulted the same override for
+// `data-theme`/`.dark` before first paint; this just keeps initTheme()'s own
+// resolution from flipping it back once the bundle loads.
+const storedTheme = initTheme('light');
+const themeOverride = getThemeOverride();
+if (themeOverride && themeOverride !== storedTheme) applyTheme(themeOverride);
 
 // Tailwind layers + suite font tokens. MUST be first so Tailwind's preflight
 // (base reset) lands at the bottom of the cascade — the bespoke design-token

@@ -41,6 +41,20 @@ export const KIND_META = {
 
 export const RELEASES = [
   {
+    version: '0.31.0',
+    date: 'August 9, 2026',
+    codename: 'Shareable links',
+    summary: 'A similoo link can now carry a theme, language, or zoom override, freeze the map for a clean screenshot or embed, or hide the navbar chrome, the same deep-link parameters other Aireon apps use.',
+    items: [
+      {
+        kind: 'new',
+        icon: 'link',
+        text: 'New URL parameters on similoo links: open in dark or light mode, in a chosen language, or at a specific zoom. mode=screenshot/embed/kiosk hides the navbar for captures and embeds, and motion=off freezes the map for a clean screenshot. None of these are saved to your preferences.',
+        prs: [],
+      },
+    ],
+  },
+  {
     version: '0.30.2',
     date: 'August 8, 2026',
     codename: 'Recent right-clicks',
