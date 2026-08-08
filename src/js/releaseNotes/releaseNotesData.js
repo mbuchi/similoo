@@ -41,6 +41,20 @@ export const KIND_META = {
 
 export const RELEASES = [
   {
+    version: '0.29.1',
+    date: 'August 8, 2026',
+    codename: 'No forced sign-in',
+    summary: 'Signed-out visitors are never redirected to the sign-in page anymore: the app always opens directly, and signing in stays your choice.',
+    items: [
+      {
+        kind: 'changed',
+        icon: 'shield-check',
+        text: 'Opening similoo while signed out used to bounce some visitors through the account service, and could even strand you on its sign-in page when an old session had expired. That automatic redirect is gone across the whole Aireon suite: similoo now always loads anonymously, and you only ever see the sign-in screen after choosing Sign in yourself.',
+        prs: [],
+      },
+    ],
+  },
+  {
     version: '0.29.0',
     date: 'August 7, 2026',
     codename: 'Data pills',
