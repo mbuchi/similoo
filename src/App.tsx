@@ -29,6 +29,7 @@ import {
   type MapContextMenuPoint,
   type MapContextParcel,
 } from '@aireon/shared';
+import { getThemeOverride } from '@aireon/shared/url-params';
 import {
   Camera,
   ExternalLink,
@@ -193,10 +194,23 @@ export default function App() {
   const [isDark, setIsDark] = useState(
     () => document.documentElement.getAttribute('data-theme') === 'dark',
   );
+  // `?theme=dark|light` (URL_PARAMS_STANDARD.md) must never persist. The
+  // effect below runs on mount too (not just on later toggles), and by then
+  // `data-theme` already carries the override (index.html's pre-paint script
+  // + main.tsx's applyTheme() call both consult it before this component
+  // renders) — so the very first run would otherwise write that overridden
+  // value into localStorage and the shared cookie, clobbering the visitor's
+  // real preference. Skip exactly that one run (taxoo useTheme skip-persist
+  // precedent); any later user-driven toggleTheme() persists normally.
+  const skipThemePersistRef = useRef(Boolean(getThemeOverride()));
   useEffect(() => {
     const root = document.documentElement;
     root.setAttribute('data-theme', isDark ? 'dark' : 'light');
     root.classList.toggle('dark', isDark);
+    if (skipThemePersistRef.current) {
+      skipThemePersistRef.current = false;
+      return;
+    }
     try {
       localStorage.setItem('similoo-theme', isDark ? 'dark' : 'light');
     } catch {

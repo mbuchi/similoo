@@ -32,16 +32,23 @@
         // applied so users on dark mode don't see a white flash on load.
         (function () {
             try {
+                // `?theme=dark|light` (URL_PARAMS_STANDARD.md) is an ephemeral,
+                // per-page-load override — it must win over every stored
+                // preference here, and this script never writes it anywhere, so
+                // there is nothing to undo on a later reload without the param.
+                var qTheme = new URLSearchParams(window.location.search).get('theme');
                 // Cross-app theme: prefer the suite-shared `aireon_theme` cookie
                 // (scoped to .aireon.ch, written by @aireon/shared setTheme), then
                 // fall back to the legacy local `similoo-theme` mirror, then OS pref.
                 var cm = document.cookie.match(/(?:^|; )aireon_theme=([^;]*)/);
                 var stored = cm ? decodeURIComponent(cm[1]) : localStorage.getItem('similoo-theme');
-                var resolved = stored === 'light' || stored === 'dark'
-                    ? stored
-                    : (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
-                        ? 'dark'
-                        : 'light');
+                var resolved = qTheme === 'light' || qTheme === 'dark'
+                    ? qTheme
+                    : stored === 'light' || stored === 'dark'
+                        ? stored
+                        : (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+                            ? 'dark'
+                            : 'light');
                 document.documentElement.setAttribute('data-theme', resolved);
                 // Mirror a `.dark` class for the shared Liquid Glass tokens
                 // (@aireon/shared/glass.css keys its dark variants on
@@ -59,6 +66,13 @@
         (function () {
             var supported = ['en', 'fr', 'de', 'it'];
             try {
+                // `?lang=de` (URL_PARAMS_STANDARD.md) is an ephemeral override —
+                // wins over the stored locale, never written anywhere here.
+                var qLang = new URLSearchParams(window.location.search).get('lang');
+                if (qLang && supported.indexOf(qLang) !== -1) {
+                    document.documentElement.lang = qLang;
+                    return;
+                }
                 var stored = localStorage.getItem('similoo:locale');
                 if (stored && supported.indexOf(stored) !== -1) {
                     document.documentElement.lang = stored;

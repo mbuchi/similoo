@@ -19,6 +19,9 @@ import { resolveEgridFromLngLat, normaliseEgrid } from './comparison/parcelLooku
 import { createBuildingDetailModal } from './detail/buildingDetailModal.js';
 import { createMapLegend } from './viewer/mapLegend.js';
 import { initMethodologyHelp } from './help/methodologyPanel.js';
+// Suite deep-link URL parameter standard (docs/URL_PARAMS_STANDARD.md in
+// aireon-shared). Pure ESM, safe to import from this vanilla-JS engine.
+import { getUrlState, applyUrlUiModes, DEEP_LINK_MIN_ZOOM } from '@aireon/shared/url-params';
 
 // similoo's imperative engine entry point.
 //
@@ -35,6 +38,14 @@ import { initMethodologyHelp } from './help/methodologyPanel.js';
 // resolves exactly as before. The shell is React; the engine is preserved
 // verbatim. `boot()` is idempotent-guarded by the caller.
 export function boot() {
+    // similoo has no shared AuthProvider in its imperative-engine boot path
+    // (React mounts AuthProvider around <App>, but this engine's own effects —
+    // including the deep-link bootstrap below — run before AuthProvider's own
+    // mount effect fires, per React's child-before-parent effect order). Call
+    // the idempotent DOM applier directly so mode=screenshot/embed/kiosk chrome
+    // hiding and motion freeze are in place before this function does any more
+    // work. AuthProvider still calls it too later — harmless, it's idempotent.
+    applyUrlUiModes();
     applyTranslations(document);
     // Methodology help keeps its Esc / hash / deep-link handling here; its open
     // trigger is the React navbar Help button (see App.tsx). The navbar, theme,
@@ -642,8 +653,11 @@ export function boot() {
             map.jumpTo({
                 center: [result.lng, result.lat],
                 // Suite convention: a deep-linked / searched address opens at
-                // street level (zoom >= 17) so the target building reads.
-                zoom: Math.max(17, map.getZoom()),
+                // street level (zoom >= DEEP_LINK_MIN_ZOOM) so the target
+                // building reads. An explicit ?zoom=/?z= on the deep-link
+                // (floored the same way, see the bootstrap below) wins when
+                // handlePick was called with one.
+                zoom: Number.isFinite(result.zoom) ? result.zoom : Math.max(DEEP_LINK_MIN_ZOOM, map.getZoom()),
                 pitch: 50,
                 bearing: -25,
             });
@@ -782,17 +796,18 @@ export function boot() {
 
     // Deep-link bootstrap: ?lat=&lng= skips the landing view and renders
     // the comparison immediately. Useful for sharing and headless tests.
+    // lat/lng/zoom now come off the shared, suite-wide URL parser (adds the
+    // ±85/±180 clamp and the ?z alias for free; an explicit zoom is floored
+    // at DEEP_LINK_MIN_ZOOM, same as every other pick). `label` is a
+    // similoo-local param (not part of the shared registry) and stays a
+    // plain URLSearchParams read.
     try {
-        const params = new URLSearchParams(window.location.search);
-        const rawLat = params.get('lat');
-        const rawLng = params.get('lng');
-        if (rawLat != null && rawLng != null) {
-            const lat = Number(rawLat);
-            const lng = Number(rawLng);
-            if (Number.isFinite(lat) && Number.isFinite(lng)) {
-                const label = params.get('label') || formatLatLng(lat, lng);
-                handlePick({ lat, lng, label });
-            }
+        const urlState = getUrlState();
+        if (urlState.lat !== null && urlState.lng !== null) {
+            const label = new URLSearchParams(window.location.search).get('label')
+                || formatLatLng(urlState.lat, urlState.lng);
+            const zoom = urlState.zoom !== null ? Math.max(urlState.zoom, DEEP_LINK_MIN_ZOOM) : undefined;
+            handlePick({ lat: urlState.lat, lng: urlState.lng, label, zoom });
         }
     } catch (_) { /* no-op */ }
 
