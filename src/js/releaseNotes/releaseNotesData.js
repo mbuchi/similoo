@@ -41,6 +41,20 @@ export const KIND_META = {
 
 export const RELEASES = [
   {
+    version: '0.30.1',
+    date: 'August 8, 2026',
+    codename: 'EGRID copy',
+    summary: 'The right-click map menu can now copy the federal parcel identifier (EGRID) straight to your clipboard.',
+    items: [
+      {
+        kind: 'new',
+        icon: 'copy',
+        text: 'Right-click map menu: Copy parcel ID (EGRID) copies the federal parcel identifier (CH...) to the clipboard, so you can paste it into other Aireon apps or official registers without retyping it.',
+        prs: [],
+      },
+    ],
+  },
+  {
     version: '0.30.0',
     date: 'August 8, 2026',
     codename: 'Right-click, clearer',
