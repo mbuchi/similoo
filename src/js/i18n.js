@@ -110,6 +110,10 @@ const translations = {
     'nav.theme_toggle': 'Toggle dark mode',
     'nav.open_with': 'Open with',
 
+    // ---------- map context menu ----------
+    'context.load_label': 'Find comparables here',
+    'context.load_hint': 'Search similar buildings around this point',
+
     // ---------- views dropdown ----------
     'views.button': 'Views',
     'views.from_north': 'View from North',
@@ -541,6 +545,10 @@ const translations = {
     'nav.theme_to_light': 'Passer en mode clair',
     'nav.theme_toggle': 'Basculer le mode sombre',
     'nav.open_with': 'Ouvrir avec',
+
+    // ---------- map context menu ----------
+    'context.load_label': 'Trouver des comparables ici',
+    'context.load_hint': 'Chercher des bâtiments similaires autour de ce point',
 
     // ---------- views dropdown ----------
     'views.button': 'Vues',
@@ -974,6 +982,10 @@ const translations = {
     'nav.theme_to_light': 'Zum hellen Modus wechseln',
     'nav.theme_toggle': 'Dunkelmodus umschalten',
     'nav.open_with': 'Öffnen mit',
+
+    // ---------- map context menu ----------
+    'context.load_label': 'Vergleichsobjekte hier finden',
+    'context.load_hint': 'Ähnliche Gebäude um diesen Punkt suchen',
 
     // ---------- views dropdown ----------
     'views.button': 'Ansichten',
@@ -1409,6 +1421,10 @@ const translations = {
     'nav.theme_to_light': 'Passa al tema chiaro',
     'nav.theme_toggle': 'Attiva/disattiva tema scuro',
     'nav.open_with': 'Apri con',
+
+    // ---------- map context menu ----------
+    'context.load_label': 'Trova comparabili qui',
+    'context.load_hint': 'Cerca edifici simili attorno a questo punto',
 
     // ---------- views dropdown ----------
     'views.button': 'Viste',

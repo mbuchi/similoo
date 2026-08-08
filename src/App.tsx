@@ -95,6 +95,7 @@ async function resolveContextParcel(
     municipality,
     area: 0,
     subtitle: [municipality, context.canton].filter(Boolean).join(', ') || undefined,
+    address: context.address || undefined,
   };
 }
 
@@ -558,6 +559,8 @@ export default function App() {
         locale={locale}
         darkMode={isDark}
         auth={{ isAuthenticated, getAccessToken, promptLogin }}
+        loadLabel={t('context.load_label')}
+        loadHint={t('context.load_hint')}
         onLoadParcel={(point, parcel) => {
           window.dispatchEvent(new CustomEvent('similoo:search', {
             detail: {
