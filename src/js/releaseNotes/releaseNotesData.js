@@ -41,6 +41,20 @@ export const KIND_META = {
 
 export const RELEASES = [
   {
+    version: '0.30.2',
+    date: 'August 8, 2026',
+    codename: 'Recent right-clicks',
+    summary: 'Searches started from the right-click map menu now show up in your Recent searches.',
+    items: [
+      {
+        kind: 'fixed',
+        icon: 'history',
+        text: 'Right-click map searches now appear in Recent searches, matching the address bar and synced across Aireon apps.',
+        prs: [],
+      },
+    ],
+  },
+  {
     version: '0.30.1',
     date: 'August 8, 2026',
     codename: 'EGRID copy',
