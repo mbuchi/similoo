@@ -41,6 +41,46 @@ export const KIND_META = {
 
 export const RELEASES = [
   {
+    version: '0.31.3',
+    date: 'August 9, 2026',
+    codename: 'Links that reopen exactly as you left them',
+    summary: 'A shared or reloaded similoo link now restores the same address and the same zoom it was made at.',
+    items: [
+      {
+        kind: 'fixed',
+        icon: 'link',
+        text: 'The address on a link now always matches the place the link opens. Moving the map away from the address you searched, for example flying to a comparable building, drops the old address from the link instead of carrying it along, so a copied link can no longer open one parcel under another parcel\'s address. Links that no longer carry an address open on their coordinates.',
+        prs: [],
+      },
+      {
+        kind: 'fixed',
+        icon: 'link',
+        text: 'Reloading after zooming out now reopens at the zoom you left, instead of jumping back to street level. Links opened from somewhere else still open at street level so the target building reads.',
+        prs: [],
+      },
+    ],
+  },
+  {
+    version: '0.31.2',
+    date: 'August 9, 2026',
+    codename: 'Links that carry the whole view',
+    summary: 'The URL now follows the map as you move it, and it names your language and light or dark mode, so a copied link reopens the view you were looking at.',
+    items: [
+      {
+        kind: 'improved',
+        icon: 'link',
+        text: 'Panning, zooming, resetting the compass, flying to a comparable building, and centering from the right-click menu all keep the address bar up to date, so copying the link shares the exact spot on screen.',
+        prs: [],
+      },
+      {
+        kind: 'improved',
+        icon: 'link',
+        text: 'Shared similoo links now also carry the current language and the light or dark theme, so the person opening the link sees the same view you did. These stay link-only and never change your saved preferences.',
+        prs: [],
+      },
+    ],
+  },
+  {
     version: '0.31.1',
     date: 'August 9, 2026',
     codename: 'Confirmed locations, shareable',

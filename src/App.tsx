@@ -29,7 +29,11 @@ import {
   type MapContextMenuPoint,
   type MapContextParcel,
 } from '@aireon/shared';
-import { getThemeOverride } from '@aireon/shared/url-params';
+import {
+  getThemeOverride,
+  registerUrlSyncProviders,
+  syncMapUrl,
+} from '@aireon/shared/url-params';
 import {
   Camera,
   ExternalLink,
@@ -260,6 +264,40 @@ export default function App() {
     setLocale(next);
     applyTranslations(document);
   }, []);
+
+  // --- State to URL write-back (URL_PARAMS_STANDARD.md section 4) ---------
+  // Mirror the state a copied link should reproduce into the query string, so
+  // a shared similoo URL reopens the same language and appearance, not just
+  // the same coordinates. Registered once on mount; the getters read live
+  // sources (i18n.js owns the locale, a ref mirrors the theme) so the
+  // providers never see a stale closure. Every updateMapUrl() call in the
+  // engine then stamps these values alongside lat/lng/zoom.
+  //
+  // Deliberately NOT registered: `basemap` (similoo has one hardcoded
+  // swisstopo SWISSIMAGE raster, no picker, and no id the shared basemap
+  // registry would accept back) and `view`/`pitch`/`bearing` (the camera is
+  // permanently tilted at pitch 50 / bearing -25, so there is no 2D/3D mode
+  // state to switch them off in).
+  //
+  // Write-back is read-only against app state: it never calls setLocale(),
+  // never touches the theme skip-persist guard above, and persists nothing.
+  const isDarkRef = useRef(isDark);
+  isDarkRef.current = isDark;
+  useEffect(() => {
+    registerUrlSyncProviders({
+      lang: () => getLocale() as string,
+      theme: () => (isDarkRef.current ? 'dark' : 'light'),
+    });
+  }, []);
+  // Re-stamp on the state changes that happen without moving the map: a
+  // language switch, a theme toggle, or the cross-app theme the shared
+  // MapUserMenu adopts through the `<html>.dark` observer above. This is a
+  // separate effect on purpose - the theme mirror effect returns early on its
+  // first run to protect the `?theme=` skip-persist guard, which would
+  // swallow the mount sync.
+  useEffect(() => {
+    syncMapUrl();
+  }, [locale, isDark]);
 
   // --- Account / chrome state --------------------------------------------
   const { email, isAuthenticated, getAccessToken, promptLogin, status: authStatus, login } = useAuth();
