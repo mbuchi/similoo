@@ -1,18 +1,17 @@
 import { defineConfig } from 'vite';
-import react from '@vitejs/plugin-react';
+import react, { reactCompilerPreset } from '@vitejs/plugin-react';
+import babel from '@rolldown/plugin-babel';
 
 // similoo is a React shell hosting a preserved imperative engine (MapLibre map,
 // Three.js building scene, comparison sidebar, panels) under src/js. The React
-// plugin compiles the .tsx shell; the engine .js modules are plain ES modules
-// Vite handles as-is. React Compiler applies to the shell only; because the app
+// plugin compiles the .tsx shell with Oxc; the engine .js modules are plain ES
+// modules Vite handles as-is. plugin-react 6 dropped its `babel` option, so
+// React Compiler runs as a separate @rolldown/plugin-babel pass. Because the app
 // stays on React 18, the compiler target must match react-compiler-runtime.
 export default defineConfig({
   plugins: [
-    react({
-      babel: {
-        plugins: [['babel-plugin-react-compiler', { target: '18' }]],
-      },
-    }),
+    react(),
+    babel({ presets: [reactCompilerPreset({ target: '18' })] }),
   ],
   build: {
     // The bundle is dominated by maplibre-gl + three; the previous vanilla

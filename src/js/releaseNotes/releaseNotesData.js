@@ -41,6 +41,26 @@ export const KIND_META = {
 
 export const RELEASES = [
   {
+    version: '0.31.4',
+    date: 'August 9, 2026',
+    codename: 'A faster, lighter build',
+    summary: 'similoo is now built with Vite 8, so new versions ship sooner and repeat visits load a little lighter.',
+    items: [
+      {
+        kind: 'improved',
+        icon: 'zap',
+        text: 'similoo now builds on Vite 8 (Rolldown), the new engine that assembles the app. Preparing a new version takes about half the time it used to, roughly 1.8 seconds instead of 3.8, so fixes and features reach you sooner.',
+        prs: [],
+      },
+      {
+        kind: 'improved',
+        icon: 'package',
+        text: 'The stylesheet is slightly smaller, and the app now arrives as more, smaller pieces at the same total size. Each piece is stored separately by your browser, so a future update only needs to fetch the parts that actually changed instead of one large block.',
+        prs: [],
+      },
+    ],
+  },
+  {
     version: '0.31.3',
     date: 'August 9, 2026',
     codename: 'Links that reopen exactly as you left them',
