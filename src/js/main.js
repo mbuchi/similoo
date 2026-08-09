@@ -21,7 +21,7 @@ import { createMapLegend } from './viewer/mapLegend.js';
 import { initMethodologyHelp } from './help/methodologyPanel.js';
 // Suite deep-link URL parameter standard (docs/URL_PARAMS_STANDARD.md in
 // aireon-shared). Pure ESM, safe to import from this vanilla-JS engine.
-import { getUrlState, applyUrlUiModes, DEEP_LINK_MIN_ZOOM } from '@aireon/shared/url-params';
+import { getUrlState, applyUrlUiModes, updateMapUrl, DEEP_LINK_MIN_ZOOM } from '@aireon/shared/url-params';
 
 // similoo's imperative engine entry point.
 //
@@ -93,6 +93,31 @@ export function boot() {
     let comparableHoverRaf = 0;
     let comparableHoverStart = 0;
     let comparableHoverBeacon = null;
+    // The point similoo's app-local `?label` describes, recorded by
+    // syncDeepLink() when the pick is written. `label` is NOT a shared-registry
+    // param and has no sync provider, and the deep-link bootstrap below feeds it
+    // straight into handlePick() as the DISPLAYED address for whatever parcel
+    // ?lat/?lng resolve to. So it is only true for the coordinates it was
+    // written with: the moveend writer must re-assert it while the camera still
+    // names that exact point and clear it the moment the camera names another,
+    // otherwise a copied link opens one parcel titled with a different address.
+    // Shape: { lat: '47.376888', lng: '8.541694', label: 'Bahnhofstrasse 1, …' }
+    // (coordinates stored pre-rounded to the 6 decimals updateMapUrl writes).
+    let labelledPick = null;
+
+    // The precision updateMapUrl serialises lat/lng at (toFixed(6), ~0.11 m).
+    // Comparing at exactly that precision makes the question "does the URL we
+    // are about to write still name the labelled point?" rather than a distance
+    // guess, and absorbs the sub-nanodegree drift of a MapLibre camera
+    // round-trip so a plain zoom or compass reset never drops a valid label.
+    const URL_COORD_EPSILON = 1e-6;
+
+    function labelForCenter(center) {
+        if (!labelledPick) return null;
+        if (Math.abs(Number(labelledPick.lat) - center.lat) > URL_COORD_EPSILON) return null;
+        if (Math.abs(Number(labelledPick.lng) - center.lng) > URL_COORD_EPSILON) return null;
+        return labelledPick.label;
+    }
 
     async function ensureMap() {
         if (map) return map;
@@ -104,6 +129,27 @@ export function boot() {
             // re-probe whenever the map settles — this lights them up the moment
             // the user pans/flies them into view (and on a cold tile cache).
             map.on('idle', refreshHighlightsOnIdle);
+            // Suite view write-back (URL_PARAMS_STANDARD.md): keep the URL
+            // naming the camera the user is actually looking at, not just the
+            // last address they picked. Until now nothing wrote on movement,
+            // so panning, the zoom buttons, the compass reset, a comparable
+            // fly-to and the right-click "center here" all left the link
+            // frozen. updateMapUrl also stamps the sync providers App.tsx
+            // registers (lang/theme) and preserves every unrelated param,
+            // including the quiet-boot flags. `label` is the one param it must
+            // NOT leave alone: see labelForCenter() above. The address rides
+            // along only while the camera still names the point it describes,
+            // and is deleted otherwise so the link never titles one parcel with
+            // another parcel's address. Boot then falls back to the coordinates.
+            map.on('moveend', () => {
+                const center = map.getCenter();
+                updateMapUrl({
+                    lat: center.lat,
+                    lng: center.lng,
+                    zoom: map.getZoom(),
+                    extra: { label: labelForCenter(center) },
+                });
+            });
             map.on('contextmenu', (event) => {
                 event.originalEvent.preventDefault();
                 window.dispatchEvent(new CustomEvent('similoo:map-context', {
@@ -777,15 +823,25 @@ export function boot() {
         return new Promise((r) => setTimeout(r, ms));
     }
 
+    // Write the picked address into the URL through the shared writer instead
+    // of a hand-rolled replaceState, so the pick also stamps the registered
+    // sync providers (lang/theme) and the self-written history marker.
+    // `label` is a similoo-local param, not part of the shared registry, so it
+    // rides along in `extra` with the same set-or-clear semantics as before.
     function syncDeepLink(result) {
-        try {
-            const url = new URL(window.location.href);
-            url.searchParams.set('lat', String(result.lat));
-            url.searchParams.set('lng', String(result.lng));
-            if (result.label) url.searchParams.set('label', result.label);
-            else url.searchParams.delete('label');
-            window.history.replaceState({}, '', url.toString());
-        } catch { /* no-op */ }
+        const label = result.label || null;
+        // Record which point this label describes before writing, so the
+        // moveend writer can tell "still the picked address" from "the camera
+        // has moved on". handlePick() calls us just before its jumpTo(), so the
+        // moveend that jump fires already sees the fresh pick.
+        labelledPick = label
+            ? { lat: result.lat.toFixed(6), lng: result.lng.toFixed(6), label }
+            : null;
+        updateMapUrl({
+            lat: result.lat,
+            lng: result.lng,
+            extra: { label },
+        });
     }
 
     // The landing's own search (the shared WelcomeAddressCard, see
@@ -797,16 +853,27 @@ export function boot() {
     // Deep-link bootstrap: ?lat=&lng= skips the landing view and renders
     // the comparison immediately. Useful for sharing and headless tests.
     // lat/lng/zoom now come off the shared, suite-wide URL parser (adds the
-    // ±85/±180 clamp and the ?z alias for free; an explicit zoom is floored
-    // at DEEP_LINK_MIN_ZOOM, same as every other pick). `label` is a
-    // similoo-local param (not part of the shared registry) and stays a
-    // plain URLSearchParams read.
+    // ±85/±180 clamp and the ?z alias for free). `label` is a similoo-local
+    // param (not part of the shared registry) and stays a plain
+    // URLSearchParams read.
+    //
+    // Zoom floor, matching the shared getInitialMapState(): a zoom that came in
+    // from OUTSIDE (a pasted or shared link) is floored at DEEP_LINK_MIN_ZOOM so
+    // the target building reads and the parcel tile is actually rendered when
+    // handlePick probes it. A zoom this app wrote itself is used raw:
+    // updateMapUrl stamps history.state.aireonSelfWritten for exactly this, and
+    // history state survives a same-tab reload, so zooming out to see the
+    // municipality and hitting reload must reopen at that zoom rather than snap
+    // back to street level. Writing a zoom we then refuse to restore would make
+    // the URL lie.
     try {
         const urlState = getUrlState();
         if (urlState.lat !== null && urlState.lng !== null) {
             const label = new URLSearchParams(window.location.search).get('label')
                 || formatLatLng(urlState.lat, urlState.lng);
-            const zoom = urlState.zoom !== null ? Math.max(urlState.zoom, DEEP_LINK_MIN_ZOOM) : undefined;
+            const zoom = urlState.zoom === null
+                ? undefined
+                : (urlState.selfWritten ? urlState.zoom : Math.max(urlState.zoom, DEEP_LINK_MIN_ZOOM));
             handlePick({ lat: urlState.lat, lng: urlState.lng, label, zoom });
         }
     } catch (_) { /* no-op */ }
