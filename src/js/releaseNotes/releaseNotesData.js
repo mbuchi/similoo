@@ -41,6 +41,20 @@ export const KIND_META = {
 
 export const RELEASES = [
   {
+    version: '0.31.1',
+    date: 'August 9, 2026',
+    codename: 'Confirmed locations, shareable',
+    summary: 'Choosing an address or confirming a right-click location now keeps the browser URL synchronized with that exact place.',
+    items: [
+      {
+        kind: 'fixed',
+        icon: 'link',
+        text: 'Address search and right-click confirmations now write the canonical latitude, longitude, zoom, and address label into the current URL without reloading the map or adding a browser-history step, so copied links reopen the same confirmed location.',
+        prs: [],
+      },
+    ],
+  },
+  {
     version: '0.31.0',
     date: 'August 9, 2026',
     codename: 'Shareable links',
