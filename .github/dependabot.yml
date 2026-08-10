@@ -1,0 +1,97 @@
+# Aireon suite Dependabot configuration (stamped identically into every
+# Aireon app repo; canonical template + rationale live in the parent
+# working folder's docs/plans/platform-dependabot-v1-plan.md).
+#
+# Design, per the 2026-08 team decision (polyrepo + central platform +
+# Dependabot as the synchronization layer):
+# - weekly Monday-morning window, so updates arrive as one batch, not noise
+# - 7-day cooldown so brand-new releases soak upstream first
+# - thematic groups (react / gis / build-tooling / everything-else) so a
+#   week's minors+patches arrive as at most a handful of PRs
+# - majors arrive as individual PRs and are always reviewed by a human;
+#   suite-baseline majors (React 19, MapLibre, Vite) are excluded entirely
+#   because they are coordinated suite migrations
+# - @aireon/shared is a git-pinned internal dependency; its version rolls
+#   are deliberate suite releases, never Dependabot's
+# - nothing is auto-merged; CI signal is the Vercel preview build
+version: 2
+updates:
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:00"
+      timezone: "Europe/Zurich"
+    open-pull-requests-limit: 5
+    cooldown:
+      default-days: 7
+    ignore:
+      - dependency-name: "@aireon/shared"
+      - dependency-name: "react"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "react-dom"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@types/react"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@types/react-dom"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "maplibre-gl"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "vite"
+        update-types: ["version-update:semver-major"]
+    groups:
+      react:
+        applies-to: version-updates
+        patterns:
+          - "react"
+          - "react-dom"
+          - "react-router*"
+          - "@types/react*"
+          - "@vitejs/plugin-react*"
+        update-types: ["minor", "patch"]
+      gis:
+        applies-to: version-updates
+        patterns:
+          - "maplibre-gl"
+          - "@maplibre/*"
+          - "three"
+          - "@types/three"
+          - "leaflet*"
+          - "@turf/*"
+          - "proj4"
+          - "@loaders.gl/*"
+          - "deck.gl*"
+          - "@deck.gl/*"
+          - "cesium*"
+          - "@giro3d/*"
+          - "geotiff"
+          - "h3-js"
+        update-types: ["minor", "patch"]
+      build-tooling:
+        applies-to: version-updates
+        patterns:
+          - "vite"
+          - "@vitejs/*"
+          - "rolldown*"
+          - "@rolldown/*"
+          - "typescript*"
+          - "eslint*"
+          - "@eslint/*"
+          - "@typescript-eslint/*"
+          - "prettier*"
+          - "tailwindcss"
+          - "@tailwindcss/*"
+          - "postcss"
+          - "autoprefixer"
+          - "vitest"
+          - "@vitest/*"
+          - "playwright*"
+          - "@playwright/*"
+          - "terser"
+        update-types: ["minor", "patch"]
+      everything-else:
+        applies-to: version-updates
+        patterns:
+          - "*"
+        update-types: ["minor", "patch"]
