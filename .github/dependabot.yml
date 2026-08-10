@@ -40,6 +40,32 @@ updates:
         update-types: ["version-update:semver-major"]
       - dependency-name: "vite"
         update-types: ["version-update:semver-major"]
+      # Ecosystem-blocked majors, added 2026-08-11 after the first weekly
+      # wave (49 red previews). Each is a coordinated suite migration, not
+      # a per-repo bump; rationale per package in the plan doc, section 4b.
+      - dependency-name: "typescript"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "tailwindcss"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "eslint"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@eslint/js"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@babel/*"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "react-joyride"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "react-i18next"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "i18next"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "react-to-print"
+        update-types: ["version-update:semver-major"]
+      # Repo-local variant (giro3d apps only — lidaroo, similoo): giro3d
+      # peer-pins three to an exact 0.x minor (^0.180.0 as of giro3d 2.0.3),
+      # so three/@types/three bumps must ride giro3d releases, manually.
+      - dependency-name: "three"
+      - dependency-name: "@types/three"
     groups:
       react:
         applies-to: version-updates
