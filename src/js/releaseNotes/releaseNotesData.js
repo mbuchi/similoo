@@ -41,6 +41,20 @@ export const KIND_META = {
 
 export const RELEASES = [
   {
+    version: '0.31.6',
+    date: 'August 11, 2026',
+    codename: 'Calmer startup',
+    summary: 'Startup now stays visually calm during quick access and app initialization; the full loading skeleton appears only after 2.5 seconds.',
+    items: [
+      {
+        kind: 'improved',
+        icon: 'sparkles',
+        text: 'Startup now stays visually calm during quick access and app initialization; the full loading skeleton appears only after 2.5 seconds.',
+        prs: [],
+      },
+    ],
+  },
+  {
     version: '0.31.5',
     date: 'August 11, 2026',
     codename: 'Fresh shared foundations',
