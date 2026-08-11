@@ -31,6 +31,7 @@ import {
 } from '@aireon/shared';
 import {
   getThemeOverride,
+  isAddressGateBypassed,
   registerUrlSyncProviders,
   syncMapUrl,
 } from '@aireon/shared/url-params';
@@ -131,6 +132,11 @@ export default function App() {
   // `similoo:address` listener below attaches — see that effect's comment).
   // Desktop keeps the navbar search visible at all times (plenty of room).
   const isMobile = useIsMobile();
+  // ?search_modal=off / ?welcome=off: the engine skips the landing view and
+  // opens the map targetless, so on a phone there is no card search to stack
+  // against — and suppressing the navbar box would leave the visitor with no
+  // way to search at all. Render-constant, so read it once.
+  const gateBypassed = useMemo(() => isAddressGateBypassed(), []);
   const [openWithLocation, setOpenWithLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [contextMenuPoint, setContextMenuPoint] = useState<MapContextMenuPoint | null>(null);
   const [contextParcel, setContextParcel] = useState<MapContextParcel | null>(null);
@@ -505,7 +511,7 @@ export default function App() {
         // returns immediately afterward for re-searching (spec §5). Desktop has
         // room for both, so it always shows.
         search={
-          isMobile && !currentAddress
+          isMobile && !currentAddress && !gateBypassed
             ? undefined
             : {
                 locale,

@@ -21,7 +21,15 @@ import { createMapLegend } from './viewer/mapLegend.js';
 import { initMethodologyHelp } from './help/methodologyPanel.js';
 // Suite deep-link URL parameter standard (docs/URL_PARAMS_STANDARD.md in
 // aireon-shared). Pure ESM, safe to import from this vanilla-JS engine.
-import { getUrlState, applyUrlUiModes, updateMapUrl, DEEP_LINK_MIN_ZOOM } from '@aireon/shared/url-params';
+import {
+    getUrlState,
+    applyUrlUiModes,
+    updateMapUrl,
+    DEEP_LINK_MIN_ZOOM,
+    isAddressGateBypassed,
+} from '@aireon/shared/url-params';
+// Country-wide "pick a place" camera for a map opened with no address yet.
+import { CH_OVERVIEW } from '@aireon/shared/map-defaults';
 
 // similoo's imperative engine entry point.
 //
@@ -77,6 +85,13 @@ export function boot() {
     let sidebar = null;
     let detailModal = null;
     let legend = null;
+    // True once the user has actually picked an address. The moveend writer is
+    // gated on it: with no pick the camera is a browse view (see showEmptyMap),
+    // and stamping it would make a reloaded link run a full comparison wherever
+    // the user happened to pan — boot()'s bootstrap feeds ?lat/?lng straight
+    // into handlePick(). Same "no camera write-back while targetless" ruling
+    // boost carries (URL_PARAMS_STANDARD.md).
+    let hasPick = false;
     // Every building inside the searched parcel is painted red (the `target`
     // feature-state). We track the full set of resolved building ids so we can
     // clear them all at once and so the comparable pass never recolours one.
@@ -142,6 +157,13 @@ export function boot() {
             // and is deleted otherwise so the link never titles one parcel with
             // another parcel's address. Boot then falls back to the coordinates.
             map.on('moveend', () => {
+                // No pick, no write-back. Under ?search_modal=off the map opens
+                // targetless at CH_OVERVIEW, and every param this writer stamps
+                // (lat/lng above all) is read back by the deep-link bootstrap as
+                // an address to run a comparison on. Writing a browse camera
+                // would turn a copied link into a comparison of whatever the
+                // user last panned over. showComparison() sets the flag.
+                if (!hasPick) return;
                 const center = map.getCenter();
                 updateMapUrl({
                     lat: center.lat,
@@ -250,11 +272,32 @@ export function boot() {
     }
 
     async function showComparison(label, lat, lng) {
+        // From here on the camera names a real pick, so the moveend writer may
+        // stamp it into the URL again (see the `hasPick` note above).
+        hasPick = true;
         landingView.hidden = true;
         comparisonView.hidden = false;
         emitAddress(label, lat, lng);
         await ensureMap();
         ensureSidebar();
+        if (window.lucide?.createIcons) window.lucide.createIcons();
+    }
+
+    // ?search_modal=off (alias of ?welcome=off): reveal the map with no address
+    // picked, at a country overview. Same #landingView/#comparisonView show/hide
+    // contract as showComparison, minus everything that needs a target — no
+    // emitAddress (there is no address), no sidebar (there are no comparables),
+    // and deliberately no `hasPick`, so panning writes nothing to the URL. The
+    // navbar search drives handlePick exactly as it does from the landing view,
+    // so the user picks the normal flow up from here.
+    async function showEmptyMap() {
+        landingView.hidden = true;
+        comparisonView.hidden = false;
+        const m = await ensureMap();
+        // Flat on purpose: an overview, not a scene. initializeViewer() opens on
+        // Zurich at street level with pitch/bearing, and does not fly anywhere
+        // after load, so this jump is the last camera move and nothing fights it.
+        m.jumpTo({ center: CH_OVERVIEW.center, zoom: CH_OVERVIEW.zoom, pitch: 0, bearing: 0 });
         if (window.lucide?.createIcons) window.lucide.createIcons();
     }
 
@@ -875,6 +918,12 @@ export function boot() {
                 ? undefined
                 : (urlState.selfWritten ? urlState.zoom : Math.max(urlState.zoom, DEEP_LINK_MIN_ZOOM));
             handlePick({ lat: urlState.lat, lng: urlState.lng, label, zoom });
+        } else if (isAddressGateBypassed()) {
+            // ?search_modal=off / ?welcome=off with no coordinates: skip the
+            // landing view and open the map at a country overview instead of
+            // the address gate. Coordinates keep winning above — a deep link
+            // that already names a location must still run its comparison.
+            void showEmptyMap();
         }
     } catch (_) { /* no-op */ }
 
