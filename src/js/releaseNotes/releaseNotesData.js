@@ -41,6 +41,26 @@ export const KIND_META = {
 
 export const RELEASES = [
   {
+    version: '0.32.0',
+    date: 'August 12, 2026',
+    codename: 'Skip the landing view',
+    summary: 'Deep links can now skip the landing view: ?search_modal=off opens similoo on a Switzerland overview with the navbar search ready.',
+    items: [
+      {
+        kind: 'new',
+        icon: 'sparkles',
+        text: 'Deep links can now skip the landing view: ?search_modal=off opens similoo on a Switzerland overview with the navbar search ready. It is an alias of ?welcome=off, so either spelling works.',
+        prs: [],
+      },
+      {
+        kind: 'fixed',
+        icon: 'bug',
+        text: 'Panning the map before you pick an address no longer writes coordinates into the URL. Previously a copied link could reopen a full comparison at whatever spot you happened to pan over.',
+        prs: [],
+      },
+    ],
+  },
+  {
     version: '0.31.7',
     date: 'August 11, 2026',
     codename: 'Shared RES client',
