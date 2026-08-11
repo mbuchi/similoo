@@ -1,7 +1,26 @@
-import { userManager } from '@aireon/shared';
+// Typed client for the suite-wide `/image/swissnovo/*` upload/list/delete
+// endpoints on res.zeroo.ch, built on the shared RES API client
+// (@aireon/shared/api — openapi-fetch over the generated OpenAPI contract).
+//
+// Auth is the user's Zitadel JWT (id_token), not the access_token —
+// project_RES decodes the JWT payload to read `sub` and the access_token may
+// be opaque depending on token-type configuration. The token is attached
+// PER REQUEST (never at client construction): it rotates with the session,
+// and signed-out callers must keep failing in `getAuthToken` before any
+// request is made.
 
-const API_BASE = 'https://res.zeroo.ch/image/swissnovo';
+import { userManager } from '@aireon/shared';
+import { createResApiClient } from '@aireon/shared/api';
+
 export const APP_SOURCE = 'similoo';
+
+// Unauthenticated client against the production RES host (the client's
+// default base URL); every call adds its own Authorization header.
+const api = createResApiClient({
+  // Resolve fetch at call time (not module-load time) so test mocks and
+  // late-installed fetch polyfills are honored.
+  fetch: (input, init) => globalThis.fetch(input, init),
+});
 
 export interface SavedImage {
   id: string;
@@ -75,16 +94,14 @@ async function getAuthToken(): Promise<string> {
   return token;
 }
 
-// Parse a 2xx response body as JSON, turning a malformed/empty body (a 204,
-// an HTML error page served with status 200, a proxy/CORS edge) into a clean,
-// friendly error instead of the raw "Unexpected end of JSON input" SyntaxError
-// that callers would otherwise surface verbatim in a toast.
-async function parseJson<T>(res: Response, label: string): Promise<T> {
-  try {
-    return (await res.json()) as T;
-  } catch {
-    throw new Error(`${label}: the server returned an unexpected response.`);
-  }
+function authHeader(token: string): Record<string, string> {
+  return { Authorization: `Bearer ${token}` };
+}
+
+/** The error body as message text — mirrors the old `res.text()` throw. */
+function errorText(error: unknown): string {
+  if (error === undefined || error === null) return '';
+  return typeof error === 'string' ? error : JSON.stringify(error);
 }
 
 export async function uploadImage(blob: Blob, options: UploadOptions = {}): Promise<SavedImage> {
@@ -95,50 +112,54 @@ export async function uploadImage(blob: Blob, options: UploadOptions = {}): Prom
   if (options.prmId) fd.append('prm_id', options.prmId);
   if (options.customMetadata) fd.append('custom_metadata', JSON.stringify(options.customMetadata));
 
-  let res: Response;
-  try {
-    res = await fetch(`${API_BASE}/upload`, {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${token}` },
-      body: fd,
+  const result = await api
+    .POST('/image/swissnovo/upload', {
+      headers: authHeader(token),
+      // The endpoint takes multipart/form-data; openapi-fetch's default body
+      // serializer passes a FormData instance through untouched (and lets the
+      // browser set the boundary), so the cast only bridges the generated
+      // schema type, not the wire format.
+      body: fd as unknown as { file: string; app_source: string },
+    })
+    .catch((err: unknown) => {
+      const msg = err instanceof Error ? err.message : String(err);
+      throw new Error(
+        `Could not reach the image server. This is usually a CORS or network issue. (${msg})`
+      );
     });
-  } catch (err) {
-    const msg = err instanceof Error ? err.message : String(err);
-    throw new Error(
-      `Could not reach the image server. This is usually a CORS or network issue. (${msg})`
-    );
+  const { data, error, response } = result;
+  if (!response.ok || data === undefined) {
+    throw new Error(errorText(error) || `Upload failed: ${response.status}`);
   }
-  if (!res.ok) {
-    const text = await res.text().catch(() => '');
-    throw new Error(text || `Upload failed: ${res.status}`);
-  }
-  return parseJson<SavedImage>(res, 'Upload failed');
+  return data as SavedImage;
 }
 
 export async function listImages(filters: ListFilters = {}): Promise<SavedImage[]> {
   const token = await getAuthToken();
-  const params = new URLSearchParams();
-  if (filters.appSource) params.set('app_source', filters.appSource);
-  if (filters.prmId) params.set('prm_id', filters.prmId);
-  const qs = params.toString();
-  const res = await fetch(`${API_BASE}/list${qs ? `?${qs}` : ''}`, {
-    headers: { Authorization: `Bearer ${token}` },
+  const { data, error, response } = await api.GET('/image/swissnovo/list', {
+    headers: authHeader(token),
+    params: {
+      query: {
+        // `undefined` values are dropped by the query serializer, matching
+        // the old "append only when set" behavior.
+        app_source: filters.appSource || undefined,
+        prm_id: filters.prmId || undefined,
+      },
+    },
   });
-  if (!res.ok) {
-    const text = await res.text().catch(() => '');
-    throw new Error(text || `List failed: ${res.status}`);
+  if (!response.ok || data === undefined) {
+    throw new Error(errorText(error) || `List failed: ${response.status}`);
   }
-  return parseJson<SavedImage[]>(res, 'Could not load saved images');
+  return data as SavedImage[];
 }
 
 export async function deleteImage(id: string): Promise<void> {
   const token = await getAuthToken();
-  const res = await fetch(`${API_BASE}/${id}`, {
-    method: 'DELETE',
-    headers: { Authorization: `Bearer ${token}` },
+  const { error, response } = await api.DELETE('/image/swissnovo/{id}', {
+    headers: authHeader(token),
+    params: { path: { id } },
   });
-  if (!res.ok) {
-    const text = await res.text().catch(() => '');
-    throw new Error(text || `Delete failed: ${res.status}`);
+  if (!response.ok) {
+    throw new Error(errorText(error) || `Delete failed: ${response.status}`);
   }
 }

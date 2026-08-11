@@ -41,6 +41,20 @@ export const KIND_META = {
 
 export const RELEASES = [
   {
+    version: '0.31.7',
+    date: 'August 11, 2026',
+    codename: 'Shared RES client',
+    summary: 'Parcel, comparison and screenshot requests now go through the shared Aireon RES API client, aligning similoo with the rest of the suite. Nothing changes in how the app looks or behaves.',
+    items: [
+      {
+        kind: 'improved',
+        icon: 'package',
+        text: 'Requests to the RES backend (parcel lookups, comparable-parcel search, saved screenshots) now go through the suite-shared typed API client. This is an internal alignment update; nothing changes in how the app looks or behaves.',
+        prs: [],
+      },
+    ],
+  },
+  {
     version: '0.31.6',
     date: 'August 11, 2026',
     codename: 'Calmer startup',

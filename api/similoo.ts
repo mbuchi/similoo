@@ -1,11 +1,18 @@
 // Vercel Node serverless function.
 //
-// Proxies POST /api/parcel → RES /res_api/parcel_data so the client never
-// needs the RES API token. Mirrors the scoore /api/overpass pattern.
+// Proxies POST /api/similoo → RES /score/similoo so the client never needs
+// the RES API token. Mirrors the scoore /api/overpass pattern.
+
+import type { VercelRequest, VercelResponse } from '@vercel/node';
+import { RES_API_BASE_URL } from '@aireon/shared/api';
 
 export const config = { maxDuration: 15 };
 
-const RES_PARCEL_URL = 'https://res.zeroo.ch/res_api/parcel_data';
+// SCHEMA GAP: POST /score/similoo is not in the shared OpenAPI contract yet
+// (recorded in docs/plans/harmonization-a2-res-client-recipe.md), so this
+// proxy stays on a raw fetch — only the base URL derives from the shared
+// constant. Move it onto the typed client once the contract covers it.
+const RES_SIMILOO_URL = `${RES_API_BASE_URL}/score/similoo`;
 const RES_API_TOKEN = 'DNfbHaqajFigz4jPX9B8vnatUduLKZXVwA83WKZG';
 const UPSTREAM_TIMEOUT_MS = 12000;
 
@@ -16,12 +23,15 @@ const CORS_HEADERS = {
         'Content-Type, Authorization, X-Client-Info, Apikey',
 };
 
-function send(res, status, body) {
+function send(res: VercelResponse, status: number, body: unknown): void {
     for (const [k, v] of Object.entries(CORS_HEADERS)) res.setHeader(k, v);
     res.status(status).json(body);
 }
 
-export default async function handler(req, res) {
+export default async function handler(
+    req: VercelRequest,
+    res: VercelResponse,
+): Promise<void> {
     if (req.method === 'OPTIONS') {
         for (const [k, v] of Object.entries(CORS_HEADERS)) res.setHeader(k, v);
         res.status(204).end();
@@ -32,7 +42,7 @@ export default async function handler(req, res) {
         return;
     }
 
-    let body;
+    let body: { egrid?: unknown; years?: unknown; limit?: unknown };
     if (typeof req.body === 'string') {
         try {
             body = JSON.parse(req.body);
@@ -41,38 +51,31 @@ export default async function handler(req, res) {
             return;
         }
     } else {
-        body = req.body;
+        body = (req.body ?? {}) as { egrid?: unknown; years?: unknown; limit?: unknown };
     }
 
-    const egrid = typeof body?.egrid === 'string' ? body.egrid.trim() : null;
-    const lat = Number(body?.lat);
-    const lng = Number(body?.lng);
-    if (!egrid && (!Number.isFinite(lat) || !Number.isFinite(lng))) {
-        send(res, 400, { error: "Provide either 'egrid' or 'lat'/'lng'" });
+    const egrid = typeof body?.egrid === 'string' ? body.egrid.trim() : '';
+    if (!egrid) {
+        send(res, 400, { error: "Missing 'egrid'" });
         return;
     }
-
-    const upstreamBody = {};
-    if (egrid) upstreamBody.egrid = egrid;
-    else {
-        upstreamBody.lat = lat;
-        upstreamBody.lng = lng;
-    }
+    const years = Number.isFinite(Number(body?.years)) ? Number(body.years) : 10;
+    const limit = Number.isFinite(Number(body?.limit)) ? Number(body.limit) : 12;
 
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), UPSTREAM_TIMEOUT_MS);
     try {
-        const upstream = await fetch(RES_PARCEL_URL, {
+        const upstream = await fetch(RES_SIMILOO_URL, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 token: RES_API_TOKEN,
             },
-            body: JSON.stringify(upstreamBody),
+            body: JSON.stringify({ egrid, years, limit }),
             signal: controller.signal,
         });
         const text = await upstream.text();
-        let parsed = null;
+        let parsed: unknown = null;
         try {
             parsed = text ? JSON.parse(text) : null;
         } catch {
@@ -84,12 +87,12 @@ export default async function handler(req, res) {
         }
         res.setHeader(
             'Cache-Control',
-            'public, s-maxage=3600, stale-while-revalidate=86400',
+            'public, s-maxage=86400, stale-while-revalidate=604800',
         );
         send(res, 200, parsed);
     } catch (error) {
         const msg = error instanceof Error ? error.message : String(error);
-        send(res, 502, { error: 'parcel service unreachable', details: msg });
+        send(res, 502, { error: 'similoo service unreachable', details: msg });
     } finally {
         clearTimeout(timer);
     }
