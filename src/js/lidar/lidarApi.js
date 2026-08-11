@@ -12,7 +12,14 @@
 // absolute URL so callers (copcScene's COPCSource) can fetch it directly
 // regardless of where RES is hosted.
 
-const RES_BASE = import.meta.env.VITE_RES_BASE ?? 'https://res.zeroo.ch';
+import { RES_API_BASE_URL } from '@aireon/shared/api';
+
+// SCHEMA GAP: the /res_api/lidar/* endpoints (prepare, status/{tileId}, the
+// minted copc tile URLs) are not in the shared OpenAPI contract yet (recorded
+// in docs/plans/harmonization-a2-res-client-recipe.md), and the base is
+// env-overridable anyway — so the calls stay raw; only the literal fallback
+// derives from the shared constant.
+const RES_BASE = import.meta.env.VITE_RES_BASE ?? RES_API_BASE_URL;
 
 // Resolves a RES-relative path (e.g. `/res_api/lidar/copc/foo.copc.laz`)
 // to an absolute URL.
