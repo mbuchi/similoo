@@ -41,6 +41,32 @@ export const KIND_META = {
 
 export const RELEASES = [
   {
+    version: '0.33.0',
+    date: 'August 12, 2026',
+    codename: 'Dial back the overlay',
+    summary: 'Links can now carry an overlay opacity, fading the parcel colors and the 3D buildings so the aerial imagery underneath stays readable.',
+    items: [
+      {
+        kind: 'new',
+        icon: 'sparkles',
+        text: 'Add ?opacity=40 to a similoo link and the app opens with everything it draws on the map, the zone colored parcels, their outlines and the 3D building masses, at 40 percent. The swisstopo aerial imagery itself never fades, so roofs, roads and terrain stay fully readable underneath.',
+        prs: [],
+      },
+      {
+        kind: 'improved',
+        icon: 'wrench',
+        text: 'The value is an integer from 0 to 100. At 100 everything keeps the appearance it was designed with and the parameter is left out of links entirely, so ordinary shared views are unchanged. The red target parcel and the green same zone parcels keep their relative strength at every setting.',
+        prs: [],
+      },
+      {
+        kind: 'improved',
+        icon: 'wrench',
+        text: 'The highlight that flashes on the map when you hover a comparable in the sidebar keeps its full strength at any overlay opacity, so the building you are pointing at stays easy to find.',
+        prs: [],
+      },
+    ],
+  },
+  {
     version: '0.32.0',
     date: 'August 12, 2026',
     codename: 'Skip the landing view',
