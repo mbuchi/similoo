@@ -41,6 +41,20 @@ export const KIND_META = {
 
 export const RELEASES = [
   {
+    version: '0.31.5',
+    date: 'August 11, 2026',
+    codename: 'Fresh shared foundations',
+    summary: 'similoo now runs on the latest shared Aireon library (v1.152.0), keeping its common components and utilities current with the rest of the suite.',
+    items: [
+      {
+        kind: 'improved',
+        icon: 'package',
+        text: 'Updated the shared Aireon library to v1.152.0. This is a maintenance update that keeps the components and utilities similoo shares with its sibling apps on the same, most recent version.',
+        prs: [],
+      },
+    ],
+  },
+  {
     version: '0.31.4',
     date: 'August 9, 2026',
     codename: 'A faster, lighter build',
