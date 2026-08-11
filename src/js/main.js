@@ -13,6 +13,9 @@ import {
     CMP_HOVER_LINE_LAYER,
     applyZoneHighlight,
 } from './viewer/viewerConfig.js';
+// Overlay opacity (?opacity=0..100) — single owner of the factor, shared with
+// the React shell's URL sync provider. See viewer/overlayOpacity.js.
+import { initOverlayOpacity, registerOverlayLayers } from './viewer/overlayOpacity.js';
 import { applyTranslations, t } from './i18n.js';
 import { createComparisonSidebar } from './comparison/sidebar.js';
 import { resolveEgridFromLngLat, normaliseEgrid } from './comparison/parcelLookup.js';
@@ -82,6 +85,9 @@ export function boot() {
     }
 
     let map = null;
+    // Overlay-opacity controller. Created before the map exists — it reads the
+    // live instance through this getter, because initializeViewer() is async.
+    initOverlayOpacity(() => map);
     let sidebar = null;
     let detailModal = null;
     let legend = null;
@@ -139,6 +145,13 @@ export function boot() {
         try {
             map = await initializeViewer('mapContainer');
             window.__similooMap = map; // exposed for browser-driven tests
+            // Every data layer is declared in the INITIAL style (similoo never
+            // calls setStyle), so this single registration brings the parcel
+            // fill, the parcel outline and the building masses onto the
+            // ?opacity= factor for the life of the page. The only re-register
+            // needed afterwards is at the applyZoneHighlight call sites, which
+            // re-author the zone fill's fill-opacity from scratch.
+            registerOverlayLayers();
             // Both the comparable footprints and the searched parcel's own
             // buildings can only be coloured once their tile has rendered, so
             // re-probe whenever the map settles — this lights them up the moment
@@ -266,6 +279,9 @@ export function boot() {
                     targetParcelId: currentTargetParcelId,
                     czLocal,
                 });
+                // That write re-authors the zone fill's fill-opacity, which
+                // would wipe the ?opacity factor; re-register to put it back.
+                registerOverlayLayers();
             },
         });
         return sidebar;
@@ -713,6 +729,7 @@ export function boot() {
         currentTargetParcelId = null;
         currentTargetCzLocal = null;
         applyZoneHighlight(map, { targetParcelId: null, czLocal: null });
+        registerOverlayLayers();
     }
 
     async function handlePick(result) {
@@ -775,6 +792,7 @@ export function boot() {
             targetParcelId: currentTargetParcelId,
             czLocal: currentTargetCzLocal,
         });
+        registerOverlayLayers();
 
         // Clear any red buildings left from the previous search before painting
         // this parcel's set.

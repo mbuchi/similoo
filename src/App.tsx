@@ -67,6 +67,10 @@ import { releases, CURRENT_VERSION, REPO_URL } from './data/releaseNotes';
 // theme, locale, auth, release notes and bug report are now React-owned via the
 // shared suite chrome below; boot() no longer wires those.
 import { boot } from './js/main.js';
+// Overlay opacity (?opacity=0..100). The engine owns the controller and the
+// value; this shell only reads it for the URL sync provider below, so the two
+// halves never hold separate copies of the state.
+import { overlayOpacityUrlValue } from './js/viewer/overlayOpacity.js';
 
 // Compact (<1024px) account-menu shell overrides: cap the open dropdown just
 // under the 3.5rem navbar so every merged row stays reachable (its own
@@ -285,6 +289,11 @@ export default function App() {
   // permanently tilted at pitch 50 / bearing -25, so there is no 2D/3D mode
   // state to switch them off in).
   //
+  // `opacity` IS registered, reading the engine-owned value. There is no
+  // slider (that needs a BasemapPicker similoo does not have), so the getter
+  // returns whatever `?opacity=` was opened with, and null at the default 100
+  // so an ordinary link never carries the parameter.
+  //
   // Write-back is read-only against app state: it never calls setLocale(),
   // never touches the theme skip-persist guard above, and persists nothing.
   const isDarkRef = useRef(isDark);
@@ -293,6 +302,7 @@ export default function App() {
     registerUrlSyncProviders({
       lang: () => getLocale() as string,
       theme: () => (isDarkRef.current ? 'dark' : 'light'),
+      opacity: () => overlayOpacityUrlValue(),
     });
   }, []);
   // Re-stamp on the state changes that happen without moving the map: a
