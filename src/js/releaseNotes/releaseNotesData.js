@@ -41,6 +41,18 @@ export const KIND_META = {
 
 export const RELEASES = [
   {
+    version: '0.33.1',
+    date: 'August 12, 2026',
+    codename: 'Calm by default',
+    summary: 'Loading placeholders now follow the suite-wide Hub setting and stay hidden by default during quick waits.',
+    items: [{
+      kind: 'improved',
+      icon: 'wrench',
+      text: 'Saved-image and screenshot placeholders now follow the loading-feedback policy managed in the Aireon Hub. Both the spinner and skeleton are off by default; an administrator can enable either mode and choose when skeletons appear for longer waits.',
+      prs: [],
+    }],
+  },
+  {
     version: '0.33.0',
     date: 'August 12, 2026',
     codename: 'Dial back the overlay',

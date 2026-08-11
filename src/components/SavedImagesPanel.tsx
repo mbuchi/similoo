@@ -18,6 +18,7 @@ import {
   type SavedImage,
   type ScreenshotMetadata,
 } from '../lib/imageService';
+import { PolicyLoadingFeedback } from './PolicyLoadingFeedback';
 import { t } from '../js/i18n.js';
 
 const SHOWROOM_URL = 'https://showroom.aireon.ch/';
@@ -50,6 +51,33 @@ interface SavedImagesPanelProps {
   darkMode: boolean;
   isOpen: boolean;
   onClose: () => void;
+}
+
+export function SavedImagesLoading({ darkMode }: { darkMode: boolean }) {
+  return <PolicyLoadingFeedback label={t('gallery.loading')} skeleton={<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+    {Array.from({ length: 6 }).map((_, i) => (
+      <div
+        key={i}
+        className={`rounded-xl border overflow-hidden flex flex-col ${
+          darkMode ? 'border-gray-700 bg-gray-900/40' : 'border-gray-200 bg-gray-50'
+        }`}
+      >
+        <Skeleton dark={darkMode} radius={0} className="w-full aspect-video" />
+        <div className="p-3 flex-1 flex flex-col gap-2">
+          <div className="flex items-center gap-1.5">
+            <Skeleton dark={darkMode} width={42} height={14} radius={4} />
+            <Skeleton dark={darkMode} height={12} radius={4} className="flex-1" delay="60ms" />
+          </div>
+          <Skeleton dark={darkMode} width={88} height={10} radius={4} delay="120ms" />
+          <Skeleton dark={darkMode} width={128} height={10} radius={4} delay="160ms" />
+          <div className="mt-2 flex items-center gap-2">
+            <Skeleton dark={darkMode} height={28} radius={6} className="flex-1" delay="200ms" />
+            <Skeleton dark={darkMode} width={32} height={28} radius={6} delay="200ms" />
+          </div>
+        </div>
+      </div>
+    ))}
+  </div>} />;
 }
 
 export default function SavedImagesPanel({ darkMode, isOpen, onClose }: SavedImagesPanelProps) {
@@ -390,32 +418,7 @@ export default function SavedImagesPanel({ darkMode, isOpen, onClose }: SavedIma
               </div>
             )}
             {isLoading ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {Array.from({ length: 6 }).map((_, i) => (
-                  <div
-                    key={i}
-                    className={`rounded-xl border overflow-hidden flex flex-col ${
-                      darkMode
-                        ? 'border-gray-700 bg-gray-900/40'
-                        : 'border-gray-200 bg-gray-50'
-                    }`}
-                  >
-                    <Skeleton dark={darkMode} radius={0} className="w-full aspect-video" />
-                    <div className="p-3 flex-1 flex flex-col gap-2">
-                      <div className="flex items-center gap-1.5">
-                        <Skeleton dark={darkMode} width={42} height={14} radius={4} />
-                        <Skeleton dark={darkMode} height={12} radius={4} className="flex-1" delay="60ms" />
-                      </div>
-                      <Skeleton dark={darkMode} width={88} height={10} radius={4} delay="120ms" />
-                      <Skeleton dark={darkMode} width={128} height={10} radius={4} delay="160ms" />
-                      <div className="mt-2 flex items-center gap-2">
-                        <Skeleton dark={darkMode} height={28} radius={6} className="flex-1" delay="200ms" />
-                        <Skeleton dark={darkMode} width={32} height={28} radius={6} delay="200ms" />
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
+              <SavedImagesLoading darkMode={darkMode} />
             ) : error ? (
               <div className="text-center py-12">
                 <p className="text-sm text-red-500 mb-3">{error}</p>
