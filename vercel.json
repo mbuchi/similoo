@@ -6,5 +6,16 @@
   "framework": "vite",
   "rewrites": [
     { "source": "/api/three3d/:op", "destination": "/api/three3d?path=:op" }
+  ],
+  "headers": [
+    {
+      "source": "/assets/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    }
   ]
 }
