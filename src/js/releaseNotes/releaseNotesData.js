@@ -41,6 +41,18 @@ export const KIND_META = {
 
 export const RELEASES = [
   {
+    version: '0.33.2',
+    date: 'August 12, 2026',
+    codename: 'Quiet all the way down',
+    summary: 'Every skeleton layout now honors the Hub loading policy, including placeholders rendered by shared components.',
+    items: [{
+      kind: 'fixed',
+      icon: 'wrench',
+      text: 'Updated @aireon/shared to v1.158.0. Whole loading shells and direct skeleton primitives now stay absent under the default-off Hub policy; when an administrator enables skeletons, each complete layout appears once at the configured threshold without a second delay or duplicate spinners.',
+      prs: [],
+    }],
+  },
+  {
     version: '0.33.1',
     date: 'August 12, 2026',
     codename: 'Calm by default',
