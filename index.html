@@ -28,38 +28,70 @@
     <link rel="icon" type="image/svg+xml" href="https://hub.aireon.ch/favicon.svg" />
     <meta name="theme-color" content="#0f172a" />
     <script>
-        // Inline pre-paint theme bootstrap. Runs before any stylesheet is
-        // applied so users on dark mode don't see a white flash on load.
+        // similoo's theme ADJUSTMENT, layered on top of the shared pre-paint theme
+        // bootstrap that aireonHtmlPlugin injects right after <meta charset> (see
+        // vite.config.ts). Do NOT write that script's element id anywhere in this
+        // file, comments included: the plugin uses the id as its "already
+        // transformed" marker and skips the whole injection when it finds it.
+        //
+        // similoo used to carry a full second bootstrap here. Two bootstraps
+        // racing over the same <html> is how you ship a flash, so the shared one
+        // now owns the entire resolution order
+        // (?theme= -> aireon_theme cookie -> localStorage `theme` -> OS dark ->
+        // 'light') and stamps `.dark` + data-theme + color-scheme + background.
+        // `.dark` matters here because @aireon/shared/glass.css keys its dark
+        // Liquid Glass variants on `.dark[data-glass]`; similoo's own CSS and the
+        // imperative engine key on [data-theme="dark"].
+        //
+        // The one thing the shared bootstrap cannot know about is `similoo-theme`,
+        // the pre-suite per-app localStorage key that App.tsx still mirrors.
+        // Keep in lockstep with initTheme('light') in src/main.tsx.
         (function () {
+            var html = document.documentElement;
+            var isTheme = function (v) { return v === 'light' || v === 'dark'; };
+
+            // Re-stamp everything the shared bootstrap stamps. Doing less would
+            // leave data-theme disagreeing with the `.dark` class, and
+            // resolveThemePreference() reads data-theme back. Colors mirror
+            // SHELL_PALETTE in @aireon/shared.
+            var stamp = function (theme) {
+                html.classList.toggle('dark', theme === 'dark');
+                html.setAttribute('data-theme', theme);
+                try {
+                    html.style.colorScheme = theme;
+                    html.style.backgroundColor = theme === 'dark' ? '#0f172a' : '#f8fafc';
+                } catch (e) { /* no inline style */ }
+            };
+
+            var params = null;
             try {
-                // `?theme=dark|light` (URL_PARAMS_STANDARD.md) is an ephemeral,
-                // per-page-load override — it must win over every stored
-                // preference here, and this script never writes it anywhere, so
-                // there is nothing to undo on a later reload without the param.
-                var qTheme = new URLSearchParams(window.location.search).get('theme');
-                // Cross-app theme: prefer the suite-shared `aireon_theme` cookie
-                // (scoped to .aireon.ch, written by @aireon/shared setTheme), then
-                // fall back to the legacy local `similoo-theme` mirror, then OS pref.
-                var cm = document.cookie.match(/(?:^|; )aireon_theme=([^;]*)/);
-                var stored = cm ? decodeURIComponent(cm[1]) : localStorage.getItem('similoo-theme');
-                var resolved = qTheme === 'light' || qTheme === 'dark'
-                    ? qTheme
-                    : stored === 'light' || stored === 'dark'
-                        ? stored
-                        : (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
-                            ? 'dark'
-                            : 'light');
-                document.documentElement.setAttribute('data-theme', resolved);
-                // Mirror a `.dark` class for the shared Liquid Glass tokens
-                // (@aireon/shared/glass.css keys its dark variants on
-                // `.dark[data-glass]`). Applied pre-paint so glassed surfaces
-                // never flash light on reload; App.tsx keeps it in sync after
-                // runtime theme toggles. Inert for similoo's own CSS, which
-                // keys on [data-theme="dark"].
-                document.documentElement.classList.toggle('dark', resolved === 'dark');
-            } catch (e) {
-                document.documentElement.setAttribute('data-theme', 'light');
-            }
+                params = new URLSearchParams(window.location.search);
+            } catch (e) { /* no URLSearchParams — the shared stamp still stands */ }
+
+            var stamped = html.getAttribute('data-theme');
+            var theme = isTheme(stamped) ? stamped : 'light';
+
+            // One-time adoption of the pre-suite per-app key, so nobody loses the
+            // theme they picked here before similoo joined the shared store. It
+            // only applies when no explicit choice exists anywhere, which is
+            // exactly when the shared bootstrap fell through to the OS preference
+            // or the default. Writing `theme` is what makes initTheme() resolve
+            // the same value once the bundle loads.
+            try {
+                var explicit =
+                    (params && isTheme(params.get('theme'))) ||
+                    /(?:^|; )aireon_theme=(dark|light)/.test(document.cookie) ||
+                    isTheme(localStorage.getItem('theme'));
+                if (!explicit) {
+                    var legacy = localStorage.getItem('similoo-theme');
+                    if (isTheme(legacy)) {
+                        localStorage.setItem('theme', legacy);
+                        theme = legacy;
+                    }
+                }
+            } catch (e) { /* cookies or storage blocked */ }
+
+            if (theme !== stamped) stamp(theme);
         })();
         // Inline pre-paint locale bootstrap. Sets <html lang> from persisted
         // choice (or navigator) before first paint.
@@ -89,12 +121,7 @@
             document.documentElement.lang = 'en';
         })();
     </script>
-    <!-- Typography: Inter (UI, headings — modern tech-sans) + JetBrains Mono (code/IDs); -->
-    <!-- Varela Round is kept for the Aireon wordmark only, per suite branding. -->
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Varela+Round&display=swap" rel="stylesheet">
-    <script defer src="https://unpkg.com/lucide@0.358.0"></script>
+<script defer src="https://unpkg.com/lucide@0.358.0"></script>
     <link rel="canonical" href="https://similoo.aireon.ch/" />
     <script type="application/ld+json">
     {
