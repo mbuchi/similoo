@@ -54,6 +54,7 @@ import '@aireon/shared/glass.css';
 // `./css/glass.css` opts similoo's bespoke floating surfaces (comparison panel,
 // building detail, methodology, on-map legend) into the shared glass tokens.
 import './css/glass.css';
+import '@aireon/shared/fonts.css';
 
 // Env-gated session replay. initOpenReplay is a no-op unless the project key is
 // present, so this is safe to ship now — session replay stays inert until

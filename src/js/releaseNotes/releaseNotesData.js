@@ -41,6 +41,38 @@ export const KIND_META = {
 
 export const RELEASES = [
   {
+    version: '0.34.0',
+    date: 'August 13, 2026',
+    codename: 'First paint, first',
+    summary: 'similoo now paints its layout the instant the page arrives, in the right theme, without waiting on a font server.',
+    items: [
+      {
+        kind: 'improved',
+        icon: 'sparkles',
+        text: 'Opening similoo now shows the navbar and map area immediately, before any code has run. The old blank white gap between clicking a link and the app appearing is gone, which is most noticeable on a phone or a slow connection.',
+        prs: [],
+      },
+      {
+        kind: 'improved',
+        icon: 'wrench',
+        text: 'Fonts are served from similoo itself instead of Google Fonts. That removes a request to an outside server that used to hold up the first paint, and text no longer shifts once the real font arrives.',
+        prs: [],
+      },
+      {
+        kind: 'improved',
+        icon: 'wrench',
+        text: 'The app connects to the map tile, address search and data servers earlier, so the first map and the first address lookup start sooner.',
+        prs: [],
+      },
+      {
+        kind: 'fixed',
+        icon: 'wrench',
+        text: 'Dark mode is applied before the page draws, so returning in dark mode no longer flashes a light screen first. Your saved theme choice carries over unchanged.',
+        prs: [],
+      },
+    ],
+  },
+  {
     version: '0.33.2',
     date: 'August 12, 2026',
     codename: 'Quiet all the way down',

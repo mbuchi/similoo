@@ -1,6 +1,7 @@
 import { defineConfig } from 'vite';
 import react, { reactCompilerPreset } from '@vitejs/plugin-react';
 import babel from '@rolldown/plugin-babel';
+import { aireonHtmlPlugin } from '@aireon/shared/vite';
 
 // similoo is a React shell hosting a preserved imperative engine (MapLibre map,
 // Three.js building scene, comparison sidebar, panels) under src/js. The React
@@ -12,6 +13,18 @@ export default defineConfig({
   plugins: [
     react(),
     babel({ presets: [reactCompilerPreset({ target: '18' })] }),
+    // First-load standard (aireon-shared/docs/PERFORMANCE_STANDARD.md). Injects the
+    // pre-paint theme bootstrap, the static navbar+map shell so something paints
+    // before any JS runs, and preconnects for the origins similoo's first screen
+    // actually uses (RES, plus the swisstopo tile and search hosts the basemap and
+    // the landing address card hit). map-first because the toolbox matrix has
+    // mapFirst: 'yes' and the app ships MapLibre.
+    // `defaultTheme` MUST match initTheme('light') in src/main.tsx: the bootstrap
+    // stamps `data-theme` before paint and resolveThemePreference() then adopts
+    // that attribute, so a mismatch here silently overrides the app's own default
+    // for any visitor who has never chosen a theme. index.html keeps only a small
+    // adjustment script on top of this one (legacy `similoo-theme` key adoption).
+    aireonHtmlPlugin({ archetype: 'map-first', defaultTheme: 'light' }),
   ],
   build: {
     // The bundle is dominated by maplibre-gl + three; the previous vanilla
