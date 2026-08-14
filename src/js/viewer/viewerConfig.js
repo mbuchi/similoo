@@ -1,6 +1,16 @@
 import { DEFAULT_MAP_ZOOM } from '@aireon/shared/map-defaults';
 import maplibregl from 'maplibre-gl';
-import 'maplibre-gl/dist/maplibre-gl.css';
+
+// ⚠ `maplibre-gl/dist/maplibre-gl.css` is imported from src/main.tsx, NOT here.
+// This module now lives in a DYNAMIC chunk (App.tsx loads the engine on demand),
+// and a dynamic chunk's stylesheet is appended to <head> AFTER the entry
+// stylesheet at runtime. `maplibre-gl.css` declares
+// `.maplibregl-map { position: relative }` at (0,1,0) — the same specificity as
+// the app's own `.comparison-map { position: relative }` on the very same
+// element — so letting it land last inverts the cascade the container depends
+// on. Keeping the import eager keeps every stylesheet in the entry bundle, in
+// main.tsx import order. See the matching comments in main.tsx, vite.config.ts
+// and the `#mapContainer` block in src/css/map.css.
 
 // MapLibre viewer for similoo.
 //
@@ -41,26 +51,43 @@ const SWISSIMAGE_TILE =
 const SWISSIMAGE_ATTRIBUTION =
     '&copy; <a href="https://www.swisstopo.admin.ch/" target="_blank" rel="noopener">swisstopo</a>';
 
-export const BUILDING_SOURCE = 'buildings';
-export const BUILDING_SOURCE_LAYER = 'footprint_cityjson';
-export const BUILDING_LAYER = 'buildings-extrusion';
+// The ids themselves are declared in ./layerIds.js, a dependency-free module,
+// and re-exported here so this file stays the single import site for everything
+// map-related. The split exists so overlayOpacity.js can read three layer ids
+// without importing maplibre-gl through this module — see layerIds.js.
+// (Imported as well as re-exported: `export … from` alone would not put the
+// names in this module's own scope, and the style builders below use them.)
+import {
+    BUILDING_SOURCE,
+    BUILDING_SOURCE_LAYER,
+    BUILDING_LAYER,
+    PARCEL_SOURCE,
+    PARCEL_SOURCE_LAYER,
+    PARCEL_FILL_LAYER,
+    PARCEL_OUTLINE_LAYER,
+    CMP_HOVER_SOURCE,
+    CMP_HOVER_FILL_LAYER,
+    CMP_HOVER_GLOW_LAYER,
+    CMP_HOVER_LINE_LAYER,
+    CMP_HOVER_COLOR,
+    CMP_HOVER_CORE_COLOR,
+} from './layerIds.js';
 
-export const PARCEL_SOURCE = 'parcels';
-export const PARCEL_SOURCE_LAYER = 'parcel_2025_07';
-export const PARCEL_FILL_LAYER = 'parcels-zone-fill';
-export const PARCEL_OUTLINE_LAYER = 'parcels-outline';
-
-// Hovered-comparable parcel spotlight. A dedicated GeoJSON source fed by
-// main.js when a comparable card is hovered: the match's parcel polygon is
-// traced with an animated amber glow (a soft fill wash + a blurred glow line
-// under a crisp core line) that "grows in" and gently pulses. Amber is the
-// suite's hover accent. Empty at rest.
-export const CMP_HOVER_SOURCE = 'cmp-hover';
-export const CMP_HOVER_FILL_LAYER = 'cmp-hover-fill';
-export const CMP_HOVER_GLOW_LAYER = 'cmp-hover-glow';
-export const CMP_HOVER_LINE_LAYER = 'cmp-hover-line';
-export const CMP_HOVER_COLOR = '#F59E0B';      // amber — glow + fill
-export const CMP_HOVER_CORE_COLOR = '#FDE68A'; // bright amber-white — core line
+export {
+    BUILDING_SOURCE,
+    BUILDING_SOURCE_LAYER,
+    BUILDING_LAYER,
+    PARCEL_SOURCE,
+    PARCEL_SOURCE_LAYER,
+    PARCEL_FILL_LAYER,
+    PARCEL_OUTLINE_LAYER,
+    CMP_HOVER_SOURCE,
+    CMP_HOVER_FILL_LAYER,
+    CMP_HOVER_GLOW_LAYER,
+    CMP_HOVER_LINE_LAYER,
+    CMP_HOVER_COLOR,
+    CMP_HOVER_CORE_COLOR,
+} from './layerIds.js';
 
 // --- View defaults ----------------------------------------------------------
 

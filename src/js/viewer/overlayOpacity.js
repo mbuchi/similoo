@@ -23,11 +23,16 @@ import {
     createOverlayOpacityController,
     OVERLAY_OPACITY_DEFAULT,
 } from '@aireon/shared/map-overlay-opacity';
+// ⚠ From ./layerIds.js, NOT ./viewerConfig.js. Same three strings either way,
+// but viewerConfig.js imports maplibre-gl at module scope, and App.tsx imports
+// overlayOpacityUrlValue() from this file on the EAGER path — so going through
+// viewerConfig would put the whole library back on the critical path even
+// though the engine itself is loaded on demand. See layerIds.js.
 import {
     BUILDING_LAYER,
     PARCEL_FILL_LAYER,
     PARCEL_OUTLINE_LAYER,
-} from './viewerConfig.js';
+} from './layerIds.js';
 
 const percent = getOverlayOpacityOverride() ?? OVERLAY_OPACITY_DEFAULT;
 

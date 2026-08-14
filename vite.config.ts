@@ -37,6 +37,19 @@ export default defineConfig({
         // bundle. App code (and react) is deliberately NOT chunked here —
         // splitting app code risks circular-dependency TDZ white-screens.
         manualChunks(id) {
+          // ⚠ STYLESHEETS ARE DELIBERATELY EXCLUDED. The `maplibre` chunk is a
+          // DYNAMIC chunk now (App.tsx loads src/js/main.js on demand), and a
+          // dependency's CSS follows whichever chunk claims it — so bucketing
+          // `maplibre-gl.css` here would pull its <link> out of index.html and
+          // have Vite append it to <head> at runtime, AFTER the entry
+          // stylesheet. `.maplibregl-map { position: relative }` and similoo's
+          // own `.comparison-map { position: relative }` both hit the same
+          // element at (0,1,0), so the later sheet would win the tie, and the
+          // suite has already shipped a blank map with no console error from
+          // exactly this inversion (hood v0.25.0). Excluding CSS keeps every
+          // stylesheet in the eager entry bundle, in main.tsx import order,
+          // where maplibre-gl.css is the first import.
+          if (id.endsWith('.css')) return undefined;
           if (id.includes('node_modules/maplibre-gl')) return 'maplibre';
           if (id.includes('node_modules/three')) return 'three';
           return undefined;

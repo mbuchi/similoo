@@ -1,3 +1,16 @@
+// ⚠ FIRST IMPORT, AND IT MUST STAY FIRST. The MapLibre viewer itself now loads
+// on demand (App.tsx dynamic-imports the engine), but its stylesheet does NOT
+// ride along in that chunk — Vite appends a dynamic chunk's <link> to <head>
+// AFTER the entry stylesheet at runtime, which would put
+// `.maplibregl-map { position: relative }` (0,1,0) below the app's own
+// `.comparison-map { position: relative }` (0,1,0) on the very same element and
+// invert the cascade the map container depends on. Importing it here, ahead of
+// every app stylesheet, reproduces the exact order the old static `maplibre`
+// CSS chunk had. vite.config.ts keeps `.css` out of manualChunks for the same
+// reason, and `#mapContainer#mapContainer` in src/css/map.css is the belt to
+// this braces. Change none of the three without reading the other two.
+import 'maplibre-gl/dist/maplibre-gl.css';
+
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { AuthProvider, GlassProvider, initTheme, applyTheme, initOpenReplay } from '@aireon/shared';

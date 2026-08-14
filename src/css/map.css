@@ -31,6 +31,49 @@
     padding-top: 0;
 }
 
+/* =============================================================
+   ⚠ MAP CONTAINER — order-independent geometry. DO NOT WEAKEN.
+
+   MapLibre stamps `.maplibregl-map` onto the very element it is handed as
+   `container`, which here is #mapContainer — the same node that already
+   carries `.comparison-map`. So vendor and app CSS target one element:
+
+     maplibre-gl.css  .maplibregl-map  { position: relative }  (0,1,0)
+     map.css          .comparison-map  { position: relative }  (0,1,0)
+
+   At equal specificity the LAST stylesheet in document order wins. Today
+   main.tsx imports maplibre-gl.css above every app sheet so the app rule wins,
+   but that is import order, and import order is the bundler's call: the engine
+   that builds the map is now behind a dynamic import, and one stray CSS import
+   inside that chunk would flip it. When the container loses its geometry it
+   collapses to height 0 and MapLibre draws into its 400x300 fallback — a blank
+   map with NO console error, which passes every DOM and a11y assertion because
+   a 400x300 canvas is still full of colour. That shipped broken in a sibling
+   app for eleven days.
+
+   The doubled id is (2,0,0), so it out-specifies anything the vendor sheet can
+   express whatever the order. `position` and the explicit size are restated
+   together rather than inherited from the rules above, so neither depends on
+   the other surviving. `padding-top` is deliberately NOT restated here: the
+   plain #mapContainer rule above already zeroes it for every breakpoint, and
+   repeating it would make this block responsible for a second concern.
+
+   No @media rule overrides this container's width/height (it has no responsive
+   size variants — grep `#mapContainer` and `.comparison-map`), so raising
+   specificity here cannot silently out-rank a breakpoint override.
+
+   ⚠ RE-CHECK THIS WHEN THE TAILWIND 4 MIGRATION RESUMES: under TW4 an
+   unlayered vendor sheet beats every `@layer utilities` rule regardless of
+   source order, which changes the mitigation. This block is plain CSS in a
+   bespoke stylesheet, not a utility, so it should still hold — but verify it
+   rather than assume it.
+   ============================================================= */
+#mapContainer#mapContainer {
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
+
 #mapContainer .maplibregl-ctrl-top-right {
     top: 12px;
 }

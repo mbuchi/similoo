@@ -41,6 +41,38 @@ export const KIND_META = {
 
 export const RELEASES = [
   {
+    version: '0.35.0',
+    date: 'August 14, 2026',
+    codename: 'The map loads on demand',
+    summary: 'similoo no longer waits for the mapping library before it shows anything. The address card is ready about a second sooner.',
+    items: [
+      {
+        kind: 'improved',
+        icon: 'sparkles',
+        text: 'The mapping library made up more than half of everything the browser had to download before similoo could put anything on screen, even though the map itself only appears once you pick an address. It now loads on demand, alongside the map, instead of blocking everything ahead of it. The navbar and the address card appear noticeably earlier on a phone or a slow connection, and the map still arrives at the same moment as before.',
+        prs: [],
+      },
+      {
+        kind: 'fixed',
+        icon: 'wrench',
+        text: 'An address picked while similoo was still loading is now remembered and opened as soon as the map is ready, instead of being ignored.',
+        prs: [],
+      },
+      {
+        kind: 'fixed',
+        icon: 'wrench',
+        text: 'The "Open with" menu now appears for links opened straight at a location, not only after searching from inside the app.',
+        prs: [],
+      },
+      {
+        kind: 'fixed',
+        icon: 'wrench',
+        text: 'Hardened the map area against a class of styling conflict that could leave it blank with no error message, by pinning its size so it can no longer collapse.',
+        prs: [],
+      },
+    ],
+  },
+  {
     version: '0.34.0',
     date: 'August 13, 2026',
     codename: 'First paint, first',
