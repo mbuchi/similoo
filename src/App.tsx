@@ -35,6 +35,7 @@ import {
   registerUrlSyncProviders,
   syncMapUrl,
 } from '@aireon/shared/url-params';
+import { resolveParcelAddress } from '@aireon/shared/geoadmin';
 import {
   Camera,
   ExternalLink,
@@ -111,16 +112,29 @@ async function resolveContextParcel(
 ): Promise<MapContextParcel | null> {
   const context = await fetchClaireContext(lng, lat, signal);
   if (!context.parcelId) return null;
-  const municipality = context.municipality
-    || context.address?.split(',').pop()?.trim().replace(/^\d{4}\s+/, '')
-    || '';
+  // An address belongs to a PARCEL, not to the point that was clicked.
+  // fetchClaireContext hands back the first building-register entrance
+  // geo.admin happens to report near the click, which can name a neighbouring
+  // parcel outright and can change with the pixel clicked. Resolve it from the
+  // parcel's EGRID instead, so the answer is a pure function of the parcel;
+  // the resolver falls back to the nearest address only for parcels the
+  // register knows no address for (roads, courtyards, farmland).
+  // See aireon-shared/docs/PARCEL_ADDRESS_STANDARD.md.
+  const resolved = await resolveParcelAddress({
+    egrid: context.parcelId,
+    lat,
+    lng,
+    signal,
+  }).catch(() => null);
+  const address = resolved?.label || undefined;
+  const municipality = resolved?.city || context.municipality || '';
   return {
     parcelId: context.parcelId,
-    label: context.address || context.parcelNumber || context.parcelId,
+    label: address || context.parcelNumber || context.parcelId,
     municipality,
     area: 0,
     subtitle: [municipality, context.canton].filter(Boolean).join(', ') || undefined,
-    address: context.address || undefined,
+    address,
   };
 }
 
