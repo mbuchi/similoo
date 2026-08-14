@@ -1,6 +1,11 @@
 import './i18n.js';
 
-import maplibregl from 'maplibre-gl';
+// ⚠ NAMESPACE import, not a default one: MapLibre GL v6 is ESM-only and ships no
+// default export, so `import maplibregl from 'maplibre-gl'` resolves to
+// undefined and `new maplibregl.Marker(...)` below throws at runtime. The tile
+// worker URL is wired once in viewer/viewerConfig.js, which this module imports
+// below — see the seam comment there before moving either import.
+import * as maplibregl from 'maplibre-gl';
 import {
     initializeViewer,
     BUILDING_SOURCE,

@@ -41,6 +41,20 @@ export const KIND_META = {
 
 export const RELEASES = [
   {
+    version: '0.36.0',
+    date: 'August 14, 2026',
+    codename: 'A newer map engine',
+    summary: 'similoo now runs on the latest version of its map engine. Everything looks and works exactly as before.',
+    items: [
+      {
+        kind: 'improved',
+        icon: 'sparkles',
+        text: 'The software that draws the map has been updated to its newest major version, keeping similoo current with security fixes and performance work from the people who maintain it. Nothing about the map changes for you: the satellite imagery, the colored parcels, the buildings and every control behave exactly as they did before. The newest version does require a reasonably modern browser, so if the map ever fails to appear, updating your browser is the fix.',
+        prs: [],
+      },
+    ],
+  },
+  {
     version: '0.35.0',
     date: 'August 14, 2026',
     codename: 'The map loads on demand',
