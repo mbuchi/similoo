@@ -66,7 +66,15 @@ import { releases, CURRENT_VERSION, REPO_URL } from './data/releaseNotes';
 // scene, comparison sidebar/panels, address search, deep-linking). The navbar,
 // theme, locale, auth, release notes and bug report are now React-owned via the
 // shared suite chrome below; boot() no longer wires those.
-import { boot } from './js/main.js';
+//
+// ⚠ Loaded with a DYNAMIC import in the mount effect below, deliberately. This
+// module is the only path to `maplibre-gl` (~220 KB brotli, more than half of
+// everything similoo used to download before it could paint), and MapLibre
+// cannot construct a map until React has rendered #mapContainer anyway — so
+// downloading it eagerly only starved the chunks React needed first. The map
+// also lives in the comparison view, which stays `hidden` until an address is
+// picked, so nothing on the first screen depends on it.
+// PERFORMANCE_STANDARD.md section 3, rule 6.
 // Overlay opacity (?opacity=0..100). The engine owns the controller and the
 // value; this shell only reads it for the URL sync provider below, so the two
 // halves never hold separate copies of the state.
@@ -88,6 +96,13 @@ const COMPACT_USER_MENU_CLASS_NAME = [
   '[&_.map-shell-user-tool-item]:min-h-11',
   '[&_.map-shell-user-menu-item]:min-h-11',
 ].join(' ');
+
+/** Payload of the `similoo:search` bridge event (React shell → engine). */
+interface SearchPick {
+  lat: number;
+  lng: number;
+  label: string;
+}
 
 async function resolveContextParcel(
   lat: number,
@@ -111,11 +126,39 @@ async function resolveContextParcel(
 
 export default function App() {
   // Run the imperative engine exactly once, after the React scaffold commits.
+  //
+  // The engine module is fetched on demand (see the import comment above), so
+  // boot() now runs a network round trip later than it used to. Two knock-on
+  // effects, both handled:
+  //   • boot() attaches the `similoo:search` listener. A pick made before the
+  //     chunk lands would be dropped, so dispatchSearch() below holds the
+  //     newest one in `pendingSearch` and this effect replays it.
+  //   • boot() calls applyUrlUiModes() for mode=screenshot|embed|kiosk. The
+  //     shared AuthProvider calls the same idempotent applier on its own mount,
+  //     which now runs first, so the chrome is still hidden before paint.
   const booted = useRef(false);
+  const engineReady = useRef(false);
+  const pendingSearch = useRef<SearchPick | null>(null);
   useEffect(() => {
     if (booted.current) return;
     booted.current = true;
-    boot();
+    void import('./js/main.js').then(({ boot }) => {
+      boot();
+      engineReady.current = true;
+      const pick = pendingSearch.current;
+      pendingSearch.current = null;
+      if (pick) window.dispatchEvent(new CustomEvent('similoo:search', { detail: pick }));
+    });
+  }, []);
+
+  // Single writer for `similoo:search`: dispatch straight through once the
+  // engine is listening, otherwise park the pick for the boot effect to replay.
+  const dispatchSearch = useCallback((detail: SearchPick) => {
+    if (!engineReady.current) {
+      pendingSearch.current = detail;
+      return;
+    }
+    window.dispatchEvent(new CustomEvent('similoo:search', { detail }));
   }, []);
 
   // --- Navbar address search ↔ engine bridge ------------------------------
@@ -193,12 +236,8 @@ export default function App() {
   }, []);
   const handleNavSearch = useCallback((r: AddressSearchResult) => {
     void signal.send('Address search', { address: r.label, lat: r.lat, lng: r.lng });
-    window.dispatchEvent(
-      new CustomEvent('similoo:search', {
-        detail: { lat: r.lat, lng: r.lng, label: r.label },
-      }),
-    );
-  }, []);
+    dispatchSearch({ lat: r.lat, lng: r.lng, label: r.label });
+  }, [dispatchSearch]);
 
   // --- Theme bridge -------------------------------------------------------
   // The suite chrome themes off the `.dark` class; similoo's bespoke CSS +
@@ -630,13 +669,14 @@ export default function App() {
         loadLabel={t('context.load_label')}
         loadHint={t('context.load_hint')}
         onLoadParcel={(point, parcel) => {
-          window.dispatchEvent(new CustomEvent('similoo:search', {
-            detail: {
-              lat: point.lat,
-              lng: point.lng,
-              label: parcel?.label || `${point.lat.toFixed(5)}, ${point.lng.toFixed(5)}`,
-            },
-          }));
+          // The context menu only opens on a right-click over a live map, so
+          // the engine is always up by here; routed through dispatchSearch
+          // anyway so there is exactly one writer of this event.
+          dispatchSearch({
+            lat: point.lat,
+            lng: point.lng,
+            label: parcel?.label || `${point.lat.toFixed(5)}, ${point.lng.toFixed(5)}`,
+          });
         }}
         onCenterMap={(point) => {
           window.dispatchEvent(new CustomEvent('similoo:center', { detail: point }));
