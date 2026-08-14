@@ -41,6 +41,26 @@ export const KIND_META = {
 
 export const RELEASES = [
   {
+    version: '0.37.0',
+    date: 'August 14, 2026',
+    codename: 'The right address for the right parcel',
+    summary: 'The address shown when you right-click a parcel now belongs to that parcel, instead of being whichever address happened to sit nearest the spot you clicked.',
+    items: [
+      {
+        kind: 'fixed',
+        icon: 'wrench',
+        text: 'Right-clicking a parcel used to look up the closest street address to the exact point under your cursor. That produced three kinds of wrong answer: an address that actually belongs to the neighboring plot, the same address on two parcels side by side, and two different addresses on one parcel depending on where inside it you clicked. similoo now asks the building register for the address registered to that specific parcel, so the answer stays the same wherever inside the parcel you click and can no longer borrow the address of the plot next door. Parcels the register knows no address for, such as roads, courtyards and farmland, still show the nearest address as a best effort.',
+        prs: [],
+      },
+      {
+        kind: 'improved',
+        icon: 'sparkles',
+        text: 'Looking up a parcel address is also quicker now, because the answer is remembered per parcel and re-checking the same parcel no longer costs another lookup.',
+        prs: [],
+      },
+    ],
+  },
+  {
     version: '0.36.0',
     date: 'August 14, 2026',
     codename: 'A newer map engine',
