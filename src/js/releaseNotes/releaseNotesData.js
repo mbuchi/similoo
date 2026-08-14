@@ -41,6 +41,26 @@ export const KIND_META = {
 
 export const RELEASES = [
   {
+    version: '0.38.0',
+    date: 'August 14, 2026',
+    codename: 'A shared link shows the address it opens on',
+    summary: 'A link that carries both coordinates and an address now trusts the coordinates. similoo looks up the address of the parcel the link actually opens on, shows that, and repairs the link so everyone you forward it to sees the right one.',
+    items: [
+      {
+        kind: 'fixed',
+        icon: 'wrench',
+        text: 'A shared link carries a location and a name for it, and the two could disagree. similoo used to display the name written in the link, so a link whose coordinates sit on Alte Rheinstrasse 91 could open with the header, the saved-parcel entry and the search box all reading Alte Rheinstrasse 87. Worse, the wrong name was copied back into the link, so it stayed wrong for everybody it was forwarded to. The address in a link is now only a placeholder that keeps the panel from looking empty for a moment. similoo asks the building register which address belongs to the parcel the link opens on, replaces the placeholder with it, and updates the link so the next person to open it starts from the corrected address.',
+        prs: [],
+      },
+      {
+        kind: 'fixed',
+        icon: 'link',
+        text: 'Links made by the address search and by the right-click menu on the map wrote the address under a different name than the one similoo read back, so on reopening a link the older address could win over the newer one. Both now use the same wording, and similoo still opens links shared before this change.',
+        prs: [],
+      },
+    ],
+  },
+  {
     version: '0.37.0',
     date: 'August 14, 2026',
     codename: 'The right address for the right parcel',

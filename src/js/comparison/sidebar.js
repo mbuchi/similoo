@@ -262,6 +262,23 @@ export function createComparisonSidebar({ map, onClose, onFlyTo, onSelectCompara
         loadFor(egrid);
     }
 
+    // Replace the address the panel is titled with, without touching the parcel
+    // it is showing. A ?lat/?lng deep link opens on a text label that is only a
+    // hint (see main.js / deepLinkAddress.js); the address resolved from the
+    // parcel's own identity lands a moment later and must overwrite it in the
+    // identity header AND in the Track chip's save record. Re-calling show()
+    // would refetch the comparables for a parcel that has not changed, so this
+    // re-renders off the data already in hand.
+    function setAddress(address) {
+        const next = address || null;
+        if (next === currentAddress) return;
+        currentAddress = next;
+        // Before the comparables land there is nothing rendered to update: the
+        // panel is still a skeleton and renderTarget() will pick the new value
+        // up on its first pass.
+        if (currentData?.target) renderTarget();
+    }
+
     function hide() {
         clearDragStyles();
         aside.setAttribute('data-state', 'hidden');
@@ -906,7 +923,7 @@ export function createComparisonSidebar({ map, onClose, onFlyTo, onSelectCompara
         return currentData;
     }
 
-    return { show, hide, destroy, getCurrentData };
+    return { show, setAddress, hide, destroy, getCurrentData };
 }
 
 // ---------- DOM shell -----------------------------------------------------

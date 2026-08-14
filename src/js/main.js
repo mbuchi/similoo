@@ -36,6 +36,13 @@ import {
     DEEP_LINK_MIN_ZOOM,
     isAddressGateBypassed,
 } from '@aireon/shared/url-params';
+// Address precedence: the URL's text is a hint, the coordinates are identity.
+// See deepLinkAddress.js (and URL_PARAMS_STANDARD.md, "Address precedence").
+import {
+    readDeepLinkAddress,
+    resolveDeepLinkLabel,
+    deepLinkLabelExtra,
+} from './deepLinkAddress.js';
 // Country-wide "pick a place" camera for a map opened with no address yet.
 import { CH_OVERVIEW } from '@aireon/shared/map-defaults';
 
@@ -119,11 +126,8 @@ export function boot() {
     let comparableHoverRaf = 0;
     let comparableHoverStart = 0;
     let comparableHoverBeacon = null;
-    // The point similoo's app-local `?label` describes, recorded by
-    // syncDeepLink() when the pick is written. `label` is NOT a shared-registry
-    // param and has no sync provider, and the deep-link bootstrap below feeds it
-    // straight into handlePick() as the DISPLAYED address for whatever parcel
-    // ?lat/?lng resolve to. So it is only true for the coordinates it was
+    // The point the published label describes, recorded by syncDeepLink() when
+    // the pick is written. A label is only ever true for the coordinates it was
     // written with: the moveend writer must re-assert it while the camera still
     // names that exact point and clear it the moment the camera names another,
     // otherwise a copied link opens one parcel titled with a different address.
@@ -187,7 +191,7 @@ export function boot() {
                     lat: center.lat,
                     lng: center.lng,
                     zoom: map.getZoom(),
-                    extra: { label: labelForCenter(center) },
+                    extra: deepLinkLabelExtra(labelForCenter(center)),
                 });
             });
             map.on('contextmenu', (event) => {
@@ -851,11 +855,34 @@ export function boot() {
         // tile split); geometry falls back to the picked tile feature, then null.
         const parcelGeometry = buildTargetParcelGeometry(parcelFeature);
         const parcelLngLat = [result.lng, result.lat];
+        // A deep link's text is a HINT, never the answer: it was minted
+        // elsewhere, and ?lat/?lng can name a parcel the text does not. Ask the
+        // parcel instead — the EGRID resolved above, or, if the tile pick
+        // missed, the cadastre under the point. Started here and awaited after
+        // the panel opens, so the lookup overlaps the comparables fetch instead
+        // of delaying the panel. See deepLinkAddress.js.
+        const resolving = result.labelIsHint
+            ? resolveDeepLinkLabel({ egrid, lat: result.lat, lng: result.lng })
+            : null;
+
         // Pass the searched address so the sidebar's parcel identity header can
         // title the subject card with it (falling back to the municipality).
         // A synthetic "CH…"-shaped label from formatLatLng isn't a real address,
         // so only forward a label that came from an actual geocoder pick.
         if (egrid) sidebar.show(egrid, addressLabelFor(result), parcelGeometry, parcelLngLat);
+
+        if (!resolving) return;
+        const resolved = await resolving;
+        if (seq !== pickSeq) return;
+        // No answer at all (cadastre outage, a point on no parcel): keep
+        // whatever the URL offered, which still beats a blank header.
+        if (!resolved) return;
+        // Overwrite the hint everywhere it landed: the navbar box, the parcel
+        // identity header, the PRM save record — then publish the resolved
+        // value so the link, and every copy of it, heals itself.
+        emitAddress(resolved, result.lat, result.lng);
+        sidebar.setAddress(resolved);
+        syncDeepLink({ ...result, label: resolved });
     }
 
     // The searched address to title the identity header. handlePick receives
@@ -891,9 +918,9 @@ export function boot() {
 
     // Write the picked address into the URL through the shared writer instead
     // of a hand-rolled replaceState, so the pick also stamps the registered
-    // sync providers (lang/theme) and the self-written history marker.
-    // `label` is a similoo-local param, not part of the shared registry, so it
-    // rides along in `extra` with the same set-or-clear semantics as before.
+    // sync providers (lang/theme) and the self-written history marker. The
+    // label rides along in `extra` under the canonical `q`, with similoo's
+    // legacy `label` cleared on every write (see deepLinkLabelExtra).
     function syncDeepLink(result) {
         const label = result.label || null;
         // Record which point this label describes before writing, so the
@@ -906,7 +933,7 @@ export function boot() {
         updateMapUrl({
             lat: result.lat,
             lng: result.lng,
-            extra: { label },
+            extra: deepLinkLabelExtra(label),
         });
     }
 
@@ -919,9 +946,13 @@ export function boot() {
     // Deep-link bootstrap: ?lat=&lng= skips the landing view and renders
     // the comparison immediately. Useful for sharing and headless tests.
     // lat/lng/zoom now come off the shared, suite-wide URL parser (adds the
-    // ±85/±180 clamp and the ?z alias for free). `label` is a similoo-local
-    // param (not part of the shared registry) and stays a plain
-    // URLSearchParams read.
+    // ±85/±180 clamp and the ?z alias for free).
+    //
+    // The address text in the link (similoo's legacy `?label`, or the canonical
+    // `?q` the shared search and context menu write) is rendered straight away
+    // so nothing flashes blank, but it is only a HINT: the coordinates are the
+    // identity, and handlePick resolves the real address from them and
+    // overwrites it. See deepLinkAddress.js.
     //
     // Zoom floor, matching the shared getInitialMapState(): a zoom that came in
     // from OUTSIDE (a pasted or shared link) is floored at DEEP_LINK_MIN_ZOOM so
@@ -935,12 +966,12 @@ export function boot() {
     try {
         const urlState = getUrlState();
         if (urlState.lat !== null && urlState.lng !== null) {
-            const label = new URLSearchParams(window.location.search).get('label')
-                || formatLatLng(urlState.lat, urlState.lng);
+            const { hint } = readDeepLinkAddress();
+            const label = hint || formatLatLng(urlState.lat, urlState.lng);
             const zoom = urlState.zoom === null
                 ? undefined
                 : (urlState.selfWritten ? urlState.zoom : Math.max(urlState.zoom, DEEP_LINK_MIN_ZOOM));
-            handlePick({ lat: urlState.lat, lng: urlState.lng, label, zoom });
+            handlePick({ lat: urlState.lat, lng: urlState.lng, label, zoom, labelIsHint: true });
         } else if (isAddressGateBypassed()) {
             // ?search_modal=off / ?welcome=off with no coordinates: skip the
             // landing view and open the map at a country overview instead of
