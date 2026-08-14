@@ -1,5 +1,24 @@
 import { DEFAULT_MAP_ZOOM } from '@aireon/shared/map-defaults';
-import maplibregl from 'maplibre-gl';
+// ⚠ NAMESPACE import, not a default one: MapLibre GL v6 is ESM-only and ships no
+// default export, so `import maplibregl from 'maplibre-gl'` resolves to
+// undefined and `new maplibregl.Map(...)` below throws at runtime.
+import * as maplibregl from 'maplibre-gl';
+import { applyMapWorkerUrl } from '@aireon/shared/map-worker';
+
+// ⚠ WORKER SEAM — must stay at module scope, before the first `new
+// maplibregl.Map(...)`. v6 derives its tile-worker URL from its own
+// `import.meta.url`, which is meaningless once Vite has rewritten the engine
+// into the `maplibre` chunk: the worker never starts, no vector tile parses and
+// the canvas stays blank. `vite dev` hides this — it only reproduces in a
+// production build, so a clean `npm run dev` is not evidence.
+//
+// This call belongs HERE and not in an eager module: viewerConfig.js is reached
+// only through App.tsx's dynamic `import('./js/main.js')`, so the static
+// `maplibre-gl` import above stays inside the lazy chunk. Hoisting either the
+// import or this call into src/main.tsx or App.tsx would silently undo the
+// code-split that keeps ~220 KB off the first paint. applyMapWorkerUrl is
+// idempotent and no-ops on a module without setWorkerUrl.
+applyMapWorkerUrl(maplibregl);
 
 // ⚠ `maplibre-gl/dist/maplibre-gl.css` is imported from src/main.tsx, NOT here.
 // This module now lives in a DYNAMIC chunk (App.tsx loads the engine on demand),
