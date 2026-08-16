@@ -133,14 +133,20 @@ const PARCEL_OTHER_OPACITY = 0.08;
 
 // --- Public API -------------------------------------------------------------
 
-export async function initializeViewer(containerId) {
+export async function initializeViewer(containerId, initialCamera = {}) {
+    const {
+        center = DEFAULT_CENTER,
+        zoom = DEFAULT_ZOOM,
+        pitch = DEFAULT_PITCH,
+        bearing = DEFAULT_BEARING,
+    } = initialCamera;
     const map = new maplibregl.Map({
         container: containerId,
         style: buildStyle(),
-        center: DEFAULT_CENTER,
-        zoom: DEFAULT_ZOOM,
-        pitch: DEFAULT_PITCH,
-        bearing: DEFAULT_BEARING,
+        center,
+        zoom,
+        pitch,
+        bearing,
         hash: false,
         // No on-map attribution control — suite policy keeps the map canvas
         // clean. The required basemap credit (swisstopo SWISSIMAGE) is surfaced

@@ -97,6 +97,11 @@ export function boot() {
     }
 
     let map = null;
+    // One shared promise owns first-time startup. A second address can be
+    // picked while MapLibre is still loading its style; it must await the same
+    // map rather than constructing a competing instance that can finish later
+    // and restore the stale camera.
+    let mapLoading = null;
     // Overlay-opacity controller. Created before the map exists — it reads the
     // live instance through this getter, because initializeViewer() is async.
     initOverlayOpacity(() => map);
@@ -149,70 +154,75 @@ export function boot() {
         return labelledPick.label;
     }
 
-    async function ensureMap() {
+    async function ensureMap(initialCamera) {
         if (map) return map;
-        try {
-            map = await initializeViewer('mapContainer');
-            window.__similooMap = map; // exposed for browser-driven tests
-            // Every data layer is declared in the INITIAL style (similoo never
-            // calls setStyle), so this single registration brings the parcel
-            // fill, the parcel outline and the building masses onto the
-            // ?opacity= factor for the life of the page. The only re-register
-            // needed afterwards is at the applyZoneHighlight call sites, which
-            // re-author the zone fill's fill-opacity from scratch.
-            registerOverlayLayers();
-            // Both the comparable footprints and the searched parcel's own
-            // buildings can only be coloured once their tile has rendered, so
-            // re-probe whenever the map settles — this lights them up the moment
-            // the user pans/flies them into view (and on a cold tile cache).
-            map.on('idle', refreshHighlightsOnIdle);
-            // Suite view write-back (URL_PARAMS_STANDARD.md): keep the URL
-            // naming the camera the user is actually looking at, not just the
-            // last address they picked. Until now nothing wrote on movement,
-            // so panning, the zoom buttons, the compass reset, a comparable
-            // fly-to and the right-click "center here" all left the link
-            // frozen. updateMapUrl also stamps the sync providers App.tsx
-            // registers (lang/theme) and preserves every unrelated param,
-            // including the quiet-boot flags. `label` is the one param it must
-            // NOT leave alone: see labelForCenter() above. The address rides
-            // along only while the camera still names the point it describes,
-            // and is deleted otherwise so the link never titles one parcel with
-            // another parcel's address. Boot then falls back to the coordinates.
-            map.on('moveend', () => {
-                // No pick, no write-back. Under ?search_modal=off the map opens
-                // targetless at CH_OVERVIEW, and every param this writer stamps
-                // (lat/lng above all) is read back by the deep-link bootstrap as
-                // an address to run a comparison on. Writing a browse camera
-                // would turn a copied link into a comparison of whatever the
-                // user last panned over. showComparison() sets the flag.
-                if (!hasPick) return;
-                const center = map.getCenter();
-                updateMapUrl({
-                    lat: center.lat,
-                    lng: center.lng,
-                    zoom: map.getZoom(),
-                    extra: deepLinkLabelExtra(labelForCenter(center)),
-                });
-            });
-            map.on('contextmenu', (event) => {
-                event.originalEvent.preventDefault();
-                window.dispatchEvent(new CustomEvent('similoo:map-context', {
-                    detail: {
-                        lat: event.lngLat.lat,
-                        lng: event.lngLat.lng,
-                        x: event.originalEvent.clientX,
-                        y: event.originalEvent.clientY,
+        if (mapLoading) return mapLoading;
+        mapLoading = (async () => {
+            try {
+                map = await initializeViewer('mapContainer', initialCamera);
+                window.__similooMap = map; // exposed for browser-driven tests
+                // Every data layer is declared in the INITIAL style (similoo never
+                // calls setStyle), so this single registration brings the parcel
+                // fill, the parcel outline and the building masses onto the
+                // ?opacity= factor for the life of the page. The only re-register
+                // needed afterwards is at the applyZoneHighlight call sites, which
+                // re-author the zone fill's fill-opacity from scratch.
+                registerOverlayLayers();
+                // Both the comparable footprints and the searched parcel's own
+                // buildings can only be coloured once their tile has rendered, so
+                // re-probe whenever the map settles — this lights them up the moment
+                // the user pans/flies them into view (and on a cold tile cache).
+                map.on('idle', refreshHighlightsOnIdle);
+                // Suite view write-back (URL_PARAMS_STANDARD.md): keep the URL
+                // naming the camera the user is actually looking at, not just the
+                // last address they picked. Until now nothing wrote on movement,
+                // so panning, the zoom buttons, the compass reset, a comparable
+                // fly-to and the right-click "center here" all left the link
+                // frozen. updateMapUrl also stamps the sync providers App.tsx
+                // registers (lang/theme) and preserves every unrelated param,
+                // including the quiet-boot flags. `label` is the one param it must
+                // NOT leave alone: see labelForCenter() above. The address rides
+                // along only while the camera still names the point it describes,
+                // and is deleted otherwise so the link never titles one parcel with
+                // another parcel's address. Boot then falls back to the coordinates.
+                map.on('moveend', () => {
+                    // No pick, no write-back. Under ?search_modal=off the map opens
+                    // targetless at CH_OVERVIEW, and every param this writer stamps
+                    // (lat/lng above all) is read back by the deep-link bootstrap as
+                    // an address to run a comparison on. Writing a browse camera
+                    // would turn a copied link into a comparison of whatever the
+                    // user last panned over. showComparison() sets the flag.
+                    if (!hasPick) return;
+                    const center = map.getCenter();
+                    updateMapUrl({
+                        lat: center.lat,
+                        lng: center.lng,
                         zoom: map.getZoom(),
-                    },
-                }));
-            });
-            // Bottom-left legend explaining the red/green/pink highlights.
-            legend = createMapLegend(map.getContainer());
-        } catch (e) {
-            console.error('Error initializing viewer:', e);
-            throw e;
-        }
-        return map;
+                        extra: deepLinkLabelExtra(labelForCenter(center)),
+                    });
+                });
+                map.on('contextmenu', (event) => {
+                    event.originalEvent.preventDefault();
+                    window.dispatchEvent(new CustomEvent('similoo:map-context', {
+                        detail: {
+                            lat: event.lngLat.lat,
+                            lng: event.lngLat.lng,
+                            x: event.originalEvent.clientX,
+                            y: event.originalEvent.clientY,
+                            zoom: map.getZoom(),
+                        },
+                    }));
+                });
+                // Bottom-left legend explaining the red/green/pink highlights.
+                legend = createMapLegend(map.getContainer());
+                return map;
+            } catch (e) {
+                mapLoading = null;
+                console.error('Error initializing viewer:', e);
+                throw e;
+            }
+        })();
+        return mapLoading;
     }
 
     function ensureDetailModal() {
@@ -296,14 +306,14 @@ export function boot() {
         return sidebar;
     }
 
-    async function showComparison(label, lat, lng) {
+    async function showComparison(label, lat, lng, initialCamera) {
         // From here on the camera names a real pick, so the moveend writer may
         // stamp it into the URL again (see the `hasPick` note above).
         hasPick = true;
         landingView.hidden = true;
         comparisonView.hidden = false;
         emitAddress(label, lat, lng);
-        await ensureMap();
+        await ensureMap(initialCamera);
         ensureSidebar();
         if (window.lucide?.createIcons) window.lucide.createIcons();
     }
@@ -758,24 +768,37 @@ export function boot() {
             sidebar?.hide();
         }
 
-        await showComparison(result.label || formatLatLng(result.lat, result.lng), result.lat, result.lng);
+        const targetCamera = {
+            center: [result.lng, result.lat],
+            // Suite convention: a deep-linked / searched address opens at
+            // street level (zoom >= DEEP_LINK_MIN_ZOOM) so the target
+            // building reads. An explicit ?zoom=/?z= on the deep-link wins.
+            zoom: Number.isFinite(result.zoom)
+                ? result.zoom
+                : Math.max(DEEP_LINK_MIN_ZOOM, map ? map.getZoom() : DEEP_LINK_MIN_ZOOM),
+            pitch: 50,
+            bearing: -25,
+        };
+
+        // On the first search, construct MapLibre at the selected address.
+        // Previously it rendered the hard-coded Zurich camera while its style
+        // loaded, then jumped here after initializeViewer() resolved.
+        await showComparison(
+            result.label || formatLatLng(result.lat, result.lng),
+            result.lat,
+            result.lng,
+            targetCamera,
+        );
+        // A newer search may have arrived while the first map was loading.
+        // Only the latest pick may publish a URL or move the shared camera.
+        if (seq !== pickSeq) return;
         syncDeepLink(result);
         document.body.classList.add('cmp-shifted');
 
         // Switch the view *instantly* — jumpTo, not flyTo. The searched
         // address snaps into place on the next frame with zero fly animation.
         if (map) {
-            map.jumpTo({
-                center: [result.lng, result.lat],
-                // Suite convention: a deep-linked / searched address opens at
-                // street level (zoom >= DEEP_LINK_MIN_ZOOM) so the target
-                // building reads. An explicit ?zoom=/?z= on the deep-link
-                // (floored the same way, see the bootstrap below) wins when
-                // handlePick was called with one.
-                zoom: Number.isFinite(result.zoom) ? result.zoom : Math.max(DEEP_LINK_MIN_ZOOM, map.getZoom()),
-                pitch: 50,
-                bearing: -25,
-            });
+            map.jumpTo(targetCamera);
         }
 
         // Pull the parcel under the searched point from the rendered tile. The
