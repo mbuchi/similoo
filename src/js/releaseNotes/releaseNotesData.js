@@ -41,6 +41,20 @@ export const KIND_META = {
 
 export const RELEASES = [
   {
+    version: '0.38.1',
+    date: 'August 17, 2026',
+    codename: 'The first map is the right map',
+    summary: 'Choosing an address now opens directly on that building. The brief detour through an unrelated Zurich building while the map started has been removed.',
+    items: [
+      {
+        kind: 'fixed',
+        icon: 'wrench',
+        text: 'On the first address search, the map used to begin loading at its built-in Zurich location and only move to the chosen address after startup finished. On slower connections this made an unrelated building appear before similoo jumped to the correct one. The map now starts with the selected address as its initial camera, so every tile and building shown during loading already belongs to the requested location. If another address is selected before startup finishes, similoo reuses that same map and lets only the newest choice move it.',
+        prs: [],
+      },
+    ],
+  },
+  {
     version: '0.38.0',
     date: 'August 14, 2026',
     codename: 'A shared link shows the address it opens on',
