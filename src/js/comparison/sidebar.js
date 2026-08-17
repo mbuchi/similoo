@@ -7,6 +7,9 @@ import {
     buildSwisstopoAerialUrl,
     parseSwissAddress,
 } from '@aireon/shared';
+// The one zone label per parcel (PARCEL_ZONE_STANDARD.md): the harmonized
+// federal category when the row carries one, else the municipal designation.
+import { ZONE_LABEL_FIELD_ORDER, resolveZoneLabel } from '@aireon/shared/parcel-zone';
 import { t, onLocaleChange, getLocale } from '../i18n.js';
 import { fetchSimilooComparables } from '../api/similoo.js';
 import { createSaveParcelButton } from './saveParcelButton.js';
@@ -16,8 +19,12 @@ import { createSaveParcelButton } from './saveParcelButton.js';
 // Three stacked sections:
 //   1. Target parcel — identity header (address, EGRID, coordinates), the
 //      ratioV headline metric, then the attributes as suite data pills
-//      (DATA_PILLS_STANDARD.md): a "Parcel" section (size, zoning) and a
-//      "Building" section (footprint, floors, year, height, volume).
+//      (DATA_PILLS_STANDARD.md): a "Parcel" section (size, zone) and a
+//      "Building" section (footprint, floors, year, height, volume). The zone
+//      pill is the ONE zone label per parcel from the shared resolver
+//      (@aireon/shared/parcel-zone): the harmonized federal category, read off
+//      the parcel tile main.js picked (the /score/similoo row carries only the
+//      municipal `cz_local`), else the municipal designation.
 //   2. Filters — "years window" slider (1–30, default 10) and parcel-size
 //      from/to inputs.
 //   3. Comparable buildings list — sortable cards (similarity / ratioV /
@@ -103,6 +110,10 @@ export function createComparisonSidebar({ map, onClose, onFlyTo, onSelectCompara
     // flow — the lite base + camera center the buildable-massing simulator uses.
     let currentGeometry = null;
     let currentLngLat = null;
+    // The picked parcel tile's properties (null when the tile pick missed). Only
+    // its zone columns are read: the tile carries `cz_harmonized`, which the
+    // /score/similoo target row does not, so the zone pill resolves off both.
+    let currentParcelProps = null;
     let massingRoot = null;
     let massingThemeObserver = null;
     let footerRoot = null;
@@ -239,7 +250,7 @@ export function createComparisonSidebar({ map, onClose, onFlyTo, onSelectCompara
         }, 1500);
     });
 
-    function show(egrid, address, geometry, lngLat) {
+    function show(egrid, address, geometry, lngLat, parcelProps) {
         if (!egrid) return;
         // New parcel → drop the previous parcel's data so the next load shows a
         // skeleton instead of stale cards.
@@ -251,6 +262,8 @@ export function createComparisonSidebar({ map, onClose, onFlyTo, onSelectCompara
         // The parcel polygon + centroid drive the buildable-massing simulator.
         currentGeometry = geometry || null;
         currentLngLat = Array.isArray(lngLat) && lngLat.length === 2 ? lngLat : null;
+        // The tile's zone columns feed the zone pill (see renderTarget).
+        currentParcelProps = parcelProps && typeof parcelProps === 'object' ? parcelProps : null;
         clearDragStyles();
         aside.setAttribute('data-state', 'visible');
         aside.setAttribute('aria-hidden', 'false');
@@ -288,6 +301,7 @@ export function createComparisonSidebar({ map, onClose, onFlyTo, onSelectCompara
         currentData = null;
         currentGeometry = null;
         currentLngLat = null;
+        currentParcelProps = null;
         // Data is gone — disable the "{}" toggle and drop back to the normal body.
         syncRawAvailability();
         // Drop the Track button's parcel binding so a stale tracked-state can't
@@ -460,6 +474,24 @@ export function createComparisonSidebar({ map, onClose, onFlyTo, onSelectCompara
         els.list.innerHTML = SKELETON_CARD.repeat(6);
     }
 
+    // The properties bag the zone pill resolves from: the /score/similoo target
+    // row with the picked tile's zone columns laid over it. The tile is the only
+    // one of the two that carries `cz_harmonized`, so this is what makes the
+    // pill read the federal category ("Wohnzonen") instead of the municipal
+    // "Wohnzone, Bauklasse 4"; when the tile pick missed, the resolver falls
+    // back to the row's municipal designation. Still one label per parcel.
+    function zoneSource(target) {
+        const merged = { ...(target || {}) };
+        if (currentParcelProps) {
+            for (const field of ZONE_LABEL_FIELD_ORDER) {
+                if (currentParcelProps[field] != null && currentParcelProps[field] !== '') {
+                    merged[field] = currentParcelProps[field];
+                }
+            }
+        }
+        return merged;
+    }
+
     function renderTarget() {
         const target = currentData?.target;
         if (!target) {
@@ -500,7 +532,7 @@ export function createComparisonSidebar({ map, onClose, onFlyTo, onSelectCompara
                     },
                     {
                         label: t('comparison.metric_zoning'),
-                        value: target.cz_local || target.cz_abbrev || null,
+                        value: resolveZoneLabel(zoneSource(target)),
                     },
                 ])}
                 ${dataPillGroupHtml(t('comparison.section_building'), [

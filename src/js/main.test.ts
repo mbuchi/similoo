@@ -81,7 +81,10 @@ vi.mock('@aireon/shared/map-defaults', () => ({
 function createLoadedMap() {
   const parcel = {
     id: 'CH294676423526',
-    properties: { cz_local: 'W2' },
+    // Real parcel-tile shape: `cz_local` is the cohort key the green wash and
+    // /score/similoo are keyed on; `cz_harmonized` is what the sidebar's zone
+    // pill resolves to (the tile is the only source that carries it).
+    properties: { cz_local: 'Wohnzone, Bauklasse 4', cz_harmonized: 'Wohnzonen' },
     geometry: {
       type: 'Polygon',
       coordinates: [[[7.43, 46.94], [7.46, 46.94], [7.46, 46.96], [7.43, 46.96], [7.43, 46.94]]],
@@ -174,5 +177,18 @@ it('initializes once at the first address and lets only the latest pending searc
       pitch: 50,
       bearing: -25,
     });
+  });
+
+  // The picked tile's properties ride into the sidebar so its zone pill can
+  // resolve the harmonized category (PARCEL_ZONE_STANDARD.md); the /score/
+  // similoo target row alone only carries the municipal `cz_local`.
+  await vi.waitFor(() => {
+    expect(engine.sidebar.show).toHaveBeenLastCalledWith(
+      'CH294676423526',
+      'Later address',
+      expect.objectContaining({ type: 'Polygon' }),
+      [6.143158, 46.204391],
+      expect.objectContaining({ cz_local: 'Wohnzone, Bauklasse 4', cz_harmonized: 'Wohnzonen' }),
+    );
   });
 });

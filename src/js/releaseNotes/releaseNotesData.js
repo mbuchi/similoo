@@ -41,6 +41,32 @@ export const KIND_META = {
 
 export const RELEASES = [
   {
+    version: '0.40.0',
+    date: 'August 18, 2026',
+    codename: 'One zone per parcel',
+    summary: 'The zone shown for the searched parcel is now the harmonized federal zone category, the same label every Aireon app prints for that parcel.',
+    items: [
+      {
+        kind: 'improved',
+        icon: 'tag',
+        text: 'The Zoning pill in the sidebar now shows the harmonized federal zone category (for example "Wohnzonen") instead of the municipal designation ("Wohnzone, Bauklasse 4"), so the same parcel reads the same way here as in every other Aireon app. Where no harmonized category exists yet (all of canton Zurich, parts of Ticino) the municipal designation remains as the single fallback, and legal cross-references such as "siehe gültige Bau- und Zonenordnung" are never shown as a zone. The subtitle of a comparable\'s 3D detail view follows the same rule.',
+        prs: [],
+      },
+      {
+        kind: 'improved',
+        icon: 'layers',
+        text: 'The green wash on the map and the comparables themselves are still selected by the finer municipal zone type, which is what makes them true peers. The legend row and the "How it works" text now say so plainly ("Parcels of the same municipal zone type") instead of calling that key the zone.',
+        prs: [],
+      },
+      {
+        kind: 'improved',
+        icon: 'package',
+        text: 'Updated the shared Aireon library to v1.173.1, which carries the suite-wide zone label rule.',
+        prs: [],
+      },
+    ],
+  },
+  {
     version: '0.39.0',
     date: 'August 17, 2026',
     codename: 'How old is this number?',
