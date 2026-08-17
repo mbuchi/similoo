@@ -41,6 +41,38 @@ export const KIND_META = {
 
 export const RELEASES = [
   {
+    version: '0.39.0',
+    date: 'August 17, 2026',
+    codename: 'How old is this number?',
+    summary: 'The About dialog now names the parcel snapshot similoo is showing and the date each layer behind it was last calculated.',
+    items: [
+      {
+        kind: 'new',
+        icon: 'database',
+        text: 'About now names the parcel snapshot similoo is reading and the date it was last calculated, so you can see at a glance how current the figures on screen are.',
+        prs: [],
+      },
+      {
+        kind: 'new',
+        icon: 'square-stack',
+        text: 'A "Pipeline details" disclosure in the same dialog opens a dated list of every enrichment layer behind a parcel, including each federal source’s own vintage, so you can tell which part of the data is fresh and which part is waiting on its next federal release. The line follows the language you have selected.',
+        prs: [],
+      },
+      {
+        kind: 'improved',
+        icon: 'box',
+        text: 'Every building volume was recalculated on August 17, 2026. That also refreshed the utilization figures, which were still being derived from volumes computed before duplicate building reconstructions were removed.',
+        prs: [],
+      },
+      {
+        kind: 'improved',
+        icon: 'package',
+        text: 'Updated the shared Aireon library to v1.172.2, which carries the data-vintage line in the About dialog, with the sentence translated per language rather than assembled in English word order.',
+        prs: [],
+      },
+    ],
+  },
+  {
     version: '0.38.1',
     date: 'August 17, 2026',
     codename: 'The first map is the right map',

@@ -720,6 +720,7 @@ export default function App() {
           closeLabel={t('common.close')}
           glassLevel={glassLevel}
           dark={isDark}
+          locale={locale}
           onClose={() => setShowAbout(false)}
         />
       )}
