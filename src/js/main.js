@@ -45,6 +45,9 @@ import {
 } from './deepLinkAddress.js';
 // Country-wide "pick a place" camera for a map opened with no address yet.
 import { CH_OVERVIEW } from '@aireon/shared/map-defaults';
+// The one zone label per parcel (PARCEL_ZONE_STANDARD.md): harmonized federal
+// category first, municipal designation only where none exists.
+import { resolveZoneLabel } from '@aireon/shared/parcel-zone';
 
 // similoo's imperative engine entry point.
 //
@@ -244,7 +247,11 @@ export function boot() {
 
     function composeSubtitle(c) {
         const parts = [];
-        if (c.cz_local || c.cz_abbrev) parts.push(c.cz_local || c.cz_abbrev);
+        // The comparable's zone, resolved by the shared rule (the /score/similoo
+        // row carries the municipal `cz_local`; the resolver prints the federal
+        // category as soon as the row also carries `cz_harmonized`).
+        const zone = resolveZoneLabel(c);
+        if (zone) parts.push(zone);
         if (Number.isFinite(c.construction_year)) parts.push(String(c.construction_year));
         if (Number.isFinite(c.ratioV)) parts.push(`ratioV ${c.ratioV.toFixed(2)}`);
         return parts.join(' · ');
@@ -290,6 +297,9 @@ export function boot() {
                 // authoritative so the green set never shifts when the slower
                 // /score/similoo response arrives. We only fall back to the
                 // backend's `cz_local` when the tile pick missed the parcel.
+                // `cz_local` here is the comparables' cohort KEY (municipal
+                // zone type), not the zone label the sidebar shows — that one
+                // is the harmonized category via @aireon/shared/parcel-zone.
                 const czLocal = currentTargetCzLocal || data?.target?.cz_local || null;
                 if (czLocal && czLocal !== currentTargetCzLocal) {
                     currentTargetCzLocal = czLocal;
@@ -803,8 +813,9 @@ export function boot() {
 
         // Pull the parcel under the searched point from the rendered tile. The
         // parcel tile carries everything the highlight needs — `cz_local` (the
-        // zone) and `parcel_id` (promoted to feature.id, itself the CH-format
-        // EGRID) — so we can highlight with no backend round-trip. We *poll*
+        // municipal zone type the comparables cohort is keyed on) and
+        // `parcel_id` (promoted to feature.id, itself the CH-format EGRID) — so
+        // we can highlight with no backend round-trip. We *poll*
         // queryRenderedFeatures rather than waiting for `idle`: the highlight
         // then appears the instant the tile under the point loads (faster than
         // waiting for the whole viewport to settle, and reliable on a cold
@@ -818,8 +829,8 @@ export function boot() {
         currentTargetCzLocal = parcelFeature?.properties?.cz_local || null;
 
         // Instant highlight straight off the tile: the searched parcel goes
-        // red, every parcel sharing its `cz_local` (similar building type)
-        // goes green. No waiting on /score/similoo.
+        // red, every parcel sharing its `cz_local` (the municipal zone type,
+        // i.e. the comparables' cohort) goes green. No waiting on /score/similoo.
         applyZoneHighlight(map, {
             targetParcelId: currentTargetParcelId,
             czLocal: currentTargetCzLocal,
@@ -892,7 +903,17 @@ export function boot() {
         // title the subject card with it (falling back to the municipality).
         // A synthetic "CH…"-shaped label from formatLatLng isn't a real address,
         // so only forward a label that came from an actual geocoder pick.
-        if (egrid) sidebar.show(egrid, addressLabelFor(result), parcelGeometry, parcelLngLat);
+        // The tile's properties ride along for the zone pill: the tile carries
+        // `cz_harmonized`, the /score/similoo row does not (yet).
+        if (egrid) {
+            sidebar.show(
+                egrid,
+                addressLabelFor(result),
+                parcelGeometry,
+                parcelLngLat,
+                parcelFeature?.properties ?? null,
+            );
+        }
 
         if (!resolving) return;
         const resolved = await resolving;

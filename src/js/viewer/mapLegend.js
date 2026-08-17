@@ -4,7 +4,8 @@ import { t, onLocaleChange } from '../i18n.js';
 //
 // similoo paints three things on the comparison surface:
 //   * red    — the searched parcel and every building inside it
-//   * green  — parcels sharing the searched parcel's zone (`cz_local`)
+//   * green  — parcels sharing the searched parcel's municipal zone type
+//              (`cz_local`, the comparables' cohort key)
 //   * pink   — comparable buildings (their extruded footprints)
 //
 // Until now those colours were unlabelled, so a first-time visitor had to

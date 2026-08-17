@@ -38,7 +38,10 @@ applyMapWorkerUrl(maplibregl);
 //      Switzerland-only coverage, which is fine here: every input to this
 //      viewer (EGRID parcels, GWR buildings, the geo.admin.ch geocoder) is
 //      Swiss, so the map never travels outside the imagery footprint.
-//   2. Parcel vector tiles painted by zoning (`cz_local`):
+//   2. Parcel vector tiles painted by municipal zone type (`cz_local`, the key
+//      the /score/similoo comparables cohort is defined on — NOT the zone label
+//      the sidebar prints, which is the harmonized federal category via
+//      @aireon/shared/parcel-zone):
 //        - red    parcel matching the searched address
 //        - green  every other parcel sharing the same `cz_local`
 //        - white  everything else (low-opacity wash so the imagery still reads)
@@ -124,7 +127,7 @@ export const BUILDING_OPACITY_DEFAULT = 0.75;
 // the selected parcel is rendered first in the case-expression so it
 // always wins, then same-zone, then everything else.
 const PARCEL_SELECTED_COLOR = '#DC2626'; // red — the searched address
-const PARCEL_SAME_ZONE_COLOR = '#16a34a'; // green — same `cz_local`
+const PARCEL_SAME_ZONE_COLOR = '#16a34a'; // green — same `cz_local` (municipal zone type)
 const PARCEL_OTHER_COLOR = '#ffffff';     // white wash — everything else
 
 const PARCEL_SELECTED_OPACITY = 0.6;
@@ -179,8 +182,10 @@ export async function initializeViewer(containerId, initialCamera = {}) {
 }
 
 // Apply the zone-based parcel coloring once the searched parcel's
-// `cz_local` is known (from the /score/similoo response). Pass `null` to
-// clear the highlight.
+// `cz_local` is known (from the tile pick, else the /score/similoo response).
+// Pass `null` to clear the highlight. `cz_local` is the municipal zone type
+// the comparables cohort is keyed on — an analytics key, kept on purpose; the
+// zone LABEL users read is the harmonized one (PARCEL_ZONE_STANDARD.md).
 //
 // Implementation note: we use a paint expression that reads `cz_local`
 // straight off each tile feature, rather than per-feature setFeatureState.

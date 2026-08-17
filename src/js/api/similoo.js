@@ -15,6 +15,13 @@
 //   comparable — { egrid, municipality, cz_local, parcel_area_m2,
 //                  building_volume_m3, footprint_m2, height_m, floors,
 //                  construction_year, ratioV, similarity_score, lat, lng }
+//
+// `cz_local` is the cohort key (comparables = same municipality + same
+// municipal zone type). It is NOT the zone label the UI prints: that goes
+// through `resolveZoneLabel()` from @aireon/shared/parcel-zone, which shows
+// the harmonized federal category when a row carries `cz_harmonized` and
+// falls back to `cz_local` otherwise. RES does not yet put `cz_harmonized`
+// on these rows, so comparables' subtitles read municipal until it does.
 
 // Same-origin Vercel proxy. The proxy (api/similoo.ts) attaches the RES
 // API token server-side so the client doesn't have to handle suite auth.

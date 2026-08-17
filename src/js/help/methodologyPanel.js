@@ -8,9 +8,10 @@ import { t, onLocaleChange } from '../i18n.js';
 //   1. Resolve the searched address → parcel → EGRID + the target parcel's
 //      GWR metrics (zone, area, volume, footprint, height, floors, year,
 //      ratioV).
-//   2. Hard-filter the candidate pool to true peers — same planning zone
-//      (cz_local) and built inside the years window (default 10, 1–30 via the
-//      sidebar slider).
+//   2. Hard-filter the candidate pool to true peers — same municipal zone type
+//      (cz_local; the cohort key, distinct from the harmonized zone label the
+//      sidebar prints) and built inside the years window (default 10, 1–30 via
+//      the sidebar slider).
 //   3. Soft-score the survivors 0–100% on three weighted axes — parcel size
 //      (40%), volume density / ratioV (40%) and construction year (20%) —
 //      mirroring the similarity formula in api/similoo.js:
