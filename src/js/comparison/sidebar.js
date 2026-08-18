@@ -7,9 +7,12 @@ import {
     buildSwisstopoAerialUrl,
     parseSwissAddress,
 } from '@aireon/shared';
-// The one zone label per parcel (PARCEL_ZONE_STANDARD.md): the harmonized
-// federal category when the row carries one, else the municipal designation.
-import { ZONE_LABEL_FIELD_ORDER, resolveZoneLabel } from '@aireon/shared/parcel-zone';
+// The one zone label per parcel (PARCEL_ZONE_STANDARD.md, @aireon/shared
+// v1.177.0): the MUNICIPAL designation (`cz_local`, "Wohnzone, Bauklasse 4").
+// The federal category (`cz_harmonized`) is a filter, never the label. The
+// resolver owns the fallback chain and the legal-reference guard; ZONE_FIELDS
+// is only used to copy the zone columns off the picked tile (see zoneSource).
+import { ZONE_FIELDS, resolveZoneLabel } from '@aireon/shared/parcel-zone';
 import { t, onLocaleChange, getLocale } from '../i18n.js';
 import { fetchSimilooComparables } from '../api/similoo.js';
 import { createSaveParcelButton } from './saveParcelButton.js';
@@ -22,9 +25,9 @@ import { createSaveParcelButton } from './saveParcelButton.js';
 //      (DATA_PILLS_STANDARD.md): a "Parcel" section (size, zone) and a
 //      "Building" section (footprint, floors, year, height, volume). The zone
 //      pill is the ONE zone label per parcel from the shared resolver
-//      (@aireon/shared/parcel-zone): the harmonized federal category, read off
-//      the parcel tile main.js picked (the /score/similoo row carries only the
-//      municipal `cz_local`), else the municipal designation.
+//      (@aireon/shared/parcel-zone): the municipal designation ("Wohnzone,
+//      Bauklasse 4"), resolved off the /score/similoo target row with the
+//      picked parcel tile's zone columns laid over it.
 //   2. Filters — "years window" slider (1–30, default 10) and parcel-size
 //      from/to inputs.
 //   3. Comparable buildings list — sortable cards (similarity / ratioV /
@@ -111,8 +114,9 @@ export function createComparisonSidebar({ map, onClose, onFlyTo, onSelectCompara
     let currentGeometry = null;
     let currentLngLat = null;
     // The picked parcel tile's properties (null when the tile pick missed). Only
-    // its zone columns are read: the tile carries `cz_harmonized`, which the
-    // /score/similoo target row does not, so the zone pill resolves off both.
+    // its zone columns are read: the tile carries every zone column
+    // (`cz_local`, `cz_harmonized`, `cz_canton`), the /score/similoo target row
+    // only `cz_local` + `cz_abbrev`, so the zone pill resolves off both.
     let currentParcelProps = null;
     let massingRoot = null;
     let massingThemeObserver = null;
@@ -475,15 +479,16 @@ export function createComparisonSidebar({ map, onClose, onFlyTo, onSelectCompara
     }
 
     // The properties bag the zone pill resolves from: the /score/similoo target
-    // row with the picked tile's zone columns laid over it. The tile is the only
-    // one of the two that carries `cz_harmonized`, so this is what makes the
-    // pill read the federal category ("Wohnzonen") instead of the municipal
-    // "Wohnzone, Bauklasse 4"; when the tile pick missed, the resolver falls
-    // back to the row's municipal designation. Still one label per parcel.
+    // row with the picked tile's zone columns laid over it. The tile is the
+    // authoritative source for the zone columns (the row's `cz_abbrev` is
+    // really cz_canton on the wire), and it carries the full chain the shared
+    // resolver may fall back through; when the tile pick missed, the row's own
+    // municipal `cz_local` resolves on its own. Still one label per parcel:
+    // the municipal designation, via resolveZoneLabel(), never a raw read.
     function zoneSource(target) {
         const merged = { ...(target || {}) };
         if (currentParcelProps) {
-            for (const field of ZONE_LABEL_FIELD_ORDER) {
+            for (const field of ZONE_FIELDS) {
                 if (currentParcelProps[field] != null && currentParcelProps[field] !== '') {
                     merged[field] = currentParcelProps[field];
                 }

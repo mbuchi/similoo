@@ -463,7 +463,7 @@ const translations = {
       'A candidate must clear two hard filters before it can be ranked at all:',
     'help.filter_zone_title': 'Same municipality and municipal zone type',
     'help.filter_zone_body':
-      'Only parcels in the same municipality and the same municipal zone type (cz_local) as the target qualify - the parcels washed green on the map. The zone shown in the sidebar is the parcel\'s harmonized federal zone category; the peer filter itself stays keyed on the finer municipal zone type. A villa zone is never compared against a city-center core, and a match never comes from the other end of Switzerland.',
+      'Only parcels in the same municipality and the same municipal zone type (cz_local) as the target qualify - the parcels washed green on the map. That municipal designation is also the zone the sidebar shows for the parcel. A villa zone is never compared against a city-center core, and a match never comes from the other end of Switzerland.',
     'help.filter_year_title': 'Recent construction',
     'help.filter_year_body':
       'Only buildings built within the years window count - 10 years by default, adjustable from 1 to 30 with the slider in the sidebar. Widening it surfaces more, older comparables.',
@@ -901,7 +901,7 @@ const translations = {
       'Un candidat doit franchir deux filtres stricts avant de pouvoir être classé :',
     'help.filter_zone_title': 'Même commune et même type de zone communale',
     'help.filter_zone_body':
-      'Seules les parcelles situées dans la même commune et du même type de zone communale (cz_local) que la cible sont retenues - les parcelles teintées en vert sur la carte. La zone affichée dans la barre latérale est la catégorie de zone fédérale harmonisée de la parcelle ; le filtre des pairs reste toutefois basé sur le type de zone communale, plus fin. Une zone de villas n\'est jamais comparée à un cœur de ville, et un comparable ne vient jamais de l\'autre bout de la Suisse.',
+      'Seules les parcelles situées dans la même commune et du même type de zone communale (cz_local) que la cible sont retenues - les parcelles teintées en vert sur la carte. Cette désignation communale est aussi la zone affichée dans la barre latérale pour la parcelle. Une zone de villas n\'est jamais comparée à un cœur de ville, et un comparable ne vient jamais de l\'autre bout de la Suisse.',
     'help.filter_year_title': 'Construction récente',
     'help.filter_year_body':
       'Seuls les bâtiments construits dans la fenêtre d\'années comptent - 10 ans par défaut, réglable de 1 à 30 avec le curseur de la barre latérale. L\'élargir fait apparaître davantage de comparables, plus anciens.',
@@ -1339,7 +1339,7 @@ const translations = {
       'Ein Kandidat muss zwei harte Filter passieren, bevor er überhaupt eingereiht wird:',
     'help.filter_zone_title': 'Gleiche Gemeinde und gleicher kommunaler Zonentyp',
     'help.filter_zone_body':
-      'Nur Parzellen in derselben Gemeinde und desselben kommunalen Zonentyps (cz_local) wie das Ziel kommen infrage - die auf der Karte grün eingefärbten Parzellen. Die in der Seitenleiste angezeigte Zone ist die harmonisierte eidgenössische Zonenkategorie der Parzelle; der Filter selbst bleibt auf den feineren kommunalen Zonentyp abgestützt. Eine Villenzone wird nie mit einem Stadtzentrum verglichen, und ein Vergleichsobjekt stammt nie vom anderen Ende der Schweiz.',
+      'Nur Parzellen in derselben Gemeinde und desselben kommunalen Zonentyps (cz_local) wie das Ziel kommen infrage - die auf der Karte grün eingefärbten Parzellen. Diese kommunale Bezeichnung ist auch die Zone, die die Seitenleiste für die Parzelle anzeigt. Eine Villenzone wird nie mit einem Stadtzentrum verglichen, und ein Vergleichsobjekt stammt nie vom anderen Ende der Schweiz.',
     'help.filter_year_title': 'Neubau',
     'help.filter_year_body':
       'Nur Gebäude, die innerhalb des Jahresfensters gebaut wurden, zählen - standardmässig 10 Jahre, mit dem Regler in der Seitenleiste von 1 bis 30 einstellbar. Ein grösseres Fenster bringt mehr, ältere Vergleichsobjekte hervor.',
@@ -1776,7 +1776,7 @@ const translations = {
       'Un candidato deve superare due filtri rigidi prima di poter essere classificato:',
     'help.filter_zone_title': 'Stesso comune e stesso tipo di zona comunale',
     'help.filter_zone_body':
-      'Si qualificano solo le particelle nello stesso comune e dello stesso tipo di zona comunale (cz_local) del riferimento - le particelle colorate di verde sulla mappa. La zona mostrata nella barra laterale è la categoria di zona federale armonizzata della particella; il filtro dei pari resta però basato sul tipo di zona comunale, più fine. Una zona di ville non viene mai confrontata con un centro cittadino, e un comparabile non arriva mai dall\'altro capo della Svizzera.',
+      'Si qualificano solo le particelle nello stesso comune e dello stesso tipo di zona comunale (cz_local) del riferimento - le particelle colorate di verde sulla mappa. Questa designazione comunale è anche la zona mostrata nella barra laterale per la particella. Una zona di ville non viene mai confrontata con un centro cittadino, e un comparabile non arriva mai dall\'altro capo della Svizzera.',
     'help.filter_year_title': 'Costruzione recente',
     'help.filter_year_body':
       'Contano solo gli edifici costruiti entro la finestra di anni - 10 anni per impostazione predefinita, regolabile da 1 a 30 con il cursore nella barra laterale. Allargandola emergono comparabili più numerosi e più datati.',

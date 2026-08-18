@@ -82,8 +82,9 @@ function createLoadedMap() {
   const parcel = {
     id: 'CH294676423526',
     // Real parcel-tile shape: `cz_local` is the cohort key the green wash and
-    // /score/similoo are keyed on; `cz_harmonized` is what the sidebar's zone
-    // pill resolves to (the tile is the only source that carries it).
+    // /score/similoo are keyed on, and (since @aireon/shared v1.177.0) also
+    // the municipal designation the sidebar's zone pill resolves to; the tile
+    // carries `cz_harmonized` too, which stays a filter, never the label.
     properties: { cz_local: 'Wohnzone, Bauklasse 4', cz_harmonized: 'Wohnzonen' },
     geometry: {
       type: 'Polygon',
@@ -180,8 +181,9 @@ it('initializes once at the first address and lets only the latest pending searc
   });
 
   // The picked tile's properties ride into the sidebar so its zone pill can
-  // resolve the harmonized category (PARCEL_ZONE_STANDARD.md); the /score/
-  // similoo target row alone only carries the municipal `cz_local`.
+  // resolve through the shared rule with the full zone column chain
+  // (PARCEL_ZONE_STANDARD.md: the municipal designation, `cz_local`); the
+  // /score/similoo target row alone only carries `cz_local` + `cz_abbrev`.
   await vi.waitFor(() => {
     expect(engine.sidebar.show).toHaveBeenLastCalledWith(
       'CH294676423526',
