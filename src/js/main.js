@@ -45,8 +45,11 @@ import {
 } from './deepLinkAddress.js';
 // Country-wide "pick a place" camera for a map opened with no address yet.
 import { CH_OVERVIEW } from '@aireon/shared/map-defaults';
-// The one zone label per parcel (PARCEL_ZONE_STANDARD.md): harmonized federal
-// category first, municipal designation only where none exists.
+// The one zone label per parcel (PARCEL_ZONE_STANDARD.md, @aireon/shared
+// v1.177.0): the MUNICIPAL designation (`cz_local`, "Wohnzone, Bauklasse 4").
+// The federal category (`cz_harmonized`, "Wohnzonen") is a filter, never the
+// label; the shared resolver owns the fallback chain and the legal-reference
+// guard.
 import { resolveZoneLabel } from '@aireon/shared/parcel-zone';
 
 // similoo's imperative engine entry point.
@@ -247,9 +250,9 @@ export function boot() {
 
     function composeSubtitle(c) {
         const parts = [];
-        // The comparable's zone, resolved by the shared rule (the /score/similoo
-        // row carries the municipal `cz_local`; the resolver prints the federal
-        // category as soon as the row also carries `cz_harmonized`).
+        // The comparable's zone, resolved by the shared rule: the municipal
+        // designation the /score/similoo row carries as `cz_local`, guarded
+        // against legal cross-references, never a raw field read here.
         const zone = resolveZoneLabel(c);
         if (zone) parts.push(zone);
         if (Number.isFinite(c.construction_year)) parts.push(String(c.construction_year));
@@ -298,8 +301,10 @@ export function boot() {
                 // /score/similoo response arrives. We only fall back to the
                 // backend's `cz_local` when the tile pick missed the parcel.
                 // `cz_local` here is the comparables' cohort KEY (municipal
-                // zone type), not the zone label the sidebar shows — that one
-                // is the harmonized category via @aireon/shared/parcel-zone.
+                // zone type). Since @aireon/shared v1.177.0 it is also the
+                // designation the sidebar's zone pill prints, but the pill goes
+                // through the shared resolver; this raw read stays an analytics
+                // key and must never be relabelled.
                 const czLocal = currentTargetCzLocal || data?.target?.cz_local || null;
                 if (czLocal && czLocal !== currentTargetCzLocal) {
                     currentTargetCzLocal = czLocal;
@@ -904,7 +909,9 @@ export function boot() {
         // A synthetic "CH…"-shaped label from formatLatLng isn't a real address,
         // so only forward a label that came from an actual geocoder pick.
         // The tile's properties ride along for the zone pill: the tile carries
-        // `cz_harmonized`, the /score/similoo row does not (yet).
+        // every zone column (`cz_local`, `cz_harmonized`, `cz_canton`), so the
+        // shared resolver has its full fallback chain even where the
+        // /score/similoo row is thin.
         if (egrid) {
             sidebar.show(
                 egrid,

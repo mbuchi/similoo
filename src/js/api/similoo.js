@@ -17,11 +17,12 @@
 //                  construction_year, ratioV, similarity_score, lat, lng }
 //
 // `cz_local` is the cohort key (comparables = same municipality + same
-// municipal zone type). It is NOT the zone label the UI prints: that goes
-// through `resolveZoneLabel()` from @aireon/shared/parcel-zone, which shows
-// the harmonized federal category when a row carries `cz_harmonized` and
-// falls back to `cz_local` otherwise. RES does not yet put `cz_harmonized`
-// on these rows, so comparables' subtitles read municipal until it does.
+// municipal zone type). The zone label the UI prints goes through
+// `resolveZoneLabel()` from @aireon/shared/parcel-zone (v1.177.0: the
+// municipal designation, i.e. this same `cz_local`, guarded against legal
+// cross-references), never a raw field read. Note `cz_abbrev` on the target
+// row is really the parcel's cz_canton on the wire; the resolver only reaches
+// it when `cz_local` is blank.
 
 // Same-origin Vercel proxy. The proxy (api/similoo.ts) attaches the RES
 // API token server-side so the client doesn't have to handle suite auth.

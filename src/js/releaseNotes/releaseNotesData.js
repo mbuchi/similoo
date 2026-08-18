@@ -41,6 +41,32 @@ export const KIND_META = {
 
 export const RELEASES = [
   {
+    version: '0.41.0',
+    date: 'August 19, 2026',
+    codename: 'The zone the municipality uses',
+    summary: 'The parcel zone is now the municipal designation ("Dorfzone 2", "Wohnzone, Bauklasse 4") instead of the federal main-use category ("Zentrumszonen", "Wohnzonen"), suite-wide.',
+    items: [
+      {
+        kind: 'improved',
+        icon: 'tag',
+        text: 'The Zoning pill in the sidebar and the subtitle of a comparable\'s 3D detail view now show the municipal zone designation ("Wohnzone, Bauklasse 4", "Dorfzone 2") instead of the federal main-use category ("Wohnzonen", "Zentrumszonen"). The federal category is the broadest of the zone columns and is missing for all of canton Zurich; the municipal designation is what the zoning plan actually says, and it is the same designation the comparables cohort and the green wash on the map are keyed on, so the zone you read and the peers you get now line up. Legal cross-references such as "siehe gültige Bau- und Zonenordnung" are still never shown as a zone.',
+        prs: [],
+      },
+      {
+        kind: 'improved',
+        icon: 'book-open',
+        text: 'The "How it works" panel now says the sidebar zone is the same municipal designation the peer filter is keyed on, in all four languages.',
+        prs: [],
+      },
+      {
+        kind: 'improved',
+        icon: 'package',
+        text: 'Updated the shared Aireon library to v1.177.0, which carries the suite-wide rule: the zone is the municipal designation; the federal category stays available in raw data and as a filter.',
+        prs: [],
+      },
+    ],
+  },
+  {
     version: '0.40.0',
     date: 'August 18, 2026',
     codename: 'One zone per parcel',

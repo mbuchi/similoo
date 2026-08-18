@@ -39,9 +39,9 @@ applyMapWorkerUrl(maplibregl);
 //      viewer (EGRID parcels, GWR buildings, the geo.admin.ch geocoder) is
 //      Swiss, so the map never travels outside the imagery footprint.
 //   2. Parcel vector tiles painted by municipal zone type (`cz_local`, the key
-//      the /score/similoo comparables cohort is defined on — NOT the zone label
-//      the sidebar prints, which is the harmonized federal category via
-//      @aireon/shared/parcel-zone):
+//      the /score/similoo comparables cohort is defined on; read raw here as an
+//      analytics key, while the sidebar's zone pill prints the same municipal
+//      designation via @aireon/shared/parcel-zone):
 //        - red    parcel matching the searched address
 //        - green  every other parcel sharing the same `cz_local`
 //        - white  everything else (low-opacity wash so the imagery still reads)
@@ -184,8 +184,10 @@ export async function initializeViewer(containerId, initialCamera = {}) {
 // Apply the zone-based parcel coloring once the searched parcel's
 // `cz_local` is known (from the tile pick, else the /score/similoo response).
 // Pass `null` to clear the highlight. `cz_local` is the municipal zone type
-// the comparables cohort is keyed on — an analytics key, kept on purpose; the
-// zone LABEL users read is the harmonized one (PARCEL_ZONE_STANDARD.md).
+// the comparables cohort is keyed on — an analytics key, kept on purpose and
+// read raw off the tile; the zone LABEL users read comes from the shared
+// resolver (PARCEL_ZONE_STANDARD.md), which since v1.177.0 prints this same
+// municipal designation.
 //
 // Implementation note: we use a paint expression that reads `cz_local`
 // straight off each tile feature, rather than per-feature setFeatureState.
