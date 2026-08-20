@@ -41,6 +41,20 @@ export const KIND_META = {
 
 export const RELEASES = [
   {
+    version: '0.42.0',
+    date: 'August 21, 2026',
+    codename: 'The quiet moment',
+    summary: 'The app starts smoother, especially on slower devices.',
+    items: [
+      {
+        kind: 'improved',
+        icon: 'zap',
+        text: 'Starting the app is smoother now. The anonymous session recording that helps us find bugs used to switch on while the app was still starting up; it now waits until the page has finished loading and the device has a quiet moment.',
+        prs: [],
+      },
+    ],
+  },
+  {
     version: '0.41.0',
     date: 'August 19, 2026',
     codename: 'The zone the municipality uses',
