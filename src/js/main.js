@@ -32,16 +32,18 @@ import { initMethodologyHelp } from './help/methodologyPanel.js';
 import {
     getUrlState,
     applyUrlUiModes,
-    updateMapUrl,
     DEEP_LINK_MIN_ZOOM,
     isAddressGateBypassed,
 } from '@aireon/shared/url-params';
+// The one writer for a confirmed pick: coordinates + the parcel's EGRID + the
+// parcel's own address, through the canonical shared writer. See
+// confirmedLocation.js.
+import { clearConfirmedParcelUrl, stampConfirmedParcelUrl } from './confirmedLocation.js';
 // Address precedence: the URL's text is a hint, the coordinates are identity.
 // See deepLinkAddress.js (and URL_PARAMS_STANDARD.md, "Address precedence").
 import {
     readDeepLinkAddress,
     resolveDeepLinkLabel,
-    deepLinkLabelExtra,
 } from './deepLinkAddress.js';
 // Country-wide "pick a place" camera for a map opened with no address yet.
 import { CH_OVERVIEW } from '@aireon/shared/map-defaults';
@@ -137,27 +139,35 @@ export function boot() {
     let comparableHoverRaf = 0;
     let comparableHoverStart = 0;
     let comparableHoverBeacon = null;
-    // The point the published label describes, recorded by syncDeepLink() when
-    // the pick is written. A label is only ever true for the coordinates it was
-    // written with: the moveend writer must re-assert it while the camera still
-    // names that exact point and clear it the moment the camera names another,
-    // otherwise a copied link opens one parcel titled with a different address.
-    // Shape: { lat: '47.376888', lng: '8.541694', label: 'Bahnhofstrasse 1, …' }
-    // (coordinates stored pre-rounded to the 6 decimals updateMapUrl writes).
-    let labelledPick = null;
+    // The point the published IDENTITY describes, recorded by syncDeepLink()
+    // when the pick is written. A label and an EGRID are only ever true for the
+    // coordinates they were written with: the moveend writer must re-assert
+    // them while the camera still names that exact point and clear them the
+    // moment the camera names another, otherwise a copied link opens one parcel
+    // titled — or worse, identified — as a different one. This is what keeps a
+    // fly-to on a comparable card from leaving the subject parcel's EGRID glued
+    // to the comparable's coordinates.
+    // Shape: { lat: '47.376888', lng: '8.541694', label: 'Bahnhofstrasse 1, …',
+    //          egrid: 'CH294676423526' } (coordinates stored pre-rounded to the
+    // 6 decimals the shared writer serialises at).
+    let confirmedPick = null;
 
-    // The precision updateMapUrl serialises lat/lng at (toFixed(6), ~0.11 m).
-    // Comparing at exactly that precision makes the question "does the URL we
-    // are about to write still name the labelled point?" rather than a distance
-    // guess, and absorbs the sub-nanodegree drift of a MapLibre camera
-    // round-trip so a plain zoom or compass reset never drops a valid label.
+    // The precision the shared writer serialises lat/lng at (toFixed(6),
+    // ~0.11 m). Comparing at exactly that precision makes the question "does
+    // the URL we are about to write still name the confirmed point?" rather
+    // than a distance guess, and absorbs the sub-nanodegree drift of a MapLibre
+    // camera round-trip so a plain zoom or compass reset never drops a valid
+    // identity.
     const URL_COORD_EPSILON = 1e-6;
 
-    function labelForCenter(center) {
-        if (!labelledPick) return null;
-        if (Math.abs(Number(labelledPick.lat) - center.lat) > URL_COORD_EPSILON) return null;
-        if (Math.abs(Number(labelledPick.lng) - center.lng) > URL_COORD_EPSILON) return null;
-        return labelledPick.label;
+    // The confirmed identity, but only while the camera still names the point
+    // it was confirmed at. Returns null otherwise, which makes the caller write
+    // bare coordinates.
+    function pickForCenter(center) {
+        if (!confirmedPick) return null;
+        if (Math.abs(Number(confirmedPick.lat) - center.lat) > URL_COORD_EPSILON) return null;
+        if (Math.abs(Number(confirmedPick.lng) - center.lng) > URL_COORD_EPSILON) return null;
+        return confirmedPick;
     }
 
     async function ensureMap(initialCamera) {
@@ -184,13 +194,14 @@ export function boot() {
                 // last address they picked. Until now nothing wrote on movement,
                 // so panning, the zoom buttons, the compass reset, a comparable
                 // fly-to and the right-click "center here" all left the link
-                // frozen. updateMapUrl also stamps the sync providers App.tsx
+                // frozen. The shared writer also stamps the sync providers App.tsx
                 // registers (lang/theme) and preserves every unrelated param,
-                // including the quiet-boot flags. `label` is the one param it must
-                // NOT leave alone: see labelForCenter() above. The address rides
-                // along only while the camera still names the point it describes,
-                // and is deleted otherwise so the link never titles one parcel with
-                // another parcel's address. Boot then falls back to the coordinates.
+                // including the quiet-boot flags. The parcel IDENTITY is what it
+                // must not leave alone: see pickForCenter() above. The address and
+                // the EGRID ride along only while the camera still names the point
+                // they describe, and are deleted otherwise so the link never titles
+                // — or identifies — one parcel as another. Boot then falls back to
+                // the coordinates.
                 map.on('moveend', () => {
                     // No pick, no write-back. Under ?search_modal=off the map opens
                     // targetless at CH_OVERVIEW, and every param this writer stamps
@@ -200,11 +211,13 @@ export function boot() {
                     // user last panned over. showComparison() sets the flag.
                     if (!hasPick) return;
                     const center = map.getCenter();
-                    updateMapUrl({
+                    const pick = pickForCenter(center);
+                    stampConfirmedParcelUrl({
                         lat: center.lat,
                         lng: center.lng,
                         zoom: map.getZoom(),
-                        extra: deepLinkLabelExtra(labelForCenter(center)),
+                        label: pick?.label ?? null,
+                        egrid: pick?.egrid ?? null,
                     });
                 });
                 map.on('contextmenu', (event) => {
@@ -270,6 +283,7 @@ export function boot() {
                 clearComparableHighlights();
                 hideComparableParcelHover();
                 document.body.classList.remove('cmp-shifted');
+                releasePick();
             },
             onSelectComparable: (c) => openDetail(c),
             // Hovering a comparable card spotlights its parcel on the map with
@@ -745,7 +759,14 @@ export function boot() {
     // Pull the parcel feature under (lng,lat) from the parcel vector tile.
     // Used to know which parcel_id should be painted red in the zone view;
     // also doubles as the resolved parcel for the EGRID lookup fallback.
-    function pickParcelAt(lng, lat) {
+    // `preferEgrid` is the EGRID an inbound deep link named. When several parcel
+    // polygons stack under the point (shared borders, a courtyard over a plot),
+    // it says which one the link meant, so a shared URL restores the SAME parcel
+    // the sender had open instead of whichever feature MapLibre happens to
+    // return first. Only ever a preference: an id that is not under the point
+    // falls back to the normal top hit, so a stale link still resolves
+    // something.
+    function pickParcelAt(lng, lat, preferEgrid = null) {
         if (!map || !map.getLayer(PARCEL_FILL_LAYER)) return null;
         const point = map.project([lng, lat]);
         const hits = map.queryRenderedFeatures(
@@ -756,6 +777,16 @@ export function boot() {
             { layers: [PARCEL_FILL_LAYER] },
         );
         if (!hits.length) return null;
+        if (preferEgrid) {
+            // The parcel tile promotes `parcel_id` (itself the CH-format EGRID)
+            // to feature.id, but read both so a tile without the promotion still
+            // matches.
+            const wanted = hits.find((f) => (
+                normaliseEgrid(f.id) === preferEgrid
+                || normaliseEgrid(f.properties?.parcel_id) === preferEgrid
+            ));
+            if (wanted) return wanted;
+        }
         return hits[0];
     }
 
@@ -825,8 +856,9 @@ export function boot() {
         // then appears the instant the tile under the point loads (faster than
         // waiting for the whole viewport to settle, and reliable on a cold
         // cache where `idle` can lag the actual feature availability).
+        const linkEgrid = normaliseEgrid(result.egrid);
         const parcelFeature = await retryUntil(
-            () => pickParcelAt(result.lng, result.lat),
+            () => pickParcelAt(result.lng, result.lat, linkEgrid),
             () => seq === pickSeq,
         );
         if (seq !== pickSeq) return;
@@ -877,6 +909,12 @@ export function boot() {
         // the parcel_data lookup when the tile pick missed.
         let egrid = normaliseEgrid(currentTargetParcelId);
         if (!egrid) {
+            // The link's own EGRID is the next-best answer: it names a parcel
+            // outright, where the cadastre lookup below only names whatever sits
+            // under a coordinate.
+            egrid = linkEgrid;
+        }
+        if (!egrid) {
             try {
                 const resolved = await resolveEgridFromLngLat(
                     { lng: result.lng, lat: result.lat },
@@ -888,6 +926,11 @@ export function boot() {
             }
         }
         if (seq !== pickSeq) return;
+        // The parcel is now identified, so the address bar can name it. This is
+        // the write that turns a bare ?lat/?lng link into one that says WHICH
+        // parcel — including for a navbar search, which never reaches the
+        // address-healing write further down.
+        syncDeepLink({ ...result, egrid });
         // Capture the searched parcel's polygon (the lite base for the buildable-
         // massing simulator) plus its centroid, so the sidebar can feed the shared
         // <BuildableMassingSection>. The rings are gathered by parcel id (across a
@@ -933,7 +976,7 @@ export function boot() {
         // value so the link, and every copy of it, heals itself.
         emitAddress(resolved, result.lat, result.lng);
         sidebar.setAddress(resolved);
-        syncDeepLink({ ...result, label: resolved });
+        syncDeepLink({ ...result, label: resolved, egrid });
     }
 
     // The searched address to title the identity header. handlePick receives
@@ -967,25 +1010,55 @@ export function boot() {
         return new Promise((r) => setTimeout(r, ms));
     }
 
-    // Write the picked address into the URL through the shared writer instead
-    // of a hand-rolled replaceState, so the pick also stamps the registered
-    // sync providers (lang/theme) and the self-written history marker. The
-    // label rides along in `extra` under the canonical `q`, with similoo's
-    // legacy `label` cleared on every write (see deepLinkLabelExtra).
+    // Publish the pick into the URL through the canonical shared writer instead
+    // of a hand-rolled replaceState, so it also stamps the registered sync
+    // providers (lang/theme) and the self-written history marker.
+    //
+    // What goes in is the CONFIRMED identity: the coordinates, the parcel's own
+    // address under the canonical `q`, and — once handlePick has resolved it —
+    // the parcel's EGRID. That is what makes the address bar copyable to the
+    // parcel on screen, and what "Share this view" (it copies
+    // window.location.href verbatim) now carries. The EGRID rides on the calls
+    // made AFTER it resolves; the first call, fired before the parcel tile has
+    // been probed, passes through whatever the inbound link already carried so
+    // a deep link's own `?egrid=` is never wiped and re-added.
+    //
+    // The label must always come from the PARCEL (the tile, or
+    // resolveDeepLinkLabel's EGRID lookup), never a reverse geocode of the
+    // coordinate — that returns whichever feature geo.admin ranks first within
+    // ~20 m and would relabel the parcel with a neighbour's address.
     function syncDeepLink(result) {
-        const label = result.label || null;
-        // Record which point this label describes before writing, so the
-        // moveend writer can tell "still the picked address" from "the camera
-        // has moved on". handlePick() calls us just before its jumpTo(), so the
+        // addressLabelFor drops formatLatLng's "47.52150, 8.58329" string: a
+        // coordinate is not an address, and publishing one as `?q` invents a
+        // label the parcel never claimed. With nothing real to say, say nothing
+        // and let the identity speak.
+        const label = addressLabelFor(result);
+        const egrid = result.egrid || null;
+        // Record which point this identity describes before writing, so the
+        // moveend writer can tell "still the picked parcel" from "the camera has
+        // moved on". handlePick() calls us just before its jumpTo(), so the
         // moveend that jump fires already sees the fresh pick.
-        labelledPick = label
-            ? { lat: result.lat.toFixed(6), lng: result.lng.toFixed(6), label }
+        confirmedPick = (label || egrid)
+            ? { lat: result.lat.toFixed(6), lng: result.lng.toFixed(6), label, egrid }
             : null;
-        updateMapUrl({
-            lat: result.lat,
-            lng: result.lng,
-            extra: deepLinkLabelExtra(label),
-        });
+        // No zoom: the pick does not know the settled camera yet (handlePick
+        // jumps right after this call), and the moveend that jump fires stamps
+        // the real one. Sampling a mid-jump zoom here would write a wrong value.
+        stampConfirmedParcelUrl({ lat: result.lat, lng: result.lng, label, egrid });
+    }
+
+    // Dismissing the comparison panel retracts the claim: nothing is selected
+    // any more, so the URL must stop naming a parcel and the camera write-back
+    // must stop stamping one. The coordinates stay — they are still the view the
+    // user is looking at, and they are what "Share this view" has to share.
+    function releasePick() {
+        confirmedPick = null;
+        hasPick = false;
+        // Guard the map: a null identity DELETES those params, and a call
+        // before the map exists would clear an inbound deep link on boot.
+        if (!map) return;
+        const center = map.getCenter();
+        clearConfirmedParcelUrl({ lat: center.lat, lng: center.lng, zoom: map.getZoom() });
     }
 
     // The landing's own search (the shared WelcomeAddressCard, see
@@ -1022,7 +1095,15 @@ export function boot() {
             const zoom = urlState.zoom === null
                 ? undefined
                 : (urlState.selfWritten ? urlState.zoom : Math.max(urlState.zoom, DEEP_LINK_MIN_ZOOM));
-            handlePick({ lat: urlState.lat, lng: urlState.lng, label, zoom, labelIsHint: true });
+            // `?egrid=` (or its `?parcel_id=` spelling) is the identity the
+            // selection writer stamps, so a shared link round-trips to the exact
+            // parcel the sender had open: it disambiguates which polygon under
+            // the point the link meant, and stands in as the answer if the
+            // parcel tile has not rendered there at all. Coordinates still lead
+            // — the shared auto-select only fires on ?lat/?lng, so an
+            // EGRID-only link would restore nothing.
+            const egrid = urlState.egrid || urlState.parcelId || null;
+            handlePick({ lat: urlState.lat, lng: urlState.lng, label, zoom, egrid, labelIsHint: true });
         } else if (isAddressGateBypassed()) {
             // ?search_modal=off / ?welcome=off with no coordinates: skip the
             // landing view and open the map at a country overview instead of

@@ -41,6 +41,32 @@ export const KIND_META = {
 
 export const RELEASES = [
   {
+    version: '0.42.0',
+    date: 'August 20, 2026',
+    codename: 'The link knows which parcel',
+    summary: 'The address bar now names the parcel you are looking at, so the link you copy (and the one "Share this view" puts on your clipboard) opens on that exact parcel.',
+    items: [
+      {
+        kind: 'new',
+        icon: 'link',
+        text: 'The address in your browser bar now carries the parcel itself, not just the spot on the map. Copy it, or use "Share this view" from the account menu, and whoever opens it lands on the same parcel with the same comparison, even where several parcels overlap the point.',
+        prs: [],
+      },
+      {
+        kind: 'improved',
+        icon: 'x',
+        text: 'Closing the comparison panel now takes the parcel back out of the address bar, so a link you share after closing it no longer claims a parcel that is not on screen.',
+        prs: [],
+      },
+      {
+        kind: 'fixed',
+        icon: 'map-pin',
+        text: 'Flying to a comparable from its card no longer leaves the original parcel\'s identity attached to the new position, so a link copied at that moment cannot name one parcel while pointing at another.',
+        prs: [],
+      },
+    ],
+  },
+  {
     version: '0.41.0',
     date: 'August 19, 2026',
     codename: 'The zone the municipality uses',
