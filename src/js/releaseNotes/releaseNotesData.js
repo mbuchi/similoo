@@ -41,8 +41,8 @@ export const KIND_META = {
 
 export const RELEASES = [
   {
-    version: '0.42.0',
-    date: 'August 20, 2026',
+    version: '0.44.0',
+    date: 'August 21, 2026',
     codename: 'The link knows which parcel',
     summary: 'The address bar now names the parcel you are looking at, so the link you copy (and the one "Share this view" puts on your clipboard) opens on that exact parcel.',
     items: [
@@ -62,6 +62,47 @@ export const RELEASES = [
         kind: 'fixed',
         icon: 'map-pin',
         text: 'Flying to a comparable from its card no longer leaves the original parcel\'s identity attached to the new position, so a link copied at that moment cannot name one parcel while pointing at another.',
+        prs: [],
+      },
+    ],
+  },
+  {
+    version: '0.43.0',
+    date: 'August 21, 2026',
+    codename: 'Open with, suite-wide',
+    summary: 'The Open with menu now reaches every map app in the suite, each listed by its wordmark and what it does.',
+    items: [
+      {
+        kind: 'improved',
+        icon: 'external-link',
+        text: 'Open with now offers every map app in the Aireon suite instead of a short list, prints each app\'s wordmark next to a one-line description of what it does, and adds a search box so you can jump straight to the app you want. The descriptions follow the language you picked.',
+        prs: [],
+      },
+      {
+        kind: 'improved',
+        icon: 'package',
+        text: 'Updated @aireon/shared to v1.182.2.',
+        prs: [],
+      },
+    ],
+  },
+  {
+    version: '0.42.1',
+    date: 'August 21, 2026',
+    codename: 'Varela Round',
+    summary: 'The Aireon wordmark is now consistent across the suite.',
+    items: [{ kind: 'improved', icon: 'package', text: 'Updated @aireon/shared to v1.178.1 so the canonical Aireon wordmark uses Varela Round with its red oo everywhere it appears.', prs: [] }],
+  },
+  {
+    version: '0.42.0',
+    date: 'August 21, 2026',
+    codename: 'The quiet moment',
+    summary: 'The app starts smoother, especially on slower devices.',
+    items: [
+      {
+        kind: 'improved',
+        icon: 'zap',
+        text: 'Starting the app is smoother now. The anonymous session recording that helps us find bugs used to switch on while the app was still starting up; it now waits until the page has finished loading and the device has a quiet moment.',
         prs: [],
       },
     ],
