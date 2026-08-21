@@ -621,6 +621,7 @@ export default function App() {
                 currentAppId="similoo"
                 dark={isDark}
                 label={t('nav.open_with')}
+                locale={locale}
               />
             )}
             <NavIconButton
