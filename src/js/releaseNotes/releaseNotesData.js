@@ -41,6 +41,44 @@ export const KIND_META = {
 
 export const RELEASES = [
   {
+    version: '0.45.0',
+    date: 'August 22, 2026',
+    codename: 'The link decides',
+    summary: 'Links now say whether they open the comparison. Add select=off for a clean map, and closing the panel stays closed across a reload.',
+    items: [
+      {
+        kind: 'new',
+        icon: 'eye-off',
+        text: 'Add select=off to any similoo link and it opens on exactly the same view with no comparison panel and no highlighted parcel. Useful for a clean screenshot, a slide, or an embedded map.',
+        prs: [],
+      },
+      {
+        kind: 'improved',
+        icon: 'refresh-cw',
+        text: 'Reloading the page after you close the comparison panel now leaves it closed and keeps the view you were looking at. It used to start a fresh comparison on whatever sat in the middle of the screen.',
+        prs: [],
+      },
+      {
+        kind: 'improved',
+        icon: 'link',
+        text: 'Reloading a link that still names a parcel brings its comparison straight back, so a restored tab looks the way you left it.',
+        prs: [],
+      },
+      {
+        kind: 'fixed',
+        icon: 'map-pin',
+        text: 'A hand edited link whose parcel id matches nothing at its coordinates no longer highlights the neighboring parcel as though it were the one the link names. The panel opens on the parcel the link actually names.',
+        prs: [],
+      },
+      {
+        kind: 'improved',
+        icon: 'package',
+        text: 'Updated @aireon/shared to v1.184.0.',
+        prs: [],
+      },
+    ],
+  },
+  {
     version: '0.44.0',
     date: 'August 21, 2026',
     codename: 'The link knows which parcel',
