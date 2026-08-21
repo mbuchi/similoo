@@ -5,6 +5,7 @@ import { expect, it, vi } from 'vitest';
 const engine = vi.hoisted(() => ({
   initializeViewer: vi.fn(),
   updateMapUrl: vi.fn(),
+  updateConfirmedLocationUrl: vi.fn(),
   sidebar: {
     hide: vi.fn(),
     show: vi.fn(),
@@ -61,9 +62,19 @@ vi.mock('./help/methodologyPanel.js', () => ({
 }));
 
 vi.mock('@aireon/shared/url-params', () => ({
-  getUrlState: () => ({ lat: null, lng: null, zoom: null, selfWritten: false }),
+  getUrlState: () => ({
+    lat: null,
+    lng: null,
+    zoom: null,
+    egrid: null,
+    parcelId: null,
+    selfWritten: false,
+  }),
   applyUrlUiModes: vi.fn(),
   updateMapUrl: engine.updateMapUrl,
+  // The engine reaches the canonical writer through confirmedLocation.js, which
+  // this mock also stands in for (same resolved module).
+  updateConfirmedLocationUrl: engine.updateConfirmedLocationUrl,
   DEEP_LINK_MIN_ZOOM: 17,
   isAddressGateBypassed: () => false,
 }));
@@ -191,6 +202,22 @@ it('initializes once at the first address and lets only the latest pending searc
       expect.objectContaining({ type: 'Polygon' }),
       [6.143158, 46.204391],
       expect.objectContaining({ cz_local: 'Wohnzone, Bauklasse 4', cz_harmonized: 'Wohnzonen' }),
+    );
+  });
+
+  // The pick must also reach the ADDRESS BAR. Until it did, the URL could not be
+  // copied to send a colleague to the parcel on screen, and the navbar's "Share
+  // this view" button — which copies window.location.href verbatim — shared a
+  // camera position with the parcel dropped. The EGRID comes off the parcel tile
+  // and the label off the pick, never a reverse geocode of the coordinate.
+  await vi.waitFor(() => {
+    expect(engine.updateConfirmedLocationUrl).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        lat: 46.204391,
+        lng: 6.143158,
+        query: 'Later address',
+        egrid: 'CH294676423526',
+      }),
     );
   });
 });

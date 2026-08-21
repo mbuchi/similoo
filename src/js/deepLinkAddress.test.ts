@@ -149,9 +149,27 @@ describe('the engine wiring', () => {
     expect(engine).not.toContain(".get('label')");
   });
 
-  it('routes every label write through the single canonical writer', () => {
+  it('routes every URL write through the single canonical writer', () => {
+    // Both writers — the pick and the camera write-back — go through
+    // confirmedLocation.js, which owns the shared writer, the legacy-`label`
+    // drop and the parcel identity. A hand-built `extra` here would bypass all
+    // three.
     expect(engine).not.toMatch(/extra:\s*\{\s*label/);
-    expect(engine.match(/deepLinkLabelExtra\(/g)?.length).toBe(2);
+    expect(engine).not.toContain('deepLinkLabelExtra(');
+    expect(engine).not.toContain('updateMapUrl(');
+    expect(engine.match(/stampConfirmedParcelUrl\(/g)?.length).toBe(2);
+    expect(engine).toContain('clearConfirmedParcelUrl(');
+  });
+
+  it('publishes the parcel identity, and retracts it when the panel is dismissed', () => {
+    // The defect: the pick reached the map and the sidebar but never the
+    // address bar's identity, so a copied link (and "Share this view", which
+    // copies window.location.href verbatim) could not name WHICH parcel.
+    expect(engine).toContain('syncDeepLink({ ...result, egrid })');
+    expect(engine).toContain('function releasePick()');
+    // …and the deep link is read back, so writing ?egrid= is not write-only.
+    expect(engine).toContain('urlState.egrid || urlState.parcelId');
+    expect(engine).toContain('pickParcelAt(result.lng, result.lat, linkEgrid)');
   });
 });
 

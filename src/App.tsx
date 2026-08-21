@@ -103,6 +103,13 @@ interface SearchPick {
   lat: number;
   lng: number;
   label: string;
+  /**
+   * The parcel's EGRID, when the surface that made the pick already knows it
+   * (the right-click "load parcel" menu resolves one). The engine stamps it
+   * into the address bar so the URL names WHICH parcel, and falls back to the
+   * parcel tile under the point when no id is offered.
+   */
+  egrid?: string | null;
 }
 
 async function resolveContextParcel(
@@ -691,6 +698,10 @@ export default function App() {
             lat: point.lat,
             lng: point.lng,
             label: parcel?.label || `${point.lat.toFixed(5)}, ${point.lng.toFixed(5)}`,
+            // The menu already resolved the parcel under the click, so the
+            // address bar can name it from the first write instead of waiting
+            // for the engine to re-probe the tile.
+            egrid: parcel?.parcelId ?? null,
           });
         }}
         onCenterMap={(point) => {
