@@ -31,10 +31,15 @@ import { initMethodologyHelp } from './help/methodologyPanel.js';
 // aireon-shared). Pure ESM, safe to import from this vanilla-JS engine.
 import {
     getUrlState,
+    getParcelAutoSelect,
     applyUrlUiModes,
     DEEP_LINK_MIN_ZOOM,
     isAddressGateBypassed,
 } from '@aireon/shared/url-params';
+// Which of the stacked parcel polygons under the deep-linked point the link
+// meant. The shared chooser owns the `?egrid=` preference AND the
+// `requireIdMatch` rule behind it (URL_PARAMS_STANDARD.md, "Which polygon").
+import { pickDeepLinkFeature } from '@aireon/shared/map-interaction';
 // The one writer for a confirmed pick: coordinates + the parcel's EGRID + the
 // parcel's own address, through the canonical shared writer. See
 // confirmedLocation.js.
@@ -347,21 +352,32 @@ export function boot() {
         if (window.lucide?.createIcons) window.lucide.createIcons();
     }
 
-    // ?search_modal=off (alias of ?welcome=off): reveal the map with no address
-    // picked, at a country overview. Same #landingView/#comparisonView show/hide
+    // The map with NOTHING selected. Same #landingView/#comparisonView show/hide
     // contract as showComparison, minus everything that needs a target — no
     // emitAddress (there is no address), no sidebar (there are no comparables),
     // and deliberately no `hasPick`, so panning writes nothing to the URL. The
     // navbar search drives handlePick exactly as it does from the landing view,
     // so the user picks the normal flow up from here.
-    async function showEmptyMap() {
+    //
+    // Two callers, distinguished by `camera`:
+    //   • ?search_modal=off (alias of ?welcome=off) with no coordinates — no
+    //     camera, so the country overview. Flat on purpose: an overview, not a
+    //     scene.
+    //   • a link that names coordinates but owes no selection (?select=off, or
+    //     a reload of a bare self-written coordinate) — the camera the URL
+    //     names, in the app's normal 3D framing, so it is the SAME view the
+    //     selecting link produces with the panel left closed.
+    async function showEmptyMap(camera = null) {
         landingView.hidden = true;
         comparisonView.hidden = false;
-        const m = await ensureMap();
-        // Flat on purpose: an overview, not a scene. initializeViewer() opens on
-        // Zurich at street level with pitch/bearing, and does not fly anywhere
-        // after load, so this jump is the last camera move and nothing fights it.
-        m.jumpTo({ center: CH_OVERVIEW.center, zoom: CH_OVERVIEW.zoom, pitch: 0, bearing: 0 });
+        const view = camera
+            || { center: CH_OVERVIEW.center, zoom: CH_OVERVIEW.zoom, pitch: 0, bearing: 0 };
+        // initializeViewer() opens on Zurich at street level and does not fly
+        // anywhere after load, so this jump is the last camera move and nothing
+        // fights it. With a camera we also hand it to the constructor so the
+        // first painted frame is already the right place.
+        const m = await ensureMap(camera || undefined);
+        m.jumpTo(view);
         if (window.lucide?.createIcons) window.lucide.createIcons();
     }
 
@@ -763,10 +779,20 @@ export function boot() {
     // polygons stack under the point (shared borders, a courtyard over a plot),
     // it says which one the link meant, so a shared URL restores the SAME parcel
     // the sender had open instead of whichever feature MapLibre happens to
-    // return first. Only ever a preference: an id that is not under the point
-    // falls back to the normal top hit, so a stale link still resolves
-    // something.
-    function pickParcelAt(lng, lat, preferEgrid = null) {
+    // return first.
+    //
+    // `requireIdMatch` decides what an id that matches NOTHING under the point
+    // means, and comes straight from `getParcelAutoSelect()`:
+    //   • false (an external link, or a plain search) — a preference only: fall
+    //     back to the top hit, because whoever minted the link meant the
+    //     coordinates to name the parcel and the id may be spelled differently
+    //     here.
+    //   • true (a reload of a URL this app wrote that names a parcel) — report
+    //     a miss. The camera and the id can describe different places, and
+    //     painting whatever sits under the camera centre would present the
+    //     NEIGHBOUR's parcel as the one the link names. handlePick then falls
+    //     back to the link's own EGRID for the panel, which is honest.
+    function pickParcelAt(lng, lat, preferEgrid = null, requireIdMatch = false) {
         if (!map || !map.getLayer(PARCEL_FILL_LAYER)) return null;
         const point = map.project([lng, lat]);
         const hits = map.queryRenderedFeatures(
@@ -777,17 +803,16 @@ export function boot() {
             { layers: [PARCEL_FILL_LAYER] },
         );
         if (!hits.length) return null;
+        // The parcel tile promotes `parcel_id` (itself the CH-format EGRID) to
+        // feature.id. The shared chooser reads PROPERTIES, so match the promoted
+        // id here first, then hand the rest to it: the other property spellings,
+        // the trimmed case-insensitive compare, and — the reason this argument
+        // exists — what a preferred id that matches NOTHING is allowed to mean.
         if (preferEgrid) {
-            // The parcel tile promotes `parcel_id` (itself the CH-format EGRID)
-            // to feature.id, but read both so a tile without the promotion still
-            // matches.
-            const wanted = hits.find((f) => (
-                normaliseEgrid(f.id) === preferEgrid
-                || normaliseEgrid(f.properties?.parcel_id) === preferEgrid
-            ));
-            if (wanted) return wanted;
+            const promoted = hits.find((f) => normaliseEgrid(f.id) === preferEgrid);
+            if (promoted) return promoted;
         }
-        return hits[0];
+        return pickDeepLinkFeature(hits, preferEgrid, undefined, requireIdMatch);
     }
 
     function clearZoneHighlight() {
@@ -857,11 +882,21 @@ export function boot() {
         // waiting for the whole viewport to settle, and reliable on a cold
         // cache where `idle` can lag the actual feature availability).
         const linkEgrid = normaliseEgrid(result.egrid);
+        // Only the deep-link bootstrap sets this, and only for a reload of a URL
+        // this app wrote that still names a parcel: there the id is the identity
+        // and the coordinates merely track the camera, so a point that carries
+        // no polygon with that id must resolve to nothing rather than to the
+        // neighbour. A navbar search carries no id at all and is unaffected.
+        const requireIdMatch = result.requireIdMatch === true;
         const parcelFeature = await retryUntil(
-            () => pickParcelAt(result.lng, result.lat, linkEgrid),
+            () => pickParcelAt(result.lng, result.lat, linkEgrid, requireIdMatch),
             () => seq === pickSeq,
         );
         if (seq !== pickSeq) return;
+        // The link named a parcel, the point does not carry it. Nothing under
+        // these coordinates may be presented as the named parcel — not the
+        // parcel, and not a building either.
+        const idMissed = requireIdMatch && !!linkEgrid && !parcelFeature;
         currentTargetParcelId = parcelFeature?.id ?? null;
         currentTargetCzLocal = parcelFeature?.properties?.cz_local || null;
 
@@ -895,7 +930,7 @@ export function boot() {
         // up just the building nearest the searched point so the address still
         // reads, and seed the EGRID fallback below with that building.
         let fallbackBuilding = null;
-        if (!painted) {
+        if (!painted && !idMissed) {
             fallbackBuilding = await retryUntil(
                 () => highlightTargetAt(result.lng, result.lat),
                 () => seq === pickSeq,
@@ -1067,8 +1102,10 @@ export function boot() {
     // listener above and fed into handlePick. No DOM-level binding needed here
     // any more (see the #landingView/#comparisonView comment near the top).
 
-    // Deep-link bootstrap: ?lat=&lng= skips the landing view and renders
-    // the comparison immediately. Useful for sharing and headless tests.
+    // Deep-link bootstrap: a link that names a place skips the landing view and
+    // renders the map immediately — with the comparison open on the named parcel
+    // when the shared select gate below says this load owes the visitor one.
+    // Useful for sharing and headless tests.
     // lat/lng/zoom now come off the shared, suite-wide URL parser (adds the
     // ±85/±180 clamp and the ?z alias for free).
     //
@@ -1089,21 +1126,55 @@ export function boot() {
     // the URL lie.
     try {
         const urlState = getUrlState();
-        if (urlState.lat !== null && urlState.lng !== null) {
+        // Does THIS page load owe the visitor a selection? The suite-wide gate
+        // answers it in one place (URL_PARAMS_STANDARD.md, "Open with the parcel
+        // selected") so every app agrees on the answer:
+        //   • an EXTERNAL ?lat/?lng — yes, the historical deep link.
+        //   • a self-written URL that still names a parcel (?egrid/?parcel_id) —
+        //     yes: an id in the address bar asserts a parcel is open, so a
+        //     reload or a restored tab has to bring the comparison back.
+        //   • a self-written BARE coordinate — no. That is a camera, not a
+        //     selection: the panel was dismissed (releasePick() cleared the
+        //     identity) and reloading must not conjure the comparison back.
+        //   • ?select=off — no, whatever else the URL says. The opt-out for a
+        //     clean wide screenshot or an embed.
+        // Reading urlState.lat/lng directly here is exactly the check that got
+        // the last two cases wrong.
+        const autoSelect = getParcelAutoSelect();
+        const zoom = urlState.zoom === null
+            ? undefined
+            : (urlState.selfWritten ? urlState.zoom : Math.max(urlState.zoom, DEEP_LINK_MIN_ZOOM));
+        if (autoSelect.enabled) {
             const { hint } = readDeepLinkAddress();
-            const label = hint || formatLatLng(urlState.lat, urlState.lng);
-            const zoom = urlState.zoom === null
-                ? undefined
-                : (urlState.selfWritten ? urlState.zoom : Math.max(urlState.zoom, DEEP_LINK_MIN_ZOOM));
+            const label = hint || formatLatLng(autoSelect.lat, autoSelect.lng);
             // `?egrid=` (or its `?parcel_id=` spelling) is the identity the
             // selection writer stamps, so a shared link round-trips to the exact
             // parcel the sender had open: it disambiguates which polygon under
             // the point the link meant, and stands in as the answer if the
-            // parcel tile has not rendered there at all. Coordinates still lead
-            // — the shared auto-select only fires on ?lat/?lng, so an
-            // EGRID-only link would restore nothing.
-            const egrid = urlState.egrid || urlState.parcelId || null;
-            handlePick({ lat: urlState.lat, lng: urlState.lng, label, zoom, egrid, labelIsHint: true });
+            // parcel tile has not rendered there at all. `preferId` is the
+            // shared spelling-agnostic read of both. Coordinates still lead —
+            // the gate only fires on ?lat/?lng, so an EGRID-only link would
+            // restore nothing.
+            handlePick({
+                lat: autoSelect.lat,
+                lng: autoSelect.lng,
+                label,
+                zoom,
+                egrid: autoSelect.preferId,
+                labelIsHint: true,
+                requireIdMatch: autoSelect.requireIdMatch,
+            });
+        } else if (urlState.lat !== null && urlState.lng !== null) {
+            // Coordinates the app must honour, with no selection owed. Open the
+            // map on them with nothing picked and no panel: same view, minus the
+            // comparison. Without this branch ?select=off would fall through to
+            // the address gate and lose the camera entirely.
+            void showEmptyMap({
+                center: [urlState.lng, urlState.lat],
+                zoom: Number.isFinite(zoom) ? zoom : DEEP_LINK_MIN_ZOOM,
+                pitch: 50,
+                bearing: -25,
+            });
         } else if (isAddressGateBypassed()) {
             // ?search_modal=off / ?welcome=off with no coordinates: skip the
             // landing view and open the map at a country overview instead of

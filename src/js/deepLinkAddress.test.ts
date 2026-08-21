@@ -168,8 +168,12 @@ describe('the engine wiring', () => {
     expect(engine).toContain('syncDeepLink({ ...result, egrid })');
     expect(engine).toContain('function releasePick()');
     // …and the deep link is read back, so writing ?egrid= is not write-only.
-    expect(engine).toContain('urlState.egrid || urlState.parcelId');
-    expect(engine).toContain('pickParcelAt(result.lng, result.lat, linkEgrid)');
+    // Both spellings are now read by the shared select gate (@aireon/shared
+    // v1.183.0+): `preferId` is `egrid ?? parcelId`, so the app no longer spells
+    // that fallback out itself. `requireIdMatch` rides along into the hit-test —
+    // see the deep-link select tests for what it changes.
+    expect(engine).toContain('egrid: autoSelect.preferId');
+    expect(engine).toContain('pickParcelAt(result.lng, result.lat, linkEgrid, requireIdMatch)');
   });
 });
 
