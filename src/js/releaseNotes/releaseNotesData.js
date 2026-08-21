@@ -41,6 +41,26 @@ export const KIND_META = {
 
 export const RELEASES = [
   {
+    version: '0.43.0',
+    date: 'August 21, 2026',
+    codename: 'Open with, suite-wide',
+    summary: 'The Open with menu now reaches every map app in the suite, each listed by its wordmark and what it does.',
+    items: [
+      {
+        kind: 'improved',
+        icon: 'external-link',
+        text: 'Open with now offers every map app in the Aireon suite instead of a short list, prints each app\'s wordmark next to a one-line description of what it does, and adds a search box so you can jump straight to the app you want. The descriptions follow the language you picked.',
+        prs: [],
+      },
+      {
+        kind: 'improved',
+        icon: 'package',
+        text: 'Updated @aireon/shared to v1.182.2.',
+        prs: [],
+      },
+    ],
+  },
+  {
     version: '0.42.1',
     date: 'August 21, 2026',
     codename: 'Varela Round',
