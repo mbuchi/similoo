@@ -6,7 +6,6 @@ import {
   AboutModal,
   ReleaseNotesPanel,
   ShareCopiedToast,
-  OpenWithMenu,
   LAUNCH_APPS,
   openInApp,
   useGlass,
@@ -475,7 +474,7 @@ export default function App() {
             children: LAUNCH_APPS.filter((app) => app.id !== 'similoo').map((app) => ({
               key: `open-with-${app.id}`,
               label: app.name,
-              onClick: () => openInApp(app.id, openWithLocation.lat, openWithLocation.lng),
+              onClick: () => openInApp(app.id, openWithLocation.lat, openWithLocation.lng, 17),
             })),
           } as MapUserMenuAction,
         ]
@@ -597,6 +596,15 @@ export default function App() {
                 },
               }
         }
+        openWith={isCompact ? undefined : {
+          currentAppId: 'similoo',
+          location: openWithLocation,
+          locale,
+          label: t('nav.open_with'),
+          zoom: 17,
+          placement: 'search',
+          defaultTargetAppId: 'similoo',
+        }}
         // Map action cluster: Save image + My Exports (shared RES gallery),
         // the Settings gear (Liquid Glass picker) + Language switcher. similoo
         // has no locate button, so that action auto-hides (handler omitted).
@@ -622,15 +630,6 @@ export default function App() {
         }}
         actionsExtra={isCompact ? undefined :
           <div className="flex items-center gap-2 sm:gap-3">
-            {openWithLocation && (
-              <OpenWithMenu
-                location={openWithLocation}
-                currentAppId="similoo"
-                dark={isDark}
-                label={t('nav.open_with')}
-                locale={locale}
-              />
-            )}
             <NavIconButton
               icon={<HelpCircle size={18} aria-hidden="true" />}
               label={t('help.button_aria')}
