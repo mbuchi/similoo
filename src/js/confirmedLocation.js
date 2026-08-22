@@ -55,9 +55,26 @@ function hasLegacyLabelParam() {
  * that no longer name the confirmed parcel must not keep its identity glued to
  * them.
  *
- * @param {{ lat: number, lng: number, zoom?: number, label?: string | null, egrid?: string | null }} opts
+ * `select` says whether the comparison panel is open, and similoo — not the
+ * shared writer — is the one that knows. Left alone, `updateConfirmedLocationUrl`
+ * INFERS it from the identity it was handed (@aireon/shared v1.185.0+): something
+ * to name means `select=parcel`, nothing at all means `select=off`. That
+ * inference is wrong for two of this app's three writers, because both hand it a
+ * null identity while the panel is very much open:
+ *
+ *   • the moveend camera write-back, which drops the label and the EGRID the
+ *     moment the camera leaves the point they describe. Panning is not a
+ *     deselect, so it must leave `select` exactly as it found it.
+ *   • the first of syncDeepLink's writes, fired before the parcel tile has been
+ *     probed, when a bare `?lat/?lng` link has no address and no EGRID yet.
+ *
+ * So the default here is `null` — "do not touch the param" — and the only way to
+ * write `off` is {@link clearConfirmedParcelUrl}, the one real deselect. Writing
+ * `parcel` stays an explicit act of the pick path.
+ *
+ * @param {{ lat: number, lng: number, zoom?: number, label?: string | null, egrid?: string | null, select?: 'parcel' | 'off' | null }} opts
  */
-export function stampConfirmedParcelUrl({ lat, lng, zoom, label = null, egrid = null }) {
+export function stampConfirmedParcelUrl({ lat, lng, zoom, label = null, egrid = null, select = null }) {
     if (!Number.isFinite(lat) || !Number.isFinite(lng)) return;
     updateConfirmedLocationUrl({
         lat,
@@ -68,6 +85,7 @@ export function stampConfirmedParcelUrl({ lat, lng, zoom, label = null, egrid = 
         // similoo never deep-links by an app-local parcel id; clearing it keeps
         // an inbound `?parcel_id=` from outliving the parcel it named.
         parcelId: null,
+        select,
     });
     // Second (and only when there is something to remove) so an old link's
     // `?label` cannot survive the value that replaced it. `deepLinkLabelExtra`
@@ -85,8 +103,13 @@ export function stampConfirmedParcelUrl({ lat, lng, zoom, label = null, egrid = 
  * user is looking at — and only the identity the selection contributed is
  * dropped.
  *
+ * This is the ONE writer allowed to say `select=off`. The identity going out of
+ * the URL is not by itself a deselect (the camera write-back drops it on every
+ * pan), so the closed panel has to be stated outright, and stated here: a
+ * reloaded link that says `off` is the visitor's dismissal surviving the reload.
+ *
  * @param {{ lat: number, lng: number, zoom?: number }} camera
  */
 export function clearConfirmedParcelUrl({ lat, lng, zoom }) {
-    stampConfirmedParcelUrl({ lat, lng, zoom, label: null, egrid: null });
+    stampConfirmedParcelUrl({ lat, lng, zoom, label: null, egrid: null, select: 'off' });
 }

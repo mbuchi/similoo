@@ -223,6 +223,15 @@ export function boot() {
                         zoom: map.getZoom(),
                         label: pick?.label ?? null,
                         egrid: pick?.egrid ?? null,
+                        // A camera move is not a selection event, so `select` is
+                        // left exactly as it was found. This writer is the reason
+                        // stampConfirmedParcelUrl cannot let the shared writer
+                        // infer it: panning off the picked point nulls the label
+                        // and the EGRID above, and the inference reads a null
+                        // identity as `select=off` — which would announce a
+                        // dismissal every time the user drags the map with the
+                        // comparison still open beside them.
+                        select: null,
                     });
                 });
                 map.on('contextmenu', (event) => {
@@ -1079,7 +1088,23 @@ export function boot() {
         // No zoom: the pick does not know the settled camera yet (handlePick
         // jumps right after this call), and the moveend that jump fires stamps
         // the real one. Sampling a mid-jump zoom here would write a wrong value.
-        stampConfirmedParcelUrl({ lat: result.lat, lng: result.lng, label, egrid });
+        //
+        // `select=parcel` is the other half of the suite select standard: the
+        // address bar states that a parcel is open, so a copied link reads the
+        // same as the screen it came from. A pick is never a DESELECT, though,
+        // and syncDeepLink runs up to three times per pick — the first before the
+        // parcel tile has been probed, when a bare ?lat/?lng link still has
+        // neither an address nor an EGRID. Claiming `off` there would flash a
+        // dismissal into the URL of a comparison that is in the middle of
+        // opening, so with nothing to name yet we say nothing and let the
+        // resolving write below take the claim.
+        stampConfirmedParcelUrl({
+            lat: result.lat,
+            lng: result.lng,
+            label,
+            egrid,
+            select: (label || egrid) ? 'parcel' : null,
+        });
     }
 
     // Dismissing the comparison panel retracts the claim: nothing is selected
