@@ -41,6 +41,32 @@ export const KIND_META = {
 
 export const RELEASES = [
   {
+    version: '0.46.0',
+    date: 'August 22, 2026',
+    codename: 'What you see is what you copy',
+    summary: 'The link in your address bar now matches what is on your screen, including after you close the comparison panel.',
+    items: [
+      {
+        kind: 'improved',
+        icon: 'link',
+        text: 'Close the comparison panel and the link in your address bar updates to say so. Copy it, or use "Share this view", and whoever opens it gets the same clean map at the same spot instead of a comparison you had already dismissed.',
+        prs: [],
+      },
+      {
+        kind: 'improved',
+        icon: 'mouse-pointer-click',
+        text: 'Picking a parcel from the map or the search box states the open panel in the link too, so a copied address always reopens the view it came from. Panning and zooming leave that alone, because moving the map is not the same as picking or closing something.',
+        prs: [],
+      },
+      {
+        kind: 'improved',
+        icon: 'package',
+        text: 'Updated @aireon/shared to v1.185.0.',
+        prs: [],
+      },
+    ],
+  },
+  {
     version: '0.45.0',
     date: 'August 22, 2026',
     codename: 'The link decides',

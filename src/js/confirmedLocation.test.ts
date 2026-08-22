@@ -153,6 +153,34 @@ describe('stampConfirmedParcelUrl', () => {
     expect(fake.history.replaceState).not.toHaveBeenCalled();
   });
 
+  // `?select=` states whether the panel is open (@aireon/shared v1.185.0). Left
+  // to the shared writer it is INFERRED from the identity, and a null identity
+  // reads as `select=off` — which the camera write-back produces on every pan
+  // off the picked point, with the comparison still open. So this module's
+  // default is "do not touch the param", and saying `parcel` is deliberate.
+  it('says select=parcel only when the caller asks for it', () => {
+    const fake = stubWindow('?lat=47.1&lng=8.1');
+    stampConfirmedParcelUrl({
+      lat: 47.2,
+      lng: 8.2,
+      zoom: 17,
+      label: 'New Street 2',
+      egrid: 'CH999999999999',
+      select: 'parcel',
+    });
+    expect(lastParams(fake).get('select')).toBe('parcel');
+  });
+
+  it('leaves an existing select= untouched when no caller states one', () => {
+    const fake = stubWindow('?lat=47.1&lng=8.1&select=parcel&egrid=CH999999999999');
+    // The moveend camera writer's exact shape: the camera has left the point, so
+    // the identity goes — but nothing about the panel has changed.
+    stampConfirmedParcelUrl({ lat: 47.9, lng: 8.9, zoom: 16, label: null, egrid: null });
+    const params = lastParams(fake);
+    expect(params.get('select')).toBe('parcel');
+    expect(params.has('egrid')).toBe(false);
+  });
+
   it('never throws when history.replaceState is blocked', () => {
     const fake = stubWindow('?label=Old');
     fake.history.replaceState = () => {
@@ -179,6 +207,15 @@ describe('clearConfirmedParcelUrl', () => {
     expect(params.get('lat')).toBe('47.300000');
     expect(params.get('lng')).toBe('8.300000');
     expect(params.get('zoom')).toBe('16.00');
+  });
+
+  // The dismissal has to be STATED, not inferred from the missing identity: the
+  // camera write-back drops that identity on every pan, and `select=off` is what
+  // carries "the visitor closed this" across a reload of the copied link.
+  it('states select=off, the one place in the app that may', () => {
+    const fake = stubWindow('?lat=47.1&lng=8.1&select=parcel&egrid=CH123456789012&q=Some+Street+1');
+    clearConfirmedParcelUrl({ lat: 47.3, lng: 8.3, zoom: 16 });
+    expect(lastParams(fake).get('select')).toBe('off');
   });
 
   it('also clears the uppercase ?EGRID= and ?parcel_id= spellings', () => {
