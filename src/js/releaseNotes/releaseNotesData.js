@@ -41,6 +41,20 @@ export const KIND_META = {
 
 export const RELEASES = [
   {
+    version: '0.46.1',
+    date: 'August 22, 2026',
+    codename: 'One field, every app',
+    summary: 'Address search and Open with now share one desktop field that starts with similoo.',
+    items: [
+      {
+        kind: 'improved',
+        icon: 'external-link',
+        text: 'The address search and Open with launcher now share one Hub-style field on desktop. The selector starts with similoo, keeps similoo out of its own menu, and updates to the chosen destination after launch (@aireon/shared v1.186.1).',
+        prs: [],
+      },
+    ],
+  },
+  {
     version: '0.46.0',
     date: 'August 22, 2026',
     codename: 'What you see is what you copy',
