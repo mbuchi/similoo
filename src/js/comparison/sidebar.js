@@ -15,6 +15,12 @@ import {
 import { ZONE_FIELDS, resolveZoneLabel } from '@aireon/shared/parcel-zone';
 import { t, onLocaleChange, getLocale } from '../i18n.js';
 import { fetchSimilooComparables } from '../api/similoo.js';
+import {
+    ALL_YEARS,
+    DEFAULT_YEARS,
+    YEARS_LADDER,
+    normalizeYearsWindow,
+} from '../yearsWindow.js';
 import { createSaveParcelButton } from './saveParcelButton.js';
 
 // Right-edge "Comparable Buildings" sidebar.
@@ -28,8 +34,8 @@ import { createSaveParcelButton } from './saveParcelButton.js';
 //      (@aireon/shared/parcel-zone): the municipal designation ("Wohnzone,
 //      Bauklasse 4"), resolved off the /score/similoo target row with the
 //      picked parcel tile's zone columns laid over it.
-//   2. Filters — "years window" slider (1–30, default 10) and parcel-size
-//      from/to inputs.
+//   2. Filters — the "years window" precision ladder (5/10/15/20/40/60/All,
+//      default 10) and parcel-size from/to inputs.
 //   3. Comparable buildings list — sortable cards (similarity / ratioV /
 //      size / year) with an in-card data bar visualising ratioV against
 //      the max in the current set.
@@ -38,7 +44,6 @@ import { createSaveParcelButton } from './saveParcelButton.js';
 // kicks off a fetch, `hide()` collapses the sidebar, `destroy()` rips it
 // out. The picker integration in main.js owns the lifecycle.
 
-const DEFAULT_YEARS = 10;
 const DEBOUNCE_MS = 250;
 
 const SORT_KEYS = ['similarity', 'ratioV', 'size', 'year'];
@@ -141,13 +146,13 @@ export function createComparisonSidebar({ map, onClose, onFlyTo, onSelectCompara
         targetSection: aside.querySelector('.cmp-target'),
         targetEmpty: aside.querySelector('.cmp-target-empty'),
         massing: aside.querySelector('.cmp-massing'),
-        yearsRange: aside.querySelector('.cmp-years-range'),
-        yearsValue: aside.querySelector('.cmp-years-value'),
+        yearsLabel: aside.querySelector('.cmp-years-label'),
         sizeFromInput: aside.querySelector('.cmp-size-from'),
         sizeToInput: aside.querySelector('.cmp-size-to'),
         sortSelect: aside.querySelector('.cmp-sort'),
         list: aside.querySelector('.cmp-list'),
         status: aside.querySelector('.cmp-status'),
+        poolNote: aside.querySelector('.cmp-pool-note'),
         meta: aside.querySelector('.cmp-meta'),
         footer: aside.querySelector('.cmp-footer'),
     };
@@ -200,12 +205,60 @@ export function createComparisonSidebar({ map, onClose, onFlyTo, onSelectCompara
         clearDragStyles();
     });
 
-    els.yearsRange.addEventListener('input', () => {
-        years = clampInt(els.yearsRange.value, 1, 30, DEFAULT_YEARS);
-        els.yearsValue.textContent = String(years);
-        // Refetch debounced — moving the slider should feel responsive but
-        // we don't want to fire a network call per single-pixel drag.
-        scheduleRefetch();
+    // --- years precision ladder ------------------------------------------
+    //
+    // The window filter is a discrete ladder (5/10/15/20/40/60/All), not a free
+    // slider: every step is a question someone actually asks, and the widest
+    // one drops the construction-year floor entirely. It behaves as a radio
+    // group — exactly one step is in the tab order (roving tabindex), arrow
+    // keys and Home/End move the selection, and `aria-checked` carries state
+    // for assistive tech. Sighted users read the selection off a filled pill
+    // plus a heavier label, so it never depends on hue alone.
+    const yearsSteps = Array.from(aside.querySelectorAll('.cmp-years-step'));
+
+    function stepValue(button) {
+        return normalizeYearsWindow(button.dataset.years);
+    }
+
+    function syncYearsLadder({ focus = false } = {}) {
+        for (const button of yearsSteps) {
+            const active = stepValue(button) === years;
+            button.setAttribute('aria-checked', active ? 'true' : 'false');
+            button.tabIndex = active ? 0 : -1;
+            if (active && focus) button.focus();
+        }
+    }
+
+    function selectYears(next, { focus = false } = {}) {
+        const value = normalizeYearsWindow(next);
+        const changed = value !== years;
+        years = value;
+        syncYearsLadder({ focus });
+        // Refetch debounced — a keyboard sweep across the ladder should feel
+        // instant without firing a network call per keystroke.
+        if (changed) scheduleRefetch();
+    }
+
+    yearsSteps.forEach((button, index) => {
+        // Enter/Space already arrive here as a native button click, so the
+        // keydown handler below deliberately ignores them.
+        button.addEventListener('click', () => selectYears(button.dataset.years));
+        button.addEventListener('keydown', (e) => {
+            const step = e.key === 'ArrowRight' || e.key === 'ArrowDown' ? 1
+                : e.key === 'ArrowLeft' || e.key === 'ArrowUp' ? -1
+                : 0;
+            let target = null;
+            if (step) {
+                target = yearsSteps[(index + step + yearsSteps.length) % yearsSteps.length];
+            } else if (e.key === 'Home') {
+                target = yearsSteps[0];
+            } else if (e.key === 'End') {
+                target = yearsSteps[yearsSteps.length - 1];
+            }
+            if (!target) return;
+            e.preventDefault();
+            selectYears(target.dataset.years, { focus: true });
+        });
     });
 
     let refetchTimer = null;
@@ -317,6 +370,8 @@ export function createComparisonSidebar({ map, onClose, onFlyTo, onSelectCompara
         // Coordinates are gone → the footer "Open in" empties out (CSS collapses
         // the empty slot entirely).
         renderFooter();
+        // Same for the candidate-pool note: no data, nothing to explain.
+        renderPoolNote();
         onUnhoverComparable?.();
     }
 
@@ -399,7 +454,7 @@ export function createComparisonSidebar({ map, onClose, onFlyTo, onSelectCompara
     async function loadFor(egrid) {
         const seq = ++fetchSeq;
         setStatus('loading');
-        // First fetch for this parcel → skeleton placeholders. On a slider
+        // First fetch for this parcel → skeleton placeholders. On a ladder-step
         // refetch the prior data stays put (no flicker), only the status updates.
         if (!currentData) renderLoadingSkeleton();
         try {
@@ -416,7 +471,7 @@ export function createComparisonSidebar({ map, onClose, onFlyTo, onSelectCompara
             renderMassing();
             setStatus(data?.comparables?.length ? 'ready' : 'empty');
             // Enable the "{}" toggle now that there's data; keep the raw view in
-            // sync if it's already open (e.g. a slider refetch of the same parcel).
+            // sync if it's already open (e.g. a ladder refetch of the same parcel).
             syncRawAvailability();
             if (showRaw) renderRaw();
             if (typeof onDataLoaded === 'function') onDataLoaded(data);
@@ -456,6 +511,7 @@ export function createComparisonSidebar({ map, onClose, onFlyTo, onSelectCompara
     // spinner). Reuses the shared `.skeleton` blink and the real layout classes
     // so the swap to real content does not shift.
     function renderLoadingSkeleton() {
+        renderPoolNote();
         els.targetEmpty.hidden = true;
         els.targetSection.hidden = false;
         els.targetSection.innerHTML = `
@@ -852,7 +908,19 @@ export function createComparisonSidebar({ map, onClose, onFlyTo, onSelectCompara
         }
     }
 
+    // Which candidate pool produced the list. /score/similoo starts from recent
+    // GWR permits and falls back to the parcel table whenever that pool yields
+    // fewer than five candidates — the normal outcome on a 5-year window. Say so
+    // in one quiet line, otherwise a tight step just looks like a broken query.
+    function renderPoolNote() {
+        if (!els.poolNote) return;
+        const fallback = currentData?.meta?.fallback_used;
+        els.poolNote.textContent =
+            fallback === 'parcel_table' ? t('comparison.pool_fallback') : '';
+    }
+
     function renderMeta() {
+        renderPoolNote();
         const meta = currentData?.meta;
         if (!meta) {
             els.meta.textContent = '';
@@ -903,14 +971,28 @@ export function createComparisonSidebar({ map, onClose, onFlyTo, onSelectCompara
             els.rawCopyLabel.textContent = t('comparison.copy');
         }
         aside.querySelector('.cmp-filters-title').textContent = t('comparison.filters_title');
-        aside.querySelector('.cmp-years-label').textContent = t('comparison.years_window');
+        els.yearsLabel.textContent = t('comparison.years_window');
+        // Ladder steps: the numeric ones show the bare number (the group label
+        // supplies "years"), so each carries a spoken-out accessible name.
+        for (const button of yearsSteps) {
+            const step = button.dataset.years;
+            if (step === ALL_YEARS) {
+                button.textContent = t('comparison.years_all');
+                button.setAttribute('aria-label', t('comparison.years_all_aria'));
+                button.setAttribute('title', t('comparison.years_all_aria'));
+            } else {
+                button.textContent = step;
+                button.setAttribute('aria-label', t('comparison.years_step_aria', { years: step }));
+                button.setAttribute('title', t('comparison.years_step_aria', { years: step }));
+            }
+        }
+        syncYearsLadder();
         aside.querySelector('.cmp-size-label').textContent = t('comparison.parcel_size_range');
         aside.querySelector('.cmp-size-from-label').textContent = t('comparison.parcel_size_from');
         aside.querySelector('.cmp-size-to-label').textContent = t('comparison.parcel_size_to');
         aside.querySelector('.cmp-list-title').textContent = t('comparison.list_title');
         aside.querySelector('.cmp-sort-label').textContent = t('comparison.sort_by');
         aside.querySelector('.cmp-target-empty').textContent = t('comparison.target_empty');
-        aside.querySelector('.cmp-years-suffix').textContent = t('comparison.years_suffix');
 
         const sortOpts = aside.querySelectorAll('.cmp-sort option');
         sortOpts.forEach((opt) => {
@@ -965,6 +1047,19 @@ export function createComparisonSidebar({ map, onClose, onFlyTo, onSelectCompara
 
 // ---------- DOM shell -----------------------------------------------------
 
+// One <button role="radio"> per ladder step, generated from YEARS_LADDER so
+// the steps are declared exactly once (src/js/yearsWindow.js). Labels are
+// filled in by relabel(); the default step starts selected and is the only
+// one in the tab order.
+function yearsLadderMarkup() {
+    return YEARS_LADDER.map((step) => {
+        const active = step === DEFAULT_YEARS;
+        return `<button type="button" role="radio" class="cmp-years-step"`
+            + ` data-years="${step}" aria-checked="${active ? 'true' : 'false'}"`
+            + ` tabindex="${active ? '0' : '-1'}"></button>`;
+    }).join('');
+}
+
 function buildShell() {
     const aside = document.createElement('aside');
     aside.className = 'cmp';
@@ -1017,11 +1112,9 @@ function buildShell() {
             <summary class="cmp-section-title cmp-filters-title"></summary>
             <div class="cmp-filter-body">
             <div class="cmp-filter-row cmp-filter-years">
-                <label class="cmp-years-label" for="cmp-years-range"></label>
-                <div class="cmp-years-control">
-                    <input type="range" min="1" max="30" step="1" value="10" id="cmp-years-range" class="cmp-years-range" />
-                    <span class="cmp-years-value">10</span>
-                    <span class="cmp-years-suffix"></span>
+                <span class="cmp-years-label" id="cmp-years-label"></span>
+                <div class="cmp-years-ladder" role="radiogroup" aria-labelledby="cmp-years-label">
+                    ${yearsLadderMarkup()}
                 </div>
             </div>
             <div class="cmp-filter-row cmp-filter-size">
@@ -1054,6 +1147,12 @@ function buildShell() {
                 </label>
             </div>
             <div class="cmp-status" data-state="idle"></div>
+            <!-- Which candidate pool answered. /score/similoo prefers recent GWR
+                 permits and silently falls back to the parcel table when that
+                 pool is too thin (meta.fallback_used === "parcel_table"), which
+                 a 5-year window hits almost every time — one quiet line so a
+                 narrow step reads as sparse data, not as a broken app. -->
+            <p class="cmp-pool-note"></p>
             <div class="cmp-list"></div>
             <div class="cmp-meta"></div>
         </section>
@@ -1069,12 +1168,6 @@ function buildShell() {
 }
 
 // ---------- helpers -------------------------------------------------------
-
-function clampInt(raw, lo, hi, fallback) {
-    const n = Number(raw);
-    if (!Number.isFinite(n)) return fallback;
-    return Math.max(lo, Math.min(hi, Math.round(n)));
-}
 
 function parseSizeInput(raw) {
     const v = String(raw ?? '').trim();

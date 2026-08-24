@@ -1,3 +1,4 @@
+import { coerceYearsWindow, isAllYears } from '../yearsWindow.js';
 
 // similoo's "comparable buildings" endpoint client.
 //
@@ -9,6 +10,13 @@
 //
 // Request:  { egrid, years?, limit? }
 // Response: { target, comparables[], meta }
+//
+// `years` is either a positive integer or the string 'all' (an unrestricted
+// window with no construction-year floor). It is coerced through
+// `coerceYearsWindow` rather than `Number.isFinite(...) ? ... : 10`, which
+// silently turned 'all' into a 10-year window. `meta.years_window_all` echoes
+// which mode the backend ran in, and `meta.fallback_used` says which candidate
+// pool answered (the sidebar surfaces 'parcel_table').
 //
 //   target     — { egrid, municipality, cz_local, cz_abbrev, parcel_area_m2,
 //                  lat, lng }
@@ -32,7 +40,7 @@ export async function fetchSimilooComparables(egrid, opts = {}) {
     if (!egrid) {
         throw new Error('fetchSimilooComparables: egrid is required');
     }
-    const years = Number.isFinite(opts.years) ? opts.years : 10;
+    const years = coerceYearsWindow(opts.years);
     const limit = Number.isFinite(opts.limit) ? opts.limit : 12;
 
     try {
@@ -134,8 +142,12 @@ function mockSimilooResponse(egrid, { years, limit }) {
     };
     target.ratioV = round2(target.building_volume_m3 / target.parcel_area_m2);
 
+    // 'all' has no construction-year floor, so the mock spreads its cohort
+    // across the whole plausible Swiss building stock instead of a window
+    // measured back from today. `thisYear - 'all'` would be NaN.
     const thisYear = new Date().getFullYear();
-    const minYear = thisYear - years;
+    const span = isAllYears(years) ? thisYear - 1850 : years;
+    const minYear = thisYear - span;
 
     const comparables = [];
     const count = Math.min(limit, 12);
@@ -145,7 +157,7 @@ function mockSimilooResponse(egrid, { years, limit }) {
         const height = Math.round((5 + rand() * 22) * 10) / 10;
         const floors = Math.max(1, Math.round(height / 3.2 + (rand() - 0.5)));
         const volume = Math.round(footprint * height);
-        const year = minYear + Math.floor(rand() * (years + 1));
+        const year = minYear + Math.floor(rand() * (span + 1));
         const ratioV = round2(volume / parcelArea);
         // similarity_score: 1.0 - distance from target across a few axes.
         // The closer the parcel area + ratioV + year, the higher the score.
@@ -190,6 +202,11 @@ function mockSimilooResponse(egrid, { years, limit }) {
             total_candidates: comparables.length,
             generated_at: new Date().toISOString(),
             source: 'mock',
+            // Mirrors the live contract so the sidebar reads one shape either
+            // way: the window that was applied, and whether it was the
+            // unrestricted one (`years_window` is null when it is).
+            years_window: isAllYears(years) ? null : years,
+            years_window_all: isAllYears(years),
         },
     };
 }

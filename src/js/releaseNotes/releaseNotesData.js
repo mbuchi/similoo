@@ -41,6 +41,32 @@ export const KIND_META = {
 
 export const RELEASES = [
   {
+    version: '0.47.0',
+    date: 'August 24, 2026',
+    codename: 'Steps, not a slider',
+    summary: 'The years window is now a fixed ladder of steps, and one of them is All.',
+    items: [
+      {
+        kind: 'improved',
+        icon: 'sliders-horizontal',
+        text: 'The years window in the comparison panel is now a row of fixed steps - 5, 10, 15, 20, 40, 60 or All - instead of a slider you had to land on a number with. It still starts at 10, so nothing changes until you touch it, and it works from the keyboard: tab to the row, then use the arrow keys or Home and End to move between steps.',
+        prs: [],
+      },
+      {
+        kind: 'new',
+        icon: 'infinity',
+        text: 'The All step drops the construction-year limit entirely, so a parcel can be compared against every building in its municipality and zone rather than only recent ones. Useful where almost nothing has been built lately.',
+        prs: [],
+      },
+      {
+        kind: 'improved',
+        icon: 'database',
+        text: 'When a window is too narrow to find enough recent building permits, the panel now says so in one line and names where the comparables came from instead. A tight step reads as sparse data, not as a broken search.',
+        prs: [],
+      },
+    ],
+  },
+  {
     version: '0.46.1',
     date: 'August 22, 2026',
     codename: 'One field, every app',
