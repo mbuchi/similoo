@@ -92,6 +92,13 @@ expectDeclarations('.cmp-track::before', {
 expectDeclarations('.cmp-size-sub input', {
   'min-height': '44px',
 });
+// Years precision ladder: a segmented row where the segment IS the target, so
+// the phone media block grows the step itself to the 44px floor rather than
+// hanging a transparent ::before off a compact box — inside the ladder's own
+// horizontal scroll container an oversized ::before would overflow vertically.
+expectDeclarations('.cmp-years-step', {
+  'min-height': '44px',
+});
 expectDeclarations('.cmp-card-pc', {
   width: '44px',
   height: '44px',

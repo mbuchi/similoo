@@ -211,4 +211,57 @@ describe('api/similoo (schema-gap raw fetch)', () => {
     expect(res2.statusCode).toBe(400);
     expect(spy).not.toHaveBeenCalled();
   });
+
+  // The years window is no longer "a number or 10". RES also takes an
+  // unrestricted window, and similoo spells it 'all' on the wire; the old
+  // `Number.isFinite(Number(years)) ? … : 10` coercion would have quietly
+  // rewritten that request into a 10-year one.
+  describe('years window', () => {
+    async function forwardedBody(years: unknown): Promise<unknown> {
+      vi.restoreAllMocks();
+      const req = mockFetch(
+        new Response('{}', {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+        }),
+      );
+      await (similooHandler as Handler)(
+        { method: 'POST', body: { egrid: 'CH1', years } },
+        mockRes(),
+      );
+      return JSON.parse(await req().text());
+    }
+
+    it("forwards 'all' to RES unchanged", async () => {
+      expect(await forwardedBody('all')).toEqual({
+        egrid: 'CH1',
+        years: 'all',
+        limit: 12,
+      });
+    });
+
+    it("accepts the other spellings of the unrestricted window as 'all'", async () => {
+      // RES takes the number 0 as a synonym; a padded/upper-case string is the
+      // same request typed by a human.
+      for (const spelling of [0, '0', ' ALL ', 'All']) {
+        expect(await forwardedBody(spelling)).toMatchObject({ years: 'all' });
+      }
+    });
+
+    it('forwards an in-contract number, string or not', async () => {
+      expect(await forwardedBody(5)).toMatchObject({ years: 5 });
+      expect(await forwardedBody(60)).toMatchObject({ years: 60 });
+      expect(await forwardedBody('7')).toMatchObject({ years: 7 });
+      expect(await forwardedBody(100)).toMatchObject({ years: 100 });
+    });
+
+    it('defaults a missing or garbage years to 10 rather than forwarding it', async () => {
+      // Missing, unparseable, wrong type, and — the honest part — numbers
+      // outside the 1..100 the endpoint actually accepts. None of these is a
+      // window, so none of them reaches RES as one.
+      for (const garbage of [undefined, null, '', '   ', 'banana', NaN, true, {}, [], -5, 0.4, 101, 1e9]) {
+        expect(await forwardedBody(garbage)).toMatchObject({ years: 10 });
+      }
+    });
+  });
 });

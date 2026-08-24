@@ -16,6 +16,42 @@ const RES_SIMILOO_URL = `${RES_API_BASE_URL}/score/similoo`;
 const RES_API_TOKEN = 'DNfbHaqajFigz4jPX9B8vnatUduLKZXVwA83WKZG';
 const UPSTREAM_TIMEOUT_MS = 12000;
 
+// The construction-year window RES accepts: a bounded integer, or the
+// unrestricted window spelled 'all' (0 is the accepted numeric synonym). This
+// mirrors src/js/yearsWindow.js; the two cannot share a module because api/
+// compiles under its own node tsconfig and ships as a serverless function.
+//
+// Validation is deliberately NOT just permissive: the old
+// `Number.isFinite(Number(body.years)) ? Number(body.years) : 10` turned 'all'
+// into a silent 10-year window AND forwarded -5, 3.7 and 1e9 upstream. A value
+// outside the contract is garbage, so it falls back to the default rather than
+// being clamped into a different question.
+const DEFAULT_YEARS = 10;
+const MIN_YEARS = 1;
+const MAX_YEARS = 100;
+const ALL_YEARS = 'all';
+
+function isAllYears(raw: unknown): boolean {
+    // Strictly `0`, never `Number(raw) === 0` - null, '' and false all coerce
+    // to 0 and none of them means "every year".
+    if (raw === 0) return true;
+    if (typeof raw !== 'string') return false;
+    const v = raw.trim().toLowerCase();
+    return v === 'all' || v === '0';
+}
+
+function coerceYearsWindow(raw: unknown): number | typeof ALL_YEARS {
+    if (isAllYears(raw)) return ALL_YEARS;
+    if (typeof raw === 'string') {
+        if (raw.trim() === '') return DEFAULT_YEARS;
+    } else if (typeof raw !== 'number') {
+        return DEFAULT_YEARS;
+    }
+    const n = Math.round(Number(raw));
+    if (!Number.isFinite(n) || n < MIN_YEARS || n > MAX_YEARS) return DEFAULT_YEARS;
+    return n;
+}
+
 const CORS_HEADERS = {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
@@ -59,7 +95,7 @@ export default async function handler(
         send(res, 400, { error: "Missing 'egrid'" });
         return;
     }
-    const years = Number.isFinite(Number(body?.years)) ? Number(body.years) : 10;
+    const years = coerceYearsWindow(body?.years);
     const limit = Number.isFinite(Number(body?.limit)) ? Number(body.limit) : 12;
 
     const controller = new AbortController();
