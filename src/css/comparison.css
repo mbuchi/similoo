@@ -604,7 +604,9 @@
     border: 1px solid transparent;
     border-radius: 9999px;
     background: transparent;
-    color: var(--hood-panel-muted);
+    /* --hood-panel-muted only reaches 4.43:1 once the translucent panel sits
+       over a dark map, just under the 4.5:1 AA floor for 12px/600. */
+    color: var(--hood-panel-text);
     font-family: inherit;
     font-size: 12px;
     font-weight: 600;
@@ -704,12 +706,17 @@
 .cmp-status:empty { display: none; }
 /* Candidate-pool note — one quiet line under the status, printed only when
    /score/similoo answered from the parcel-table fallback instead of the recent
-   GWR permit pool. Empty (and collapsed) the rest of the time. */
+   GWR permit pool. Empty (and collapsed) the rest of the time.
+   Quiet, but prose: this sentence is what makes a narrow years window read as
+   "sparse data" rather than "broken", so it has to be legible. The faint token
+   fails WCAG 1.4.3 AA at this size (light #9ca3af on the panel = 2.54:1, dark
+   #64748b = 3.31:1 worst-case); --hood-panel-text is the body token and clears
+   AA in both themes (17.74:1 / 12.72:1 worst-case). */
 .cmp-pool-note {
     margin: 0 0 8px;
     font-size: 11px;
     line-height: 1.45;
-    color: var(--hood-panel-faint);
+    color: var(--hood-panel-text);
 }
 .cmp-pool-note:empty { display: none; }
 .cmp-status[data-state="error"] {
