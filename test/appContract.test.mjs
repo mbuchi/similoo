@@ -12,10 +12,27 @@ const { RELEASES, KIND_META, CURRENT_VERSION } = await import(
 const pkg = JSON.parse(
     readFileSync(new URL('../package.json', import.meta.url), 'utf8'),
 );
+const lock = JSON.parse(
+    readFileSync(new URL('../package-lock.json', import.meta.url), 'utf8'),
+);
 
 test('package.json version and CURRENT_VERSION move in lockstep', () => {
     assert.equal(CURRENT_VERSION, pkg.version);
     assert.equal(RELEASES[0].version, CURRENT_VERSION);
+});
+
+// v0.47.0 shipped with package-lock.json still saying 0.46.1: npm writes both
+// of these fields from package.json, so they only drift when a version bump is
+// hand-edited without a matching install. Derived from pkg.version rather than
+// pinned to a literal, so a bump never has to touch this file to stay true.
+test('package-lock.json carries the same version in both of its fields', () => {
+    assert.equal(lock.version, pkg.version);
+    assert.equal(lock.packages[''].version, pkg.version);
+});
+
+test('package-lock.json describes this package', () => {
+    assert.equal(lock.name, pkg.name);
+    assert.equal(lock.packages[''].name, pkg.name);
 });
 
 test('releases are well-formed and strictly newest-first', () => {

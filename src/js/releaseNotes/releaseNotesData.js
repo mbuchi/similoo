@@ -67,6 +67,32 @@ export const RELEASES = [
     ],
   },
   {
+    version: '0.47.1',
+    date: 'August 25, 2026',
+    codename: 'Readable at the bottom of the panel',
+    summary: 'The sparse-data note and the unselected year steps are legible again.',
+    items: [
+      {
+        kind: 'fixed',
+        icon: 'contrast',
+        text: 'The line that explains where comparables came from when a years window is too narrow was printed in the palette\'s faintest gray, which fell well below the WCAG AA contrast floor in both themes - the sentence that tells you the data is sparse rather than broken was the hardest thing in the panel to read. It now uses the panel body-text color.',
+        prs: [],
+      },
+      {
+        kind: 'fixed',
+        icon: 'accessibility',
+        text: 'The unselected steps in the years ladder sat just under the same contrast floor once the translucent panel was over a dark map. They now match the panel body text. The selected step is unchanged: it stays the only filled pill and keeps its heavier label, so which window is on is still obvious without relying on color.',
+        prs: [],
+      },
+      {
+        kind: 'fixed',
+        icon: 'package-check',
+        text: 'The lockfile still recorded 0.46.1 after the 0.47.0 release. The version is realigned, and the app-contract test suite - which had been sitting in a folder the test runner never looked at - is now wired into npm test and checks the lockfile too, so the two cannot drift apart unnoticed again.',
+        prs: [],
+      },
+    ],
+  },
+  {
     version: '0.47.0',
     date: 'August 24, 2026',
     codename: 'Steps, not a slider',
