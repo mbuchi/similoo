@@ -174,13 +174,15 @@
     height: 16px;
 }
 
-/* Body/raw swap: the raw section is hidden until the panel opts into it. */
+/* Body/raw swap: the raw section is hidden until the panel opts into it. The
+   topic row goes with the body it controls — the raw view REPLACES the
+   tabpanel, so leaving the tabs on screen would aim aria-controls at an
+   element that is no longer exposed (geopool hides its headerExtras for the
+   same reason). */
 .cmp-raw-wrap { display: none; }
 .cmp[data-raw="true"] .cmp-raw-wrap { display: block; }
-.cmp[data-raw="true"] .cmp-target-wrap,
-.cmp[data-raw="true"] .cmp-massing,
-.cmp[data-raw="true"] .cmp-filters,
-.cmp[data-raw="true"] .cmp-list-wrap { display: none; }
+.cmp[data-raw="true"] .cmp-identity-wrap,
+.cmp[data-raw="true"] .cmp-topic-panel { display: none; }
 
 .cmp-raw-head {
     display: flex;
@@ -273,6 +275,45 @@
 }
 .cmp-filters[open] > summary::after { content: '−'; }
 .cmp-filter-body { padding-top: 16px; }
+
+/* ---------- topic tabs (PANEL_TABS_STANDARD.md) ---------- */
+/* The shared <PanelTopicTabs> React row mounts into `.cmp-topics`, directly
+   under the parcel identity header: ONE level of subject tabs (Compare, Build),
+   a full-width segmented track that doubles as the boundary between the panel's
+   header and its body. The track's own geometry, colours and 44px touch band
+   are Tailwind-styled by the shared component; these rules only place it and
+   switch the body underneath. */
+.cmp-topics {
+    margin-top: 12px;
+}
+/* The tabpanel is a keyboard stop (arrow keys move between tabs, Tab moves into
+   the content), so it needs a visible focus ring of its own. Inset so it never
+   pushes the panel into horizontal overflow. */
+.cmp-topic-panel:focus-visible {
+    outline: 2px solid var(--hood-red);
+    outline-offset: -2px;
+}
+/* Build topic: only the massing simulator. The Compare body is hidden here, and
+   the simulator is MOUNTED/UNMOUNTED in JS rather than hidden with CSS — a
+   MapLibre map created inside a `display: none` box initialises at zero height
+   and never recovers. */
+.cmp[data-topic="build"] .cmp-target-wrap,
+.cmp[data-topic="build"] .cmp-filters,
+.cmp[data-topic="build"] .cmp-list-wrap { display: none; }
+/* ...which also makes the simulator the last thing in the panel, so it drops
+   the divider it wears when it is one section among several. */
+.cmp[data-topic="build"] .cmp-massing:not(:empty) { border-bottom: none; }
+/* One quiet line instead of a blank Build tab when the pick handed the panel
+   neither a parcel polygon nor coordinates (see renderBuildEmpty). */
+.cmp-build-empty { display: none; }
+.cmp[data-topic="build"] .cmp-build-empty:not(:empty) {
+    display: block;
+    padding: 16px 22px;
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--hood-panel-muted);
+    text-align: center;
+}
 
 /* ---------- buildable-massing simulator (shared React component) ---------- */
 /* The .cmp-massing div is mounted by sidebar.js. It collapses entirely when the
@@ -425,13 +466,14 @@
 .cmp-target-pills {
     margin-top: 4px;
 }
-/* Suite parcel identity header (shared .aireon-pih-* block) at the top of the
-   subject card: give it a little breathing room + a hairline divider before the
-   ratioV head below. */
+/* Suite parcel identity header (shared .aireon-pih-* block). It is the panel's
+   shell header, so it sits in its own section ABOVE the topic tabs and is
+   unchanged by the selected topic. No hairline of its own any more: the
+   full-width topic track directly beneath it is what separates the header from
+   the body (PANEL_TABS_STANDARD.md, "The row itself"), and a second rule 12px
+   above it would read as a stray divider. */
 .cmp-target-identity {
-    padding-bottom: 12px;
-    margin-bottom: 12px;
-    border-bottom: 1px solid var(--hood-panel-border);
+    padding-bottom: 0;
 }
 /* The shared .aireon-pih base is a flex ROW (title beside actions); this
    compact header stacks three rows (aerial+title, pill grid, Track), so flow
@@ -958,13 +1000,19 @@ body.cmp-shifted .basemap-selector {
     .cmp-track,
     .cmp-card-pc,
     .cmp-footer,
+    .cmp-topics,
+    .cmp-build-empty,
     .cmp-massing {
         display: none !important;
     }
 
-    /* Always print the normal report body, even if the raw view was left open. */
-    .cmp[data-raw="true"] .cmp-target-wrap,
-    .cmp[data-raw="true"] .cmp-list-wrap {
+    /* Always print the whole comparison report, whichever topic tab (or the
+       raw {} view) the panel happened to be left on — a printout is the
+       report, not a snapshot of the current tab. */
+    .cmp-identity-wrap,
+    .cmp-topic-panel,
+    .cmp-target-wrap,
+    .cmp-list-wrap {
         display: block !important;
     }
 

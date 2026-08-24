@@ -26,6 +26,16 @@ export default defineConfig({
     // adjustment script on top of this one (legacy `similoo-theme` key adoption).
     aireonHtmlPlugin({ archetype: 'map-first', defaultTheme: 'light' }),
   ],
+  optimizeDeps: {
+    // Dev server only — `optimizeDeps` never runs for `npm run build`, so this
+    // cannot change what ships. Under Vite 8 (rolldown) the dependency
+    // pre-bundler cannot resolve the `?worker&url` suffix on the MapLibre
+    // worker import that lives inside @aireon/shared's map bootstrap, and
+    // `npm run dev` dies with UNLOADABLE_DEPENDENCY before serving a single
+    // request. Excluding the package from pre-bundling is the suite fix
+    // (valoo v0.45.0).
+    exclude: ['@aireon/shared'],
+  },
   build: {
     // The bundle is dominated by maplibre-gl + three; the previous vanilla
     // build already exceeded the 500 kB default warning. Keep the build quiet.

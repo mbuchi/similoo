@@ -7,6 +7,19 @@ import {
     buildSwisstopoAerialUrl,
     parseSwissAddress,
 } from '@aireon/shared';
+// Parcel-panel topic tabs (PANEL_TABS_STANDARD.md, @aireon/shared v1.180.0):
+// the panel's ONE level of subject tabs. `PanelTopicTabs` is the WAI-ARIA tab
+// widget; `getPanelTopicLabels` supplies the canonical `build` label so it
+// never drifts into "Massing" here and "Bauen" there; `resolvePanelTopic` is
+// the pure half of the `usePanelTopic` hook, which is what an imperative panel
+// like this one can use.
+import {
+    PanelTopicTabs,
+    getPanelTopicLabels,
+    panelTopicStorageKey,
+    resolvePanelTopic,
+} from '@aireon/shared/panel-topics';
+import { getPanelTopicOverride } from '@aireon/shared/url-params';
 // The one zone label per parcel (PARCEL_ZONE_STANDARD.md, @aireon/shared
 // v1.177.0): the MUNICIPAL designation (`cz_local`, "Wohnzone, Bauklasse 4").
 // The federal category (`cz_harmonized`) is a filter, never the label. The
@@ -25,20 +38,28 @@ import { createSaveParcelButton } from './saveParcelButton.js';
 
 // Right-edge "Comparable Buildings" sidebar.
 //
-// Three stacked sections:
-//   1. Target parcel — identity header (address, EGRID, coordinates), the
-//      ratioV headline metric, then the attributes as suite data pills
-//      (DATA_PILLS_STANDARD.md): a "Parcel" section (size, zone) and a
-//      "Building" section (footprint, floors, year, height, volume). The zone
-//      pill is the ONE zone label per parcel from the shared resolver
-//      (@aireon/shared/parcel-zone): the municipal designation ("Wohnzone,
-//      Bauklasse 4"), resolved off the /score/similoo target row with the
-//      picked parcel tile's zone columns laid over it.
-//   2. Filters — the "years window" precision ladder (5/10/15/20/40/60/All,
-//      default 10) and parcel-size from/to inputs.
-//   3. Comparable buildings list — sortable cards (similarity / ratioV /
-//      size / year) with an in-card data bar visualising ratioV against
-//      the max in the current set.
+// The parcel identity header (address, EGRID, coordinates, aerial thumbnail)
+// is the panel's shell header and stays put on every topic. Below it sits the
+// panel's ONE level of subject tabs (PANEL_TABS_STANDARD.md):
+//
+//   Compare (tab 1, the app's job and the default)
+//     1. Target parcel — the ratioV headline metric, then the attributes as
+//        suite data pills (DATA_PILLS_STANDARD.md): a "Parcel" section (size,
+//        zone) and a "Building" section (footprint, floors, year, height,
+//        volume). The zone pill is the ONE zone label per parcel from the
+//        shared resolver (@aireon/shared/parcel-zone): the municipal
+//        designation ("Wohnzone, Bauklasse 4"), resolved off the
+//        /score/similoo target row with the picked parcel tile's zone columns
+//        laid over it.
+//     2. Filters — the "years window" precision ladder (5/10/15/20/40/60/All,
+//        default 10) and parcel-size from/to inputs.
+//     3. Comparable buildings list — sortable cards (similarity / ratioV /
+//        size / year) with an in-card data bar visualising ratioV against
+//        the max in the current set.
+//
+//   Build (canonical shared subject) — the buildable-massing simulator for the
+//     subject parcel, on its own so it stops competing with the comparables
+//     list for the same scroll.
 //
 // Public API mirrors the building info panel module: `show({ target, egrid })`
 // kicks off a fetch, `hide()` collapses the sidebar, `destroy()` rips it
@@ -47,6 +68,43 @@ import { createSaveParcelButton } from './saveParcelButton.js';
 const DEBOUNCE_MS = 250;
 
 const SORT_KEYS = ['similarity', 'ratioV', 'size', 'year'];
+
+// --- Panel topics (PANEL_TABS_STANDARD.md) ---------------------------------
+//
+// T2: tab 1 is the question the app exists to answer, and it is the default —
+// for similoo that is the comparable-buildings answer, so `compare` leads.
+// T6: `build` is a canonical suite subject; its id, its four labels and the
+// section it renders (<BuildableMassingSection>) all come from shared, never
+// from similoo's own i18n table. similoo has no labeled field dictionary, so
+// there is no `details` tab (T7 does not apply).
+const PANEL_TOPICS = ['compare', 'build'];
+const DEFAULT_PANEL_TOPIC = PANEL_TOPICS[0];
+// DOM id of the role="tabpanel" the topic row controls. `PanelTopicTabs`
+// derives each tab's own id from it as `${panelId}-tab-${topic}`, which is what
+// the panel points aria-labelledby at.
+const TOPIC_PANEL_ID = 'cmp-topic-panel';
+const TOPIC_STORAGE_KEY = panelTopicStorageKey('similoo');
+
+// The storage half of `usePanelTopic`, hand-rolled because this panel is
+// imperative and cannot call a hook. Every access is wrapped for the same
+// reason the shared hook wraps its own: private-mode Safari and storage-blocked
+// embeds throw on getItem/setItem, and a panel must never fail to open over a
+// preference.
+function readStoredTopic() {
+    try {
+        return localStorage.getItem(TOPIC_STORAGE_KEY);
+    } catch {
+        return null;
+    }
+}
+
+function writeStoredTopic(value) {
+    try {
+        localStorage.setItem(TOPIC_STORAGE_KEY, value);
+    } catch {
+        /* storage unavailable — a blocked store must never break the panel */
+    }
+}
 
 // Inline lucide SVGs matching the shared <ParcelIdentityHeader> (MapPin 11px for
 // the subtitle, Copy/Check 13px for the identifier chips). Inlined because this
@@ -124,8 +182,19 @@ export function createComparisonSidebar({ map, onClose, onFlyTo, onSelectCompara
     // only `cz_local` + `cz_abbrev`, so the zone pill resolves off both.
     let currentParcelProps = null;
     let massingRoot = null;
-    let massingThemeObserver = null;
+    let panelThemeObserver = null;
     let footerRoot = null;
+    let topicsRoot = null;
+    // Which subject tab the panel is on. `?topic=` from the URL the page was
+    // opened with beats the stored preference (a shared link is an explicit
+    // instruction); similoo never shipped the retired `Simple | Advanced`
+    // density mode, so there is no legacy key to migrate.
+    let topic = resolvePanelTopic({
+        appKey: 'similoo',
+        topics: PANEL_TOPICS,
+        urlTopic: getPanelTopicOverride(),
+        stored: readStoredTopic(),
+    });
     let years = DEFAULT_YEARS;
     let sizeFrom = null;
     let sizeTo = null;
@@ -143,9 +212,13 @@ export function createComparisonSidebar({ map, onClose, onFlyTo, onSelectCompara
         rawCopy: aside.querySelector('.cmp-raw-copy'),
         rawCopyLabel: aside.querySelector('.cmp-raw-copy-label'),
         rawPre: aside.querySelector('.cmp-raw'),
+        identity: aside.querySelector('.cmp-identity'),
         targetSection: aside.querySelector('.cmp-target'),
         targetEmpty: aside.querySelector('.cmp-target-empty'),
+        topics: aside.querySelector('.cmp-topics'),
+        topicPanel: aside.querySelector('.cmp-topic-panel'),
         massing: aside.querySelector('.cmp-massing'),
+        buildEmpty: aside.querySelector('.cmp-build-empty'),
         yearsLabel: aside.querySelector('.cmp-years-label'),
         sizeFromInput: aside.querySelector('.cmp-size-from'),
         sizeToInput: aside.querySelector('.cmp-size-to'),
@@ -325,8 +398,10 @@ export function createComparisonSidebar({ map, onClose, onFlyTo, onSelectCompara
         aside.setAttribute('data-state', 'visible');
         aside.setAttribute('aria-hidden', 'false');
         // Paint the massing panel straight away off the geometry (real parcel-area
-        // fills in once /score/similoo resolves — see loadFor).
+        // fills in once /score/similoo resolves — see loadFor). Renders nothing
+        // unless the panel is on the Build topic.
         renderMassing();
+        renderBuildEmpty();
         // The phone footer's "Open in" hand-off follows the picked point.
         renderFooter();
         loadFor(egrid);
@@ -367,6 +442,7 @@ export function createComparisonSidebar({ map, onClose, onFlyTo, onSelectCompara
         // Tear the massing preview down (drops its RES fetch + 3D scene) so the
         // next parcel starts clean.
         renderMassing();
+        renderBuildEmpty();
         // Coordinates are gone → the footer "Open in" empties out (CSS collapses
         // the empty slot entirely).
         renderFooter();
@@ -404,6 +480,57 @@ export function createComparisonSidebar({ map, onClose, onFlyTo, onSelectCompara
         );
     }
 
+    // --- Topic tabs (shared React component) ---------------------------------
+    //
+    // The panel's only navigation axis (PANEL_TABS_STANDARD.md T1). Like the
+    // massing simulator and the footer menu, the shared <PanelTopicTabs> is
+    // mounted into a stable `.cmp-topics` div via its own lazily created React
+    // root. It is a CONTROLLED component: this module owns `topic`, so the tab
+    // row and the imperative body can never disagree.
+    function renderTopicTabs() {
+        if (!els.topics) return;
+        if (!topicsRoot) {
+            topicsRoot = createRoot(els.topics);
+            watchPanelTheme();
+        }
+        topicsRoot.render(
+            createElement(PanelTopicTabs, {
+                tabs: [
+                    // similoo owns its headline topic and its label...
+                    { id: 'compare', label: t('comparison.topic_compare') },
+                    // ...but `build` is canonical: id, label and section all
+                    // come from shared (T6), so it reads the same word here as
+                    // in roofs, footprint and geopool.
+                    { id: 'build', label: getPanelTopicLabels(getLocale()).build },
+                ],
+                value: topic,
+                onChange: selectTopic,
+                ariaLabel: t('comparison.topic_selector'),
+                panelId: TOPIC_PANEL_ID,
+                dark: document.documentElement.classList.contains('dark'),
+            }),
+        );
+    }
+
+    function selectTopic(next) {
+        if (!PANEL_TOPICS.includes(next) || next === topic) return;
+        topic = next;
+        writeStoredTopic(topic);
+        applyTopic();
+    }
+
+    // Push the current topic through the panel: the aside's `data-topic`
+    // switches the vanilla sections (comparison.css), the tabpanel re-points
+    // its aria-labelledby at the newly selected tab, and the massing simulator
+    // mounts or unmounts.
+    function applyTopic() {
+        aside.setAttribute('data-topic', topic);
+        els.topicPanel?.setAttribute('aria-labelledby', `${TOPIC_PANEL_ID}-tab-${topic}`);
+        renderTopicTabs();
+        renderMassing();
+        renderBuildEmpty();
+    }
+
     // --- Buildable-massing simulator (shared React component) ----------------
     //
     // similoo's sidebar is imperative vanilla DOM, so the shared
@@ -412,40 +539,62 @@ export function createComparisonSidebar({ map, onClose, onFlyTo, onSelectCompara
     // NOTHING when there's no geometry and no real spare_space candidate, so the
     // `.cmp-massing` container stays empty (and collapsed — see comparison.css)
     // until there's something to show.
+    //
+    // It is UNMOUNTED, not hidden, whenever the panel is on another topic: the
+    // simulator builds a MapLibre map, and a MapLibre map created inside a
+    // `display: none` box initialises at zero height and never recovers. Not
+    // mounting it also spares the RES spare_space fetch and the 3D scene for
+    // anyone who never opens the tab.
     function renderMassing() {
         if (!els.massing) return;
         if (!massingRoot) {
             massingRoot = createRoot(els.massing);
-            watchMassingTheme();
+            watchPanelTheme();
         }
         const target = currentData?.target;
         const areaM2 = Number.isFinite(target?.parcel_area_m2) ? target.parcel_area_m2 : null;
+        const active = topic === 'build' && !!currentEgrid;
         massingRoot.render(
-            createElement(BuildableMassingSection, {
-                geometry: currentGeometry,
-                areaM2,
-                egrid: currentEgrid || undefined,
-                lngLat: currentLngLat,
-                dark: document.documentElement.classList.contains('dark'),
-                locale: getLocale(),
-                className: 'cmp-massing-inner',
-                onError: (err) => console.warn('massing render error:', err?.message || err),
-            }),
+            active
+                ? createElement(BuildableMassingSection, {
+                    geometry: currentGeometry,
+                    areaM2,
+                    egrid: currentEgrid || undefined,
+                    lngLat: currentLngLat,
+                    dark: document.documentElement.classList.contains('dark'),
+                    locale: getLocale(),
+                    className: 'cmp-massing-inner',
+                    onError: (err) => console.warn('massing render error:', err?.message || err),
+                })
+                : null,
         );
     }
 
+    // A Build tab with nothing to simulate would otherwise be a blank tab. The
+    // simulator needs either the parcel polygon or a point to look a real
+    // spare_space candidate up from; when the pick handed us neither, say so in
+    // one quiet line. Deliberately NOT driven off `.cmp-massing:empty` — the
+    // container is empty for a frame while React commits, which would flash the
+    // note on every parcel.
+    function renderBuildEmpty() {
+        if (!els.buildEmpty) return;
+        const hasSubject = !!currentEgrid && !!(currentGeometry || currentLngLat);
+        els.buildEmpty.textContent = hasSubject ? '' : t('comparison.build_empty');
+    }
+
     // The app theme is React-controlled (App.tsx flips both `.dark` and
-    // `data-theme` on <html>); re-render the massing preview AND the footer
-    // "Open in" menu when it changes so their palettes follow live — the same
-    // MutationObserver pattern the detail modal uses. Created once, on first
-    // render.
-    function watchMassingTheme() {
-        if (massingThemeObserver) return;
-        massingThemeObserver = new MutationObserver(() => {
+    // `data-theme` on <html>); re-render the topic row, the massing preview AND
+    // the footer "Open in" menu when it changes so their palettes follow live —
+    // the same MutationObserver pattern the detail modal uses. Created once, on
+    // first render.
+    function watchPanelTheme() {
+        if (panelThemeObserver) return;
+        panelThemeObserver = new MutationObserver(() => {
+            renderTopicTabs();
             renderMassing();
             renderFooter();
         });
-        massingThemeObserver.observe(document.documentElement, {
+        panelThemeObserver.observe(document.documentElement, {
             attributes: true,
             attributeFilter: ['class', 'data-theme'],
         });
@@ -481,6 +630,8 @@ export function createComparisonSidebar({ map, onClose, onFlyTo, onSelectCompara
             // Drop the first-load skeleton; a refetch keeps the prior content.
             if (!currentData) {
                 els.list.innerHTML = '';
+                els.identity.hidden = true;
+                els.identity.innerHTML = '';
                 els.targetSection.hidden = true;
                 els.targetSection.innerHTML = '';
                 els.targetEmpty.hidden = false;
@@ -513,8 +664,11 @@ export function createComparisonSidebar({ map, onClose, onFlyTo, onSelectCompara
     function renderLoadingSkeleton() {
         renderPoolNote();
         els.targetEmpty.hidden = true;
+        els.identity.hidden = false;
         els.targetSection.hidden = false;
-        els.targetSection.innerHTML = `
+        // Identity block (above the topic tabs) — aerial thumbnail, title and
+        // the two identifier chips.
+        els.identity.innerHTML = `
             <div class="cmp-idh-row" style="margin-bottom:10px;">
                 <div class="skeleton" style="height:${AERIAL_SIZE_PX}px;width:${AERIAL_SIZE_PX}px;border-radius:8px;flex:none;"></div>
                 <div class="cmp-target-meta">
@@ -522,9 +676,15 @@ export function createComparisonSidebar({ map, onClose, onFlyTo, onSelectCompara
                     <div class="skeleton" style="height:12px;width:60%;"></div>
                 </div>
             </div>
-            <div class="cmp-id-grid" style="margin-bottom:12px;">
+            <div class="cmp-id-grid">
                 <div class="skeleton" style="height:28px;border-radius:6px;flex:1 1 0;"></div>
                 <div class="skeleton" style="height:28px;border-radius:6px;flex:1 1 0;"></div>
+            </div>
+        `;
+        // Compare-tab body — the ratioV hero band and the two pill groups.
+        els.targetSection.innerHTML = `
+            <div class="cmp-target-head">
+                <div class="skeleton" style="height:74px;border-radius:14px;"></div>
             </div>
             <div class="cmp-target-pills">
                 ${skeletonPillGroup([70, 96])}
@@ -556,13 +716,17 @@ export function createComparisonSidebar({ map, onClose, onFlyTo, onSelectCompara
     function renderTarget() {
         const target = currentData?.target;
         if (!target) {
+            els.identity.hidden = true;
+            els.identity.innerHTML = '';
             els.targetSection.hidden = true;
+            els.targetSection.innerHTML = '';
             els.targetEmpty.hidden = false;
             // No target on show -> no Track chip in the header either.
             saveParcel.setParcel(null);
             return;
         }
         els.targetEmpty.hidden = true;
+        els.identity.hidden = false;
         els.targetSection.hidden = false;
         const ratioV = Number.isFinite(target.ratioV)
             ? target.ratioV
@@ -577,8 +741,11 @@ export function createComparisonSidebar({ map, onClose, onFlyTo, onSelectCompara
         // coordinates stay in the identity header and are never repeated as
         // pills. Missing values drop their pill entirely (never a row of
         // dashes), and a section with nothing to show renders nothing.
+        // The identity block sits ABOVE the topic tabs and is the same on every
+        // topic, so it renders into its own container rather than into the
+        // Compare tab's body.
+        els.identity.innerHTML = identityHeaderHtml(egrid);
         els.targetSection.innerHTML = `
-            ${identityHeaderHtml(egrid)}
             <div class="cmp-target-head">
                 <div class="cmp-target-ratiov">
                     <div class="cmp-target-ratiov-value">${formatRatio(ratioV)}</div>
@@ -722,9 +889,9 @@ export function createComparisonSidebar({ map, onClose, onFlyTo, onSelectCompara
     // politely, then revert via a full header re-render.
     let copyTimer = null;
     function bindIdentityHeader() {
-        const chips = els.targetSection.querySelectorAll('.cmp-id-chip');
+        const chips = els.identity.querySelectorAll('.cmp-id-chip');
         if (!chips.length) return;
-        const status = els.targetSection.querySelector('.aireon-pih [role="status"]');
+        const status = els.identity.querySelector('.aireon-pih [role="status"]');
         chips.forEach((chip) => {
             chip.addEventListener('click', async () => {
                 const text = chip.dataset.copy;
@@ -746,7 +913,7 @@ export function createComparisonSidebar({ map, onClose, onFlyTo, onSelectCompara
                 if (copyTimer) clearTimeout(copyTimer);
                 copyTimer = setTimeout(() => {
                     // Re-render the header to restore the idle value/icon state.
-                    if (els.targetSection && currentData) renderTarget();
+                    if (els.identity && currentData) renderTarget();
                 }, 1500);
             });
         });
@@ -1002,20 +1169,27 @@ export function createComparisonSidebar({ map, onClose, onFlyTo, onSelectCompara
         renderTarget();
         renderList();
         renderMeta();
+        // Re-render the topic tabs — similoo owns the "Compare" label, `build`
+        // comes from the shared canonical table, and both are locale-bound.
+        renderTopicTabs();
         // Re-render the massing panel so its localized labels flip with the app.
         renderMassing();
+        renderBuildEmpty();
         // Same for the footer "Open in" trigger label.
         renderFooter();
         if (els.status.dataset.state) setStatus(els.status.dataset.state);
     }
 
     onLocaleChange(() => relabel());
+    // Reflect the resolved topic (?topic= / stored preference / default) onto
+    // the panel before the first relabel paints it.
+    applyTopic();
     relabel();
 
     function destroy() {
         onUnhoverComparable?.();
-        massingThemeObserver?.disconnect();
-        massingThemeObserver = null;
+        panelThemeObserver?.disconnect();
+        panelThemeObserver = null;
         // Unmount the React roots asynchronously — unmounting synchronously from
         // within another render pass trips a React warning; the container node
         // refs survive the aside.remove() below.
@@ -1029,6 +1203,13 @@ export function createComparisonSidebar({ map, onClose, onFlyTo, onSelectCompara
         if (footerRoot) {
             const root = footerRoot;
             footerRoot = null;
+            setTimeout(() => {
+                try { root.unmount(); } catch { /* already gone */ }
+            }, 0);
+        }
+        if (topicsRoot) {
+            const root = topicsRoot;
+            topicsRoot = null;
             setTimeout(() => {
                 try { root.unmount(); } catch { /* already gone */ }
             }, 0);
@@ -1066,6 +1247,7 @@ function buildShell() {
     // Floating chrome — excluded from the "Save image" map capture.
     aside.setAttribute('data-screenshot-ignore', 'true');
     aside.setAttribute('data-state', 'hidden');
+    aside.setAttribute('data-topic', DEFAULT_PANEL_TOPIC);
     aside.setAttribute('aria-hidden', 'true');
     aside.setAttribute('role', 'complementary');
     aside.setAttribute('aria-label', 'Comparable buildings');
@@ -1098,15 +1280,34 @@ function buildShell() {
             <pre class="cmp-raw"></pre>
         </section>
 
+        <!-- Parcel identity header + the panel's topic row. The identity block
+             is this panel's shell header (PANEL_ACTIONS_STANDARD.md R4) and is
+             the same on every topic, so it sits ABOVE the tabs; the full-width
+             track under it is what separates the panel's header from its body
+             (PANEL_TABS_STANDARD.md). -->
+        <section class="cmp-section cmp-identity-wrap">
+            <div class="cmp-identity"></div>
+            <div class="cmp-topics"></div>
+        </section>
+
+        <div class="cmp-topic-panel" id="${TOPIC_PANEL_ID}" role="tabpanel" tabindex="0" aria-labelledby="${TOPIC_PANEL_ID}-tab-${DEFAULT_PANEL_TOPIC}">
+        <!-- cmp-target and cmp-target-empty are siblings on purpose: exactly
+             one of them is ever visible, so this section is never an empty box
+             painting 32px of padding and a stray divider straight under the
+             tab row (which is what a fetch error, or a /score/similoo payload
+             with no target, would otherwise produce). -->
         <section class="cmp-section cmp-target-wrap">
             <div class="cmp-target"></div>
             <div class="cmp-target-empty"></div>
         </section>
 
         <!-- Subject-parcel buildable-massing simulator (shared React component
-             mounted here imperatively). Stays empty — collapsed, no chrome —
-             when the component finds no footprint to render. -->
+             mounted here imperatively) — the "Build" topic. Stays empty —
+             collapsed, no chrome — when the component finds no footprint to
+             render, and is UNMOUNTED entirely while another topic is showing
+             (see renderMassing). -->
         <div class="cmp-massing"></div>
+        <div class="cmp-build-empty"></div>
 
         <details class="cmp-section cmp-filters">
             <summary class="cmp-section-title cmp-filters-title"></summary>
@@ -1156,6 +1357,7 @@ function buildShell() {
             <div class="cmp-list"></div>
             <div class="cmp-meta"></div>
         </section>
+        </div>
 
         <!-- Phone footer (Aireon mobile data-card standard): the shared
              "Open in" drop-up mounts here via React (see renderFooter). similoo

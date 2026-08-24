@@ -41,6 +41,32 @@ export const KIND_META = {
 
 export const RELEASES = [
   {
+    version: '0.48.0',
+    date: 'August 25, 2026',
+    codename: 'Two questions, two tabs',
+    summary: 'The buildable-massing simulator moves into its own Build tab, next to Compare.',
+    items: [
+      {
+        kind: 'improved',
+        icon: 'columns-2',
+        text: 'The comparison panel now has two tabs under the parcel header: Compare, which holds the ratioV figure, the parcel and building facts, the filters and the comparable-buildings list, and Build, which holds the buildable-massing simulator on its own. Compare is where the panel opens, so nothing moves until you ask for it. The tabs are the same ones roofs, footprint and geopool use, and they work from the keyboard with the arrow keys.',
+        prs: [],
+      },
+      {
+        kind: 'improved',
+        icon: 'gauge',
+        text: 'The massing simulator no longer loads while you are reading the comparables. It builds its 3D scene the moment you open the Build tab and tears it down when you leave, so scrolling the list stays light.',
+        prs: [],
+      },
+      {
+        kind: 'new',
+        icon: 'link',
+        text: 'A link can now say which tab to open on: add ?topic=build to a similoo URL and the panel opens on the massing simulator. Otherwise the panel remembers the tab you last used.',
+        prs: [],
+      },
+    ],
+  },
+  {
     version: '0.47.0',
     date: 'August 24, 2026',
     codename: 'Steps, not a slider',
