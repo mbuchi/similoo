@@ -27,6 +27,21 @@ import { getPanelTopicOverride } from '@aireon/shared/url-params';
 // is only used to copy the zone columns off the picked tile (see zoneSource).
 import { ZONE_FIELDS, resolveZoneLabel } from '@aireon/shared/parcel-zone';
 import { t, onLocaleChange, getLocale } from '../i18n.js';
+// Value formatters + the hand-rolled `.aireon-datapill*` markup, shared with
+// the comparable map popup so the list cards and the on-map card can never
+// print the same field two different ways.
+import {
+    dash,
+    dataPillGroupHtml,
+    dataPillHtml,
+    escapeHtml,
+    formatInt,
+    formatM,
+    formatM2,
+    formatM3,
+    formatPct,
+    formatRatio,
+} from './format.js';
 import { fetchSimilooComparables } from '../api/similoo.js';
 import {
     ALL_YEARS,
@@ -1378,91 +1393,9 @@ function parseSizeInput(raw) {
     return Number.isFinite(n) && n >= 0 ? n : null;
 }
 
-function formatM2(n) {
-    if (!Number.isFinite(n)) return dash();
-    return `${formatInt(n)} ${t('comparison.unit_m2')}`;
-}
-
-function formatM3(n) {
-    if (!Number.isFinite(n)) return dash();
-    return `${formatInt(n)} ${t('comparison.unit_m3')}`;
-}
-
-function formatM(n) {
-    if (!Number.isFinite(n)) return dash();
-    return `${(Math.round(n * 10) / 10).toLocaleString('en-CH').replace(/,/g, ' ')} ${t('comparison.unit_m')}`;
-}
-
-function formatInt(n) {
-    return Math.round(n).toLocaleString('en-CH').replace(/,/g, ' ');
-}
-
-function formatRatio(n) {
-    if (!Number.isFinite(n)) return dash();
-    return (Math.round(n * 100) / 100).toFixed(2);
-}
-
-function formatPct(n) {
-    if (!Number.isFinite(n)) return dash();
-    return `${Math.round(n * 100)}%`;
-}
-
-function dash() {
-    return '-';
-}
-
-// --- Suite data pills (DATA_PILLS_STANDARD.md, @aireon/shared v1.135.0) -------
-//
-// The shared <DataPillGroup> / <DataPill> pair is React; this sidebar builds its
-// DOM from innerHTML strings, so it hand-rolls the exact same markup and
-// `.aireon-datapill*` classes that ship in map-ui.css — the approach the
-// identity header above already takes with `.aireon-pih-*`. Keeping the class
-// contract identical means the pills render the same here as in every React app
-// in the suite. similoo themes off [data-theme="dark"], which the shipped rules
-// target directly, so no `--dark` flag is needed.
-
-// One fit-content pill. A nullish/empty value renders nothing so callers can
-// list every candidate field and let the missing ones fall away. `label` is a
-// short uppercase prefix for values that are ambiguous on their own ("FLOORS:
-// 3"); `title` is the hover/a11y meaning for values that already carry a unit
-// ("658 m²").
-function dataPillHtml({ label, value, title, mono, emphasis } = {}) {
-    if (value == null || value === '') return '';
-    const cls = [
-        'aireon-datapill',
-        mono ? 'aireon-datapill--mono' : '',
-        emphasis ? 'aireon-datapill--em' : '',
-    ].filter(Boolean).join(' ');
-    const meaning = title ?? label ?? '';
-    const labelHtml = label
-        ? `<span class="aireon-datapill-label">${escapeHtml(label)}:</span>`
-        : '';
-    return `<span class="${cls}"${meaning ? ` title="${escapeHtml(meaning)}"` : ''}>`
-        + `${labelHtml}<span class="aireon-datapill-value">${escapeHtml(String(value))}</span></span>`;
-}
-
-// One titled section ("Parcel", "Building") whose pills sit on a tightly
-// wrapping row. A group whose items are all empty renders nothing at all — no
-// stray eyebrow heading over an empty row.
-function dataPillGroupHtml(heading, items) {
-    const pills = items.map(dataPillHtml).filter(Boolean);
-    if (!pills.length) return '';
-    return `
-        <section class="aireon-datapill-group" aria-label="${escapeHtml(heading)}">
-            <h3 class="aireon-datapill-heading">${escapeHtml(heading)}</h3>
-            <div class="aireon-datapill-row">${pills.join('')}</div>
-        </section>
-    `;
-}
-
-function escapeHtml(str) {
-    return String(str)
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#39;');
-}
+// Value formatters and the `.aireon-datapill*` markup now live in
+// ./format.js (imported at the top), shared with the comparable map popup
+// so the list cards and the on-map card print every field the same way.
 
 // Pretty-print any value to JSON, falling back to String() if it can't be
 // serialized (e.g. a cyclic structure) so the copy/raw view never throws.

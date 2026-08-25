@@ -147,6 +147,126 @@
     50% { transform: scale(1.15); opacity: 0.9; }
 }
 
+/* Comparable map popup — the data card pinned to a comparable parcel after a
+ * list-card fly-to (comparablePopup.js). Skinned like the sidebar panel: the
+ * same --hood-* tokens, so light/dark theming is automatic via [data-theme].
+ * The popup is anchored 'bottom' (card above the parcel point), so only the
+ * bottom-anchor tip needs recoloring. */
+.cmp-popup {
+    font-family: var(--hood-font);
+    /* Above the map layers but below the sidebar (z 51) and navbar. */
+    z-index: 40;
+}
+.cmp-popup .maplibregl-popup-content {
+    background: var(--hood-panel-bg);
+    color: var(--hood-panel-text);
+    border: 1px solid var(--hood-panel-border);
+    border-radius: 12px;
+    padding: 12px 14px;
+    min-width: 212px;
+    box-shadow: var(--hood-panel-shadow);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+}
+.cmp-popup .maplibregl-popup-tip {
+    border-top-color: var(--hood-panel-border);
+}
+
+.cmp-popup-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 8px;
+}
+.cmp-popup-title {
+    margin: 0;
+    font-size: 13.5px;
+    font-weight: 600;
+    line-height: 1.3;
+    letter-spacing: -0.01em;
+    color: var(--hood-panel-title);
+    overflow-wrap: anywhere;
+}
+.cmp-popup-close {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    margin: -4px -6px 0 0;
+    padding: 0;
+    border: none;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--hood-panel-text);
+    opacity: 0.7;
+    cursor: pointer;
+}
+.cmp-popup-close:hover,
+.cmp-popup-close:focus-visible {
+    opacity: 1;
+    background: rgba(0, 0, 0, 0.06);
+}
+[data-theme="dark"] .cmp-popup-close:hover,
+[data-theme="dark"] .cmp-popup-close:focus-visible {
+    background: rgba(255, 255, 255, 0.1);
+}
+.cmp-popup-close svg {
+    width: 14px;
+    height: 14px;
+}
+
+.cmp-popup-sub {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 4px;
+    margin-top: 3px;
+    font-size: 11px;
+    line-height: 1.35;
+    opacity: 0.75;
+}
+.cmp-popup-egrid {
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    letter-spacing: 0.01em;
+}
+.cmp-popup-zone {
+    overflow-wrap: anywhere;
+}
+
+.cmp-popup-pills {
+    margin-top: 9px;
+}
+
+.cmp-popup-open {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    margin-top: 11px;
+    padding: 7px 10px;
+    border: 1px solid var(--hood-panel-border);
+    border-radius: 9px;
+    font-size: 12px;
+    font-weight: 600;
+    text-decoration: none;
+    color: var(--hood-panel-title);
+}
+.cmp-popup-open:hover,
+.cmp-popup-open:focus-visible {
+    background: rgba(0, 0, 0, 0.05);
+}
+[data-theme="dark"] .cmp-popup-open:hover,
+[data-theme="dark"] .cmp-popup-open:focus-visible {
+    background: rgba(255, 255, 255, 0.08);
+}
+.cmp-popup-open svg {
+    width: 13px;
+    height: 13px;
+    opacity: 0.8;
+}
+
 /* When the sidebar is open the map should make room on the right so
  * cubes/markers stay visible. The comparison sidebar is 400px wide
  * (see comparison.css .cmp); below 640px it goes full-width and the

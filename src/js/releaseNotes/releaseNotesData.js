@@ -41,6 +41,26 @@ export const KIND_META = {
 
 export const RELEASES = [
   {
+    version: '0.49.0',
+    date: 'August 25, 2026',
+    codename: 'A label at the landing',
+    summary: 'Clicking a comparable now pins its data card to the parcel on the map, with a one-click hand-off to geopool.',
+    items: [
+      {
+        kind: 'new',
+        icon: 'map-pin',
+        text: 'Clicking a comparable in the list still flies the map to that parcel while the panel keeps showing your searched parcel. New: a compact data card now pins itself to the comparable on the map, with its address, EGRID and zone plus the same numbers the list card shows (match, ratioV, parcel size, volume, height, floors, year), so the map itself tells you which parcel you just landed on.',
+        prs: [],
+      },
+      {
+        kind: 'new',
+        icon: 'external-link',
+        text: 'The pinned card ends in an "Open parcel in geopool" link that opens the comparable in geopool with the parcel already selected, for the full parcel view beyond what the comparison needs. Close the card with its own button or by clicking anywhere on the map.',
+        prs: [],
+      },
+    ],
+  },
+  {
     version: '0.48.0',
     date: 'August 25, 2026',
     codename: 'Two questions, two tabs',
