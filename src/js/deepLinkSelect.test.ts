@@ -59,6 +59,8 @@ vi.mock('./viewer/overlayOpacity.js', () => ({
 vi.mock('./i18n.js', () => ({
   applyTranslations: vi.fn(),
   t: (key: string) => key,
+  // The comparable map popup subscribes for in-place relabeling.
+  onLocaleChange: () => () => {},
 }));
 
 vi.mock('./comparison/sidebar.js', () => ({

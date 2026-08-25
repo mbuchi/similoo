@@ -23,6 +23,10 @@ import {
 import { initOverlayOpacity, registerOverlayLayers } from './viewer/overlayOpacity.js';
 import { applyTranslations, t } from './i18n.js';
 import { createComparisonSidebar } from './comparison/sidebar.js';
+// The data card pinned to a comparable parcel after a list-card fly-to (the
+// sidebar deliberately stays on the subject parcel; this popup is the label
+// at the destination). Owned here with the other map treatments.
+import { createComparablePopup } from './comparison/comparablePopup.js';
 import { resolveEgridFromLngLat, normaliseEgrid } from './comparison/parcelLookup.js';
 import { createBuildingDetailModal } from './detail/buildingDetailModal.js';
 import { createMapLegend } from './viewer/mapLegend.js';
@@ -121,6 +125,9 @@ export function boot() {
     let sidebar = null;
     let detailModal = null;
     let legend = null;
+    // Comparable map popup — reads the live map through the getter because
+    // initializeViewer() is async (same pattern as the opacity controller).
+    const comparablePopup = createComparablePopup(() => map);
     // True once the user has actually picked an address. The moveend writer is
     // gated on it: with no pick the camera is a browse view (see showEmptyMap),
     // and stamping it would make a reloaded link run a full comparison wherever
@@ -296,6 +303,7 @@ export function boot() {
                 clearZoneHighlight();
                 clearComparableHighlights();
                 hideComparableParcelHover();
+                comparablePopup.hide();
                 document.body.classList.remove('cmp-shifted');
                 releasePick();
             },
@@ -314,6 +322,12 @@ export function boot() {
                     speed: 1.2,
                     essential: true,
                 });
+                // Pin the comparable's data card at the destination right
+                // away — a MapLibre popup tracks its lngLat, so it rides the
+                // fly-to and is already in place when the camera settles. The
+                // sidebar keeps showing the SUBJECT parcel; this card is what
+                // says which parcel the camera just landed on.
+                comparablePopup.show(c);
             },
             onDataLoaded: (data) => {
                 // Paint each comparable's 3D footprint pink (resolved lazily as
@@ -845,6 +859,7 @@ export function boot() {
             clearZoneHighlight();
             clearComparableHighlights();
             hideComparableParcelHover();
+            comparablePopup.hide();
             sidebar?.hide();
         }
 
