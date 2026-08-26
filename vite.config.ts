@@ -37,8 +37,10 @@ export default defineConfig({
     exclude: ['@aireon/shared'],
   },
   build: {
-    // The bundle is dominated by maplibre-gl + three; the previous vanilla
-    // build already exceeded the 500 kB default warning. Keep the build quiet.
+    // The bundle is dominated by three (the ~1 MB maplibre-gl engine is now
+    // external, loaded from static.aireon.ch via the import map that
+    // @aireon/shared's HTML plugin injects); the previous vanilla build
+    // already exceeded the 500 kB default warning. Keep the build quiet.
     chunkSizeWarningLimit: 2000,
     rollupOptions: {
       output: {
@@ -47,9 +49,9 @@ export default defineConfig({
         // bundle. App code (and react) is deliberately NOT chunked here —
         // splitting app code risks circular-dependency TDZ white-screens.
         manualChunks(id) {
-          // ⚠ STYLESHEETS ARE DELIBERATELY EXCLUDED. The `maplibre` chunk is a
-          // DYNAMIC chunk now (App.tsx loads src/js/main.js on demand), and a
-          // dependency's CSS follows whichever chunk claims it — so bucketing
+          // ⚠ STYLESHEETS ARE DELIBERATELY EXCLUDED. These buckets are DYNAMIC
+          // chunks (App.tsx loads src/js/main.js on demand), and a dependency's
+          // CSS follows whichever chunk claims it — so bucketing
           // `maplibre-gl.css` here would pull its <link> out of index.html and
           // have Vite append it to <head> at runtime, AFTER the entry
           // stylesheet. `.maplibregl-map { position: relative }` and similoo's
@@ -60,7 +62,6 @@ export default defineConfig({
           // stylesheet in the eager entry bundle, in main.tsx import order,
           // where maplibre-gl.css is the first import.
           if (id.endsWith('.css')) return undefined;
-          if (id.includes('node_modules/maplibre-gl')) return 'maplibre';
           if (id.includes('node_modules/three')) return 'three';
           return undefined;
         },

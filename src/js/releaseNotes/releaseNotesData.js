@@ -41,6 +41,20 @@ export const KIND_META = {
 
 export const RELEASES = [
   {
+    version: '0.50.0',
+    date: 'August 26, 2026',
+    codename: 'One engine for the suite',
+    summary: 'The map engine now loads from the shared Aireon asset host, cached once across every Aireon app.',
+    items: [
+      {
+        kind: 'improved',
+        icon: 'zap',
+        text: 'The MapLibre map engine (about 1 MB) is no longer bundled into similoo. It loads from the shared Aireon asset host and stays cached in your browser across every Aireon app and every similoo release, so repeat visits and switches between apps start faster. The comparison map itself is unchanged.',
+        prs: [],
+      },
+    ],
+  },
+  {
     version: '0.49.0',
     date: 'August 25, 2026',
     codename: 'A label at the landing',
