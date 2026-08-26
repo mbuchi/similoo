@@ -15,6 +15,7 @@ import {
   getReleaseNotesStrings,
   getShareStrings,
   createErrorLogger,
+  installSignalCarrier,
   ErrorLogBoundary,
   fetchClaireContext,
   MapContextMenu,
@@ -392,7 +393,28 @@ export default function App() {
   // (per the logger's default flags) failed resource loads, CSP violations and
   // fetch failures. It is idempotent and returns an uninstall function used as
   // the effect cleanup.
-  useEffect(() => errorLogger.install({ captureConsoleErrors: true }), [errorLogger]);
+  useEffect(() => {
+    const uninstallLogger = errorLogger.install({ captureConsoleErrors: true });
+    // Signal carrier transport (aireon-shared/docs/SIGNAL_STANDARD.md). Usage
+    // signals used to be one `POST /api/signal-collect` per user action. The
+    // carrier queues them in memory instead and flushes the queue once, on page
+    // hide, to the neutrally named `/api/ctx` mount. Same payload, same fields,
+    // same destination handler — only the transport changes.
+    //
+    // ⚠ ORDER IS LOAD-BEARING: this must install AFTER errorLogger.install(),
+    // because the logger patches window.fetch and the carrier has to be the
+    // OUTER patch. Both installers are idempotent and return an uninstall
+    // function, so StrictMode's double invoke is safe; tear down in reverse.
+    //
+    // No `paths` here on purpose: ride-along (attaching the queue to an
+    // existing app request) is decided per app later. Batching alone is the
+    // point of this change.
+    const uninstallCarrier = installSignalCarrier({ endpoint: '/api/ctx' });
+    return () => {
+      uninstallCarrier();
+      uninstallLogger();
+    };
+  }, [errorLogger]);
   const rn = useReleaseNotes({
     currentVersion: CURRENT_VERSION,
     storageKey: 'similoo:lastSeenReleaseVersion',

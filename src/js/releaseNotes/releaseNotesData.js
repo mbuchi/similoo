@@ -41,6 +41,26 @@ export const KIND_META = {
 
 export const RELEASES = [
   {
+    version: '0.51.0',
+    date: 'August 26, 2026',
+    codename: 'One trip instead of many',
+    summary: 'Usage reporting now sends a single request when you leave the page, instead of one per action.',
+    items: [
+      {
+        kind: 'improved',
+        icon: 'package',
+        text: 'similoo records which features get used so we know what to build next. Until now every action sent its own small request the moment it happened, so a busy session made dozens of separate trips to the server. Those records are now collected in the page and sent together in one request when you close or leave the tab. The information collected is exactly the same as before, and nothing about the comparison, the map or the 3D view changes.',
+        prs: [],
+      },
+      {
+        kind: 'improved',
+        icon: 'zap',
+        text: 'Fewer background requests while you work means less network chatter competing with the map tiles and the point-cloud stream, which is most noticeable on a slow or mobile connection.',
+        prs: [],
+      },
+    ],
+  },
+  {
     version: '0.50.0',
     date: 'August 26, 2026',
     codename: 'One engine for the suite',
