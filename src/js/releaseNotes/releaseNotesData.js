@@ -41,6 +41,20 @@ export const KIND_META = {
 
 export const RELEASES = [
   {
+    version: '0.52.0',
+    date: 'August 27, 2026',
+    codename: 'Along for the ride',
+    summary: 'Usage reporting now travels on a request similoo was already making, so a normal session adds no background requests of its own.',
+    items: [
+      {
+        kind: 'improved',
+        icon: 'package',
+        text: 'Usage reporting no longer needs a request of its own. similoo already asks the server for comparison data when you look a parcel up, and the usage record for that same action now travels along with it. In an ordinary session that means no extra background requests at all, where before there was one small request per action and, since the last release, one when you left the page. What gets collected is exactly the same as before, and so is how long it is kept. Only the way it travels has changed.',
+        prs: [],
+      },
+    ],
+  },
+  {
     version: '0.51.0',
     date: 'August 26, 2026',
     codename: 'One trip instead of many',

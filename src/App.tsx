@@ -409,7 +409,7 @@ export default function App() {
     // No `paths` here on purpose: ride-along (attaching the queue to an
     // existing app request) is decided per app later. Batching alone is the
     // point of this change.
-    const uninstallCarrier = installSignalCarrier({ endpoint: '/api/ctx' });
+    const uninstallCarrier = installSignalCarrier({ paths: ['/api/similoo'], endpoint: '/api/ctx' });
     return () => {
       uninstallCarrier();
       uninstallLogger();
