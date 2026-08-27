@@ -41,6 +41,20 @@ export const KIND_META = {
 
 export const RELEASES = [
   {
+    version: '0.53.1',
+    date: 'August 27, 2026',
+    codename: 'Named at the door',
+    summary: 'The centralized shell now carries explicit app provenance for diagnostics and evidence while account data, tokens and callbacks remain local.',
+    items: [
+      {
+        kind: 'improved',
+        icon: 'info',
+        text: 'similoo now identifies itself explicitly when adopting the centralized account-menu shell, giving runtime diagnostics and deployment evidence the owning app provenance they need. Account data, tokens and callbacks remain local to similoo.',
+        prs: [],
+      },
+    ],
+  },
+  {
     version: '0.53.0',
     date: 'August 27, 2026',
     codename: 'The same front door',

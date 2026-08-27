@@ -88,6 +88,7 @@ test('similoo intentionally adopts the runtime shell without an account summary'
     const app = read('App.tsx');
     const userMenu = app.slice(app.indexOf('<MapUserMenu'), app.indexOf('/>', app.indexOf('<MapUserMenu')) + 2);
 
+    assert.match(userMenu, /appId="similoo"/);
     assert.match(userMenu, /showSavedParcels=\{false\}/);
     assert.match(userMenu, /showSearchHistory=\{false\}/);
     assert.doesNotMatch(userMenu, /\bsummary(?:Handlers)?\s*=/);
