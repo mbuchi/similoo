@@ -41,6 +41,26 @@ export const KIND_META = {
 
 export const RELEASES = [
   {
+    version: '0.53.0',
+    date: 'August 27, 2026',
+    codename: 'The same front door',
+    summary: 'The account menu now uses Aireon\'s centrally maintained shell while similoo intentionally keeps the account area free of an app summary.',
+    items: [
+      {
+        kind: 'improved',
+        icon: 'package',
+        text: 'The account shell now comes from the centrally hosted Aireon user-menu runtime. Compatible visual, copy and accessibility refinements take effect on the next page load without rebuilding similoo; a bundled local fallback keeps the menu available if the central runtime cannot load.',
+        prs: [],
+      },
+      {
+        kind: 'improved',
+        icon: 'user',
+        text: 'similoo deliberately adds no pipeline or saved-parcels summary to the account menu. Its comparison toolbar callbacks, authentication and actions remain local to similoo, and no auth object or token crosses into the central shell.',
+        prs: [],
+      },
+    ],
+  },
+  {
     version: '0.52.0',
     date: 'August 27, 2026',
     codename: 'Along for the ride',
