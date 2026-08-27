@@ -3,6 +3,7 @@
 // Proxies POST /api/similoo → RES /score/similoo so the client never needs
 // the RES API token. Mirrors the scoore /api/overpass pattern.
 
+import { withSignalCarrier } from '@aireon/shared/signal-carrier';
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { RES_API_BASE_URL } from '@aireon/shared/api';
 
@@ -64,7 +65,7 @@ function send(res: VercelResponse, status: number, body: unknown): void {
     res.status(status).json(body);
 }
 
-export default async function handler(
+async function carrierTarget(
     req: VercelRequest,
     res: VercelResponse,
 ): Promise<void> {
@@ -133,3 +134,24 @@ export default async function handler(
         clearTimeout(timer);
     }
 }
+
+// Carrier for similoo's queued usage signals.
+//
+// The shared Claire assistant prefetches surrounding POIs the moment a parcel
+// is selected (a useEffect keyed on the parcel coordinate in
+// @aireon/shared ClaireAssistant), which is the same interaction that emits a
+// signal. So the batch rides this request and adds none of its own.
+//
+// The wrapper drains the X-Aireon-Ctx request header, forwards each signal to
+// RES with the caller's real X-Forwarded-For, and acknowledges the count on the
+// response. This handler's own request and response are otherwise untouched.
+//
+// The wildcard Access-Control-Allow-Origin does NOT disqualify this: the carrier
+// only ever attaches to same-origin requests, which involve no CORS, and a
+// hand-crafted cross-origin one is stopped at preflight because
+// Access-Control-Allow-Headers does not list X-Aireon-Ctx. Nor does the
+// s-maxage some of these handlers set: only GET and HEAD responses are ever
+// cached, and this is POST-only.
+//
+// See aireon-shared/docs/SIGNAL_STANDARD.md.
+export default withSignalCarrier(carrierTarget);
