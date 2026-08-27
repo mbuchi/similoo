@@ -669,6 +669,7 @@ export default function App() {
         userMenu={
           <div className={isCompact ? COMPACT_USER_MENU_CLASS_NAME : 'contents'}>
             <MapUserMenu
+              appId="similoo"
               dark={isDark}
               locale={locale as PrmLocale}
               // similoo is a comparison tool — no saved-parcels / search-history
