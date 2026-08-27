@@ -41,6 +41,20 @@ export const KIND_META = {
 
 export const RELEASES = [
   {
+    version: '0.53.2',
+    date: 'August 27, 2026',
+    codename: 'The house style returns',
+    summary: 'The account menu is back to the standard Aireon design, with the suite typography, blur and placement it is meant to have.',
+    items: [
+      {
+        kind: 'fixed',
+        icon: 'user-round',
+        text: 'The account menu is restored to the standard Aireon design. The panel no longer opens over the navbar or grows its own scrollbar, the translucent surface is blurred again, the Manage link and your name and email sit where they belong, and the menu uses the suite font.',
+        prs: [],
+      },
+    ],
+  },
+  {
     version: '0.53.1',
     date: 'August 27, 2026',
     codename: 'Named at the door',
