@@ -21,12 +21,11 @@ test('package.json version and CURRENT_VERSION move in lockstep', () => {
     assert.equal(RELEASES[0].version, CURRENT_VERSION);
 });
 
-test('the explicit runtime provenance release is newest', () => {
-    assert.equal(pkg.version, '0.53.1');
-    assert.equal(RELEASES[0].version, '0.53.1');
-    assert.equal(RELEASES[0].codename, 'Named at the door');
-    assert.match(RELEASES[0].summary, /explicit app provenance/);
-    assert.match(RELEASES[0].summary, /account data, tokens and callbacks remain local/);
+test('the restored account-menu design release is newest', () => {
+    assert.equal(pkg.version, '0.53.2');
+    assert.equal(RELEASES[0].version, '0.53.2');
+    assert.equal(RELEASES[0].codename, 'The house style returns');
+    assert.match(RELEASES[0].summary, /standard Aireon design/);
 });
 
 // v0.47.0 shipped with package-lock.json still saying 0.46.1: npm writes both
