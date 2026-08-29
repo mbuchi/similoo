@@ -19,7 +19,10 @@ export function useScreenshot(
 ) {
   const [isCapturing, setIsCapturing] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
-  const noticeTimer = useRef<ReturnType<typeof setTimeout>>();
+  // `useRef` lost its zero-argument overload in @types/react 19, so the initial
+  // value is now explicit. `undefined` is exactly what the old call seeded: the
+  // only reader is the `if (noticeTimer.current)` guard in flashNotice.
+  const noticeTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   const flashNotice = useCallback((message: string) => {
     setNotice(message);

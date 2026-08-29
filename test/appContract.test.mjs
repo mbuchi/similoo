@@ -21,11 +21,11 @@ test('package.json version and CURRENT_VERSION move in lockstep', () => {
     assert.equal(RELEASES[0].version, CURRENT_VERSION);
 });
 
-test('the restored account-menu design release is newest', () => {
-    assert.equal(pkg.version, '0.53.2');
-    assert.equal(RELEASES[0].version, '0.53.2');
-    assert.equal(RELEASES[0].codename, 'The house style returns');
-    assert.match(RELEASES[0].summary, /standard Aireon design/);
+test('the React 19 release is newest', () => {
+    assert.equal(pkg.version, '0.54.0');
+    assert.equal(RELEASES[0].version, '0.54.0');
+    assert.equal(RELEASES[0].codename, 'Nineteen');
+    assert.match(RELEASES[0].summary, /React 19/);
 });
 
 // v0.47.0 shipped with package-lock.json still saying 0.46.1: npm writes both
