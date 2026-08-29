@@ -7,12 +7,16 @@ import { aireonHtmlPlugin } from '@aireon/shared/vite';
 // Three.js building scene, comparison sidebar, panels) under src/js. The React
 // plugin compiles the .tsx shell with Oxc; the engine .js modules are plain ES
 // modules Vite handles as-is. plugin-react 6 dropped its `babel` option, so
-// React Compiler runs as a separate @rolldown/plugin-babel pass. Because the app
-// stays on React 18, the compiler target must match react-compiler-runtime.
+// React Compiler runs as a separate @rolldown/plugin-babel pass. `target: '19'`
+// makes the compiler emit `react/compiler-runtime`, the subpath React 19 ships
+// itself, so the standalone `react-compiler-runtime` shim is no longer a
+// dependency. The target and the installed React major must agree: asking for
+// '19' on React 18 fails at build time with module-not-found, and so does '18'
+// once the shim package is gone. Both mismatches are loud, not silent.
 export default defineConfig({
   plugins: [
     react(),
-    babel({ presets: [reactCompilerPreset({ target: '18' })] }),
+    babel({ presets: [reactCompilerPreset({ target: '19' })] }),
     // First-load standard (aireon-shared/docs/PERFORMANCE_STANDARD.md). Injects the
     // pre-paint theme bootstrap, the static navbar+map shell so something paints
     // before any JS runs, and preconnects for the origins similoo's first screen

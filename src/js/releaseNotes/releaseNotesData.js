@@ -41,6 +41,26 @@ export const KIND_META = {
 
 export const RELEASES = [
   {
+    version: '0.54.0',
+    date: 'August 29, 2026',
+    codename: 'Nineteen',
+    summary: 'similoo now runs on React 19, which lets the compiler use React\'s own runtime instead of a compatibility package.',
+    items: [
+      {
+        kind: 'improved',
+        icon: 'package',
+        text: 'similoo now runs on React 19. The React Compiler that keeps the comparison surface from re-rendering more than it has to can now use the runtime React ships itself, so the separate compatibility package that existed only for React 18 has been removed from the app.',
+        prs: [],
+      },
+      {
+        kind: 'improved',
+        icon: 'wrench',
+        text: 'The icon set moved to the newest release that supports React 19. Every icon similoo draws keeps its current name and shape, so nothing in the toolbar, panels or gallery looks different.',
+        prs: [],
+      },
+    ],
+  },
+  {
     version: '0.53.2',
     date: 'August 27, 2026',
     codename: 'The house style returns',

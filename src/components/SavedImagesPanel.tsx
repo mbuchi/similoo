@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useMemo, useRef } from 'react';
+import { useEffect, useState, useCallback, useMemo, useRef, type ReactElement } from 'react';
 import { createPortal } from 'react-dom';
 import {
   RefreshCw,
@@ -204,7 +204,7 @@ export default function SavedImagesPanel({ darkMode, isOpen, onClose }: SavedIma
     const lat = formatCoord(meta.central_lat);
     const lng = formatCoord(meta.central_lng);
     const tilt = formatDeg(meta.tilt_degree);
-    const lines: { icon: JSX.Element; text: string; key: string }[] = [];
+    const lines: { icon: ReactElement; text: string; key: string }[] = [];
     if (meta.address) {
       lines.push({ key: 'addr', icon: <MapPin size={11} />, text: meta.address });
     }
