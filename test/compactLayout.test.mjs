@@ -11,8 +11,8 @@ import test from 'node:test';
 const read = (path) => readFileSync(new URL(`../src/${path}`, import.meta.url), 'utf8');
 const readRoot = (path) => readFileSync(new URL(`../${path}`, import.meta.url), 'utf8');
 
-const SHARED_VERSION = '1.196.0';
-const SHARED_COMMIT = 'ceee4438f2f754c49138ac26cb57cef8db6956a3';
+const SHARED_VERSION = '1.201.0';
+const SHARED_COMMIT = 'd7eb0e3804f3eda69716c8eb97ee09f95fcefd84';
 const SHARED_SPEC = `github:mbuchi/aireon-shared#v${SHARED_VERSION}`;
 const STABLE_USER_MENU_LOADER = 'https://static.aireon.ch/shell/user-menu/v1/loader.js';
 
@@ -61,6 +61,8 @@ test('every removed navbar action has a compact account-menu row', () => {
 // surface, Manage / name / email mis-placed, wrong font. v1.196.0 puts the
 // bundled local shell back on MapUserMenu's render path and makes the central
 // runtime opt-in, so the loader must be absent from the production HTML.
+// The pin has since moved forward (v1.201.0); the runtime menu stays
+// opt-in, so the assertions below still describe the shipped behavior.
 test('the account menu is pinned to the shared release that renders the local shell', async () => {
     const manifest = JSON.parse(readRoot('package.json'));
     const lock = JSON.parse(readRoot('package-lock.json'));
