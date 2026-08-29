@@ -41,6 +41,20 @@ export const KIND_META = {
 
 export const RELEASES = [
   {
+    version: '0.55.0',
+    date: 'August 29, 2026',
+    codename: 'Painter ready',
+    summary: 'similoo now waits until the browser really can draw before it starts using the map, and picks up a bigger touch target in the account menu plus quieter error reporting.',
+    items: [
+      {
+        kind: 'improved',
+        icon: 'package',
+        text: 'similoo moves up to version 1.201.0 of the shared Aireon library. The map now waits until the browser has a working drawing surface before the app starts using it, so a map that only half started can no longer show up as a blank or broken canvas. The check that asks the browser whether it can draw 3D graphics also stopped holding on to a graphics context every time it ran. In the account menu, the compact controls keep a full 44 pixel touch target on small screens, so they stay easy to tap on a phone. And error reporting no longer files problems that come from a visitor\'s own browser extensions rather than from similoo.',
+        prs: [],
+      },
+    ],
+  },
+  {
     version: '0.54.0',
     date: 'August 29, 2026',
     codename: 'Nineteen',
