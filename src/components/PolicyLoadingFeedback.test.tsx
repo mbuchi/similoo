@@ -52,7 +52,7 @@ describe('Similoo loading-feedback owners', () => {
     await renderOverlay();
 
     const host = document.querySelector('[data-screenshot-ignore="true"]');
-    expect(host?.className).toContain('fixed inset-0 z-[200]');
+    expect(host?.className).toContain('fixed inset-0 z-200');
     expect(host?.className).not.toMatch(/bg-black|backdrop-blur/);
     expect(host?.innerHTML).not.toMatch(/bg-black|backdrop-blur|animate-pulse/);
   });

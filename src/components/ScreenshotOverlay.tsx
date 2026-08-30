@@ -22,11 +22,11 @@ export default function ScreenshotOverlay({ isCapturing, darkMode }: ScreenshotO
   return createPortal(
     <div
       data-screenshot-ignore="true"
-      className="fixed inset-0 z-[200] flex items-center justify-center"
+      className="fixed inset-0 z-200 flex items-center justify-center"
       role="status"
       aria-live="polite"
     >
-      <PolicyLoadingFeedback label={t('screenshot.creating')} skeleton={<div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center">
+      <PolicyLoadingFeedback label={t('screenshot.creating')} skeleton={<div className="fixed inset-0 bg-black/40 backdrop-blur-xs flex items-center justify-center">
         <div
           className={`flex flex-col items-center gap-3 px-6 py-5 rounded-xl shadow-2xl ${
             darkMode ? 'bg-gray-800 text-gray-200' : 'bg-white text-gray-700'
@@ -34,8 +34,8 @@ export default function ScreenshotOverlay({ isCapturing, darkMode }: ScreenshotO
         >
           <div className="w-28 space-y-2" aria-hidden="true">
             <div className="h-16 w-full rounded-lg bg-slate-200/80 dark:bg-[#161922] animate-pulse" />
-            <div className="h-2.5 w-3/4 rounded bg-slate-200/80 dark:bg-[#161922] animate-pulse [animation-delay:150ms]" />
-            <div className="h-2.5 w-1/2 rounded bg-slate-200/80 dark:bg-[#161922] animate-pulse [animation-delay:300ms]" />
+            <div className="h-2.5 w-3/4 rounded-sm bg-slate-200/80 dark:bg-[#161922] animate-pulse [animation-delay:150ms]" />
+            <div className="h-2.5 w-1/2 rounded-sm bg-slate-200/80 dark:bg-[#161922] animate-pulse [animation-delay:300ms]" />
           </div>
           <span className="text-sm font-medium">{t('screenshot.creating')}</span>
         </div>

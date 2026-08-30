@@ -33,11 +33,11 @@ export default function ZoomControl({ dark, className = '' }: ZoomControlProps) 
     ? 'hover:bg-slate-800/70 hover:text-blue-400 active:bg-slate-800'
     : 'hover:bg-slate-50 hover:text-blue-600 active:bg-slate-100';
   const divider = dark ? 'border-slate-700/60' : 'border-slate-200/80';
-  const btn = `w-9 h-9 flex items-center justify-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 ${hover}`;
+  const btn = `w-9 h-9 flex items-center justify-center transition-colors focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 ${hover}`;
 
   return (
     <div data-screenshot-ignore="true" className={`absolute z-10 similoo-zoom-control ${className}`}>
-      <div className={`flex flex-col rounded-xl shadow-xl backdrop-blur-sm border overflow-hidden ${panel}`}>
+      <div className={`flex flex-col rounded-xl shadow-xl backdrop-blur-xs border overflow-hidden ${panel}`}>
         <button type="button" onClick={handleZoomIn} aria-label={t('panel.zoom.in')} title={t('panel.zoom.in')} className={btn}>
           <Plus size={16} strokeWidth={2.25} />
         </button>
