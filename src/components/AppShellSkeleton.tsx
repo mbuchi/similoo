@@ -11,7 +11,7 @@
  */
 export function AppShellSkeleton({ overlay = false }: { overlay?: boolean }) {
   const block = 'animate-pulse rounded-lg bg-slate-200/80 dark:bg-[#161922]';
-  const root = overlay ? 'fixed inset-0 z-[100000] overflow-hidden' : 'min-h-screen';
+  const root = overlay ? 'fixed inset-0 z-100000 overflow-hidden' : 'min-h-screen';
   return (
     <div className={`${root} bg-slate-50 dark:bg-[#08090d]`} role="status" aria-label="Loading">
       {/* Navbar */}

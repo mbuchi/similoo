@@ -591,7 +591,7 @@ export default function App() {
         appName="similoo"
         dark={isDark}
         hideHubLink={isCompact}
-        position="fixed top-0 left-0 right-0 z-40 md:z-[60]"
+        position="fixed top-0 left-0 right-0 z-40 md:z-60"
         // Suite-standard navbar address search (replaces the old in-view "Search
         // again" bar). A pick drives the engine's comparison flow via the
         // window-event bridge above; once a parcel is loaded its address shows as

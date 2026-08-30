@@ -41,6 +41,26 @@ export const KIND_META = {
 
 export const RELEASES = [
   {
+    version: '0.57.0',
+    date: 'August 30, 2026',
+    codename: 'Same look, newer engine',
+    summary: 'similoo now builds its styles with Tailwind CSS 4. The look is deliberately unchanged.',
+    items: [
+      {
+        kind: 'improved',
+        icon: 'package',
+        text: 'similoo now builds its styles with Tailwind CSS 4, the current version of the engine that turns the design into the styling you see. The change is meant to be invisible: colors, spacing, typography, the dark theme and every control were checked against a build of the previous version and render the same. What the app gains is a faster stylesheet build, browser prefixes worked out automatically, and one less build dependency.',
+        prs: [],
+      },
+      {
+        kind: 'improved',
+        icon: 'wrench',
+        text: 'Three of the new version\'s defaults would have changed the look on their own, so all three were pinned back to the way the app already looked: the color a plain border falls back to, the hand cursor over buttons, and the order in which stylesheets win when two of them describe the same element. That last one is the reason this took a second pass. Left alone, the shared map and glass stylesheets would have started overriding the app\'s own styling instead of the other way round.',
+        prs: [],
+      },
+    ],
+  },
+  {
     version: '0.56.1',
     date: 'August 30, 2026',
     codename: 'A map older browsers can read',

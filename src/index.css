@@ -1,6 +1,113 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+/*
+  Tailwind CSS v4 emits every utility inside `@layer utilities`, and unlayered CSS
+  beats layered CSS outright - at any specificity, in any source order. This app
+  loads unlayered stylesheets alongside Tailwind (maplibre-gl.css and
+  @aireon/shared's glass.css / map-ui.css / basemap.css / scrollbars.css), so a
+  plain `@import 'tailwindcss'` hands those sheets the win over every utility:
+  measured in bloom, `.glass-surface` began overriding `bg-slate-950/85`,
+  `border-white/15` and `shadow-2xl`, and in goody an unlayered `*` reset beat
+  every `p-*` and `m-*` in the shared islands.
+
+  Tailwind 3 emitted all of its CSS unlayered, so specificity and source order
+  decided. Importing the layers individually and leaving UTILITIES unlayered
+  reproduces that exactly. Preflight stays in `layer(base)` so it keeps losing
+  ties, which is what v3 achieved by emitting it first.
+
+  `source(none)` turns OFF v4 automatic source detection, which would otherwise
+  scan every non-gitignored file in the project; the `@source` lines below restate
+  the exact `content` globs the v3 tailwind.config.js declared.
+*/
+@import 'tailwindcss/theme.css' layer(theme);
+@import 'tailwindcss/preflight.css' layer(base);
+@import 'tailwindcss/utilities.css' source(none);
+
+@source '../index.html';
+@source './**/*.{js,ts,jsx,tsx}';
+@source '../node_modules/@aireon/shared/dist/access/index.js';
+@source '../node_modules/@aireon/shared/dist/api/index.js';
+@source '../node_modules/@aireon/shared/dist/basemap/index.js';
+@source '../node_modules/@aireon/shared/dist/cache/index.js';
+@source '../node_modules/@aireon/shared/dist/claire/index.js';
+@source '../node_modules/@aireon/shared/dist/comparables/index.js';
+@source '../node_modules/@aireon/shared/dist/compat/browser.js';
+@source '../node_modules/@aireon/shared/dist/dataset/datasetVersion.js';
+@source '../node_modules/@aireon/shared/dist/errorlog/handler.js';
+@source '../node_modules/@aireon/shared/dist/gemini/index.js';
+@source '../node_modules/@aireon/shared/dist/geoadmin/index.js';
+@source '../node_modules/@aireon/shared/dist/loading/index.js';
+@source '../node_modules/@aireon/shared/dist/map/mapBootstrap.js';
+@source '../node_modules/@aireon/shared/dist/map/mapDefaults.js';
+@source '../node_modules/@aireon/shared/dist/map/mapErrors.js';
+@source '../node_modules/@aireon/shared/dist/map/mapWorker.js';
+@source '../node_modules/@aireon/shared/dist/map/maplibreStyle.js';
+@source '../node_modules/@aireon/shared/dist/map/martin.js';
+@source '../node_modules/@aireon/shared/dist/map/overlayOpacity.js';
+@source '../node_modules/@aireon/shared/dist/map/parcelInteraction.js';
+@source '../node_modules/@aireon/shared/dist/map/pmtiles.js';
+@source '../node_modules/@aireon/shared/dist/map/tileSources.js';
+@source '../node_modules/@aireon/shared/dist/map/webgl.js';
+@source '../node_modules/@aireon/shared/dist/massing/index.js';
+@source '../node_modules/@aireon/shared/dist/olap/index.js';
+@source '../node_modules/@aireon/shared/dist/panel/index.js';
+@source '../node_modules/@aireon/shared/dist/parcel/zoneLabel.js';
+@source '../node_modules/@aireon/shared/dist/pwa/index.js';
+@source '../node_modules/@aireon/shared/dist/pwa/workboxConfig.js';
+@source '../node_modules/@aireon/shared/dist/request/index.js';
+@source '../node_modules/@aireon/shared/dist/runtime/staleChunk.js';
+@source '../node_modules/@aireon/shared/dist/signal/carrier.js';
+@source '../node_modules/@aireon/shared/dist/signal/handler.js';
+@source '../node_modules/@aireon/shared/dist/skeleton/index.js';
+@source '../node_modules/@aireon/shared/dist/table/index.js';
+@source '../node_modules/@aireon/shared/dist/theme/index.js';
+@source '../node_modules/@aireon/shared/dist/url/params.js';
+@source '../node_modules/@aireon/shared/dist/userMenu/mountRuntimeUserMenu.js';
+@source '../node_modules/@aireon/shared/dist/userMenu/runtimeClient.js';
+@source '../node_modules/@aireon/shared/dist/userMenu/runtimeContract.js';
+@source '../node_modules/@aireon/shared/dist/vite/htmlPlugin.js';
+
+@source '../node_modules/@aireon/shared/dist/**/*.js';
+
+@custom-variant dark (&:is(.dark *));
+
+@theme {
+  --font-sans:
+    var(--hood-font), system-ui, -apple-system, BlinkMacSystemFont, Segoe UI,
+    Roboto, Helvetica Neue, Arial, sans-serif;
+  --font-display: var(--hood-display), system-ui, sans-serif;
+  --font-mono:
+    var(--hood-mono), ui-monospace, SFMono-Regular, Menlo, Monaco,
+    'Cascadia Code', Consolas, monospace;
+}
+
+/*
+  The default border color has changed to `currentcolor` in Tailwind CSS v4,
+  so we've added these compatibility styles to make sure everything still
+  looks the same as it did with Tailwind CSS v3.
+
+  If we ever want to remove these styles, we need to add an explicit border
+  color utility to any element that depends on these defaults.
+*/
+@layer base {
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--color-gray-200, currentcolor);
+  }
+}
+
+/*
+  Tailwind CSS v4's Preflight no longer sets `cursor: pointer` on buttons, so every
+  plain <button> would fall back to the browser default arrow. The suite relies on
+  the v3 behavior, so it is restored here.
+*/
+@layer base {
+  button:not(:disabled),
+  [role='button']:not(:disabled) {
+    cursor: pointer;
+  }
+}
 
 /* Suite three-token typography. Mirrors the same custom properties declared in
    styles.css :root so the Tailwind `font-sans`/`font-display`/`font-mono`

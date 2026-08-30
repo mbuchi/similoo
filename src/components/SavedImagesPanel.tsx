@@ -227,7 +227,7 @@ export default function SavedImagesPanel({ darkMode, isOpen, onClose }: SavedIma
               darkMode ? 'text-gray-400' : 'text-gray-600'
             }`}
           >
-            <span className={`flex-shrink-0 ${darkMode ? 'text-gray-500' : 'text-gray-400'}`}>
+            <span className={`shrink-0 ${darkMode ? 'text-gray-500' : 'text-gray-400'}`}>
               {l.icon}
             </span>
             <span className="truncate" title={l.text}>{l.text}</span>
@@ -273,10 +273,10 @@ export default function SavedImagesPanel({ darkMode, isOpen, onClose }: SavedIma
         <div className="space-y-1">
           {rows.map((r) => (
             <div key={r.label} className="flex gap-3">
-              <span className={`w-24 flex-shrink-0 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+              <span className={`w-24 shrink-0 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
                 {r.label}
               </span>
-              <span className="flex-1 break-words font-medium">{r.value}</span>
+              <span className="flex-1 wrap-break-word font-medium">{r.value}</span>
             </div>
           ))}
         </div>
@@ -292,13 +292,13 @@ export default function SavedImagesPanel({ darkMode, isOpen, onClose }: SavedIma
             {extras.map(([k, v]) => (
               <div key={k} className="flex gap-3">
                 <span
-                  className={`w-24 flex-shrink-0 break-all ${
+                  className={`w-24 shrink-0 break-all ${
                     darkMode ? 'text-gray-400' : 'text-gray-500'
                   }`}
                 >
                   {k}
                 </span>
-                <span className="flex-1 break-words font-medium">
+                <span className="flex-1 wrap-break-word font-medium">
                   {typeof v === 'object' ? JSON.stringify(v) : String(v)}
                 </span>
               </div>
@@ -318,8 +318,8 @@ export default function SavedImagesPanel({ darkMode, isOpen, onClose }: SavedIma
     // this modal renders outside similoo's themed app root. Zero-box wrapper —
     // its children are all `position: fixed`, so it never affects layout.
     <div className={darkMode ? 'dark' : undefined} data-glass={glassLevel} data-screenshot-ignore="true">
-      <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-        <div role="presentation" className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
+      <div className="fixed inset-0 z-100 flex items-center justify-center p-4">
+        <div role="presentation" className="absolute inset-0 bg-black/40 backdrop-blur-xs" onClick={onClose} />
         <div
           role="dialog"
           aria-modal="true"
@@ -332,7 +332,7 @@ export default function SavedImagesPanel({ darkMode, isOpen, onClose }: SavedIma
             }`}
           >
             <div className="flex items-center gap-2 min-w-0">
-              <ImageIcon size={18} className="text-cyan-500 flex-shrink-0" />
+              <ImageIcon size={18} className="text-cyan-500 shrink-0" />
               <h2
                 id="saved-images-title"
                 className={`text-base font-semibold truncate ${
@@ -378,7 +378,7 @@ export default function SavedImagesPanel({ darkMode, isOpen, onClose }: SavedIma
               <button
                 onClick={() => load(true)}
                 disabled={isRefreshing}
-                className={`w-9 h-9 flex items-center justify-center rounded-lg transition-colors disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500/40 ${
+                className={`w-9 h-9 flex items-center justify-center rounded-lg transition-colors disabled:opacity-50 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-red-500/40 ${
                   darkMode
                     ? 'hover:bg-gray-700 text-gray-400'
                     : 'hover:bg-gray-100 text-gray-500'
@@ -408,10 +408,10 @@ export default function SavedImagesPanel({ darkMode, isOpen, onClose }: SavedIma
           <div className="flex-1 overflow-y-auto p-4">
             {deleteError && (
               <div className="mb-4 flex items-center justify-between gap-3 px-3 py-2 rounded-lg bg-red-500/10 border border-red-500/20">
-                <p className="text-xs text-red-500 flex-1 break-words">{deleteError}</p>
+                <p className="text-xs text-red-500 flex-1 wrap-break-word">{deleteError}</p>
                 <button
                   onClick={() => setDeleteError(null)}
-                  className="text-xs font-medium text-red-500 hover:text-red-400 flex-shrink-0"
+                  className="text-xs font-medium text-red-500 hover:text-red-400 shrink-0"
                 >
                   {t('gallery.dismiss')}
                 </button>
@@ -457,7 +457,7 @@ export default function SavedImagesPanel({ darkMode, isOpen, onClose }: SavedIma
                       <button
                         onClick={() => setPreviewImage(img)}
                         aria-label={t('gallery.open_preview', { name: img.original_filename })}
-                        className={`relative aspect-video overflow-hidden focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-red-500/50 ${
+                        className={`relative aspect-video overflow-hidden focus:outline-hidden focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-red-500/50 ${
                           darkMode ? 'bg-gray-900' : 'bg-gray-100'
                         }`}
                       >
@@ -551,7 +551,7 @@ export default function SavedImagesPanel({ darkMode, isOpen, onClose }: SavedIma
                       href={SHOWROOM_URL}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-cyan-600 hover:bg-cyan-700 text-white transition-colors flex-shrink-0"
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-cyan-600 hover:bg-cyan-700 text-white transition-colors shrink-0"
                     >
                       {t('gallery.see_in_showroom')}
                       <ExternalLink size={13} />
@@ -569,7 +569,7 @@ export default function SavedImagesPanel({ darkMode, isOpen, onClose }: SavedIma
           role="dialog"
           aria-modal="true"
           aria-label={t('gallery.open_preview', { name: previewImage.original_filename })}
-          className="fixed inset-0 z-[110] flex items-center justify-center p-4"
+          className="fixed inset-0 z-110 flex items-center justify-center p-4"
           onClick={() => setPreviewImage(null)}
         >
           <div className="absolute inset-0 bg-black/80" />
@@ -596,7 +596,7 @@ export default function SavedImagesPanel({ darkMode, isOpen, onClose }: SavedIma
               />
             </div>
             <div
-              className={`w-full lg:w-80 flex-shrink-0 rounded-lg p-4 overflow-y-auto max-h-[40vh] lg:max-h-[90vh] ${surfaceFill('shadow-xl')}`}
+              className={`w-full lg:w-80 shrink-0 rounded-lg p-4 overflow-y-auto max-h-[40vh] lg:max-h-[90vh] ${surfaceFill('shadow-xl')}`}
             >
               <p
                 className={`text-sm font-semibold mb-1 break-all ${
@@ -613,14 +613,14 @@ export default function SavedImagesPanel({ darkMode, isOpen, onClose }: SavedIma
 
       {pendingDeleteId && (
         <div
-          className="fixed inset-0 z-[130] flex items-center justify-center p-4"
+          className="fixed inset-0 z-130 flex items-center justify-center p-4"
           role="dialog"
           aria-modal="true"
           aria-labelledby="similoo-delete-confirm-title"
         >
           <div
             role="presentation"
-            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            className="absolute inset-0 bg-black/60 backdrop-blur-xs"
             onClick={() => setPendingDeleteId(null)}
           />
           <div
