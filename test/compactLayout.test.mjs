@@ -11,8 +11,8 @@ import test from 'node:test';
 const read = (path) => readFileSync(new URL(`../src/${path}`, import.meta.url), 'utf8');
 const readRoot = (path) => readFileSync(new URL(`../${path}`, import.meta.url), 'utf8');
 
-const SHARED_VERSION = '1.203.2';
-const SHARED_COMMIT = 'a873402a51c86ef39bb72c390a2c2d3eb01f6680';
+const SHARED_VERSION = '1.205.0';
+const SHARED_COMMIT = '16e60171d4515ca594153c212adccc506895aa8c';
 const SHARED_SPEC = `github:mbuchi/aireon-shared#v${SHARED_VERSION}`;
 const STABLE_USER_MENU_LOADER = 'https://static.aireon.ch/shell/user-menu/v1/loader.js';
 
@@ -61,7 +61,7 @@ test('every removed navbar action has a compact account-menu row', () => {
 // surface, Manage / name / email mis-placed, wrong font. v1.196.0 puts the
 // bundled local shell back on MapUserMenu's render path and makes the central
 // runtime opt-in, so the loader must be absent from the production HTML.
-// The pin has since moved forward (v1.201.0); the runtime menu stays
+// The pin has since moved forward (v1.205.0); the runtime menu stays
 // opt-in, so the assertions below still describe the shipped behavior.
 test('the account menu is pinned to the shared release that renders the local shell', async () => {
     const manifest = JSON.parse(readRoot('package.json'));
@@ -88,10 +88,16 @@ test('the account menu is pinned to the shared release that renders the local sh
     // own build target floor, so on Safari 16.0-16.3 the bare specifier failed
     // to resolve and the map died while the rest of the app kept working. The
     // plugin now resolves the exact bare id to the absolute URL at build time.
+    // From v1.205.0 that URL carries `/baseline/`: the stock upstream bundle is
+    // ES2022 and its class static initialization blocks cannot be PARSED by
+    // Safari < 16.4, Firefox < 93 or Chrome < 94, so dropping the import map
+    // alone only changed the failure from "cannot resolve" to a SyntaxError.
+    // The host's baseline build is the same version lowered to
+    // safari16,firefox104,chrome107,edge107.
     assert.equal(html.split('<link rel="preconnect" href="https://static.aireon.ch" crossorigin>').length - 1, 1);
     assert.equal(html.split('<script type="importmap">').length - 1, 0);
     assert.deepEqual(plugin.resolveId('maplibre-gl'), {
-        id: 'https://static.aireon.ch/maplibre-gl@6.3.0/maplibre-gl.mjs',
+        id: 'https://static.aireon.ch/maplibre-gl@6.3.0/baseline/maplibre-gl.mjs',
         external: true,
     });
     // Matched by EXACT id: subpath imports stay bundled, which is what keeps
