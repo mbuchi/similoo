@@ -21,11 +21,11 @@ test('package.json version and CURRENT_VERSION move in lockstep', () => {
     assert.equal(RELEASES[0].version, CURRENT_VERSION);
 });
 
-test('the shared v1.201.0 release is newest', () => {
-    assert.equal(pkg.version, '0.55.0');
-    assert.equal(RELEASES[0].version, '0.55.0');
-    assert.equal(RELEASES[0].codename, 'Painter ready');
-    assert.match(RELEASES[0].summary, /account menu/);
+test('the shared v1.203.2 release is newest', () => {
+    assert.equal(pkg.version, '0.56.0');
+    assert.equal(RELEASES[0].version, '0.56.0');
+    assert.equal(RELEASES[0].codename, 'A map on older browsers');
+    assert.match(RELEASES[0].summary, /shared Aireon asset host/);
 });
 
 // v0.47.0 shipped with package-lock.json still saying 0.46.1: npm writes both

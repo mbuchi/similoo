@@ -11,8 +11,8 @@ import test from 'node:test';
 const read = (path) => readFileSync(new URL(`../src/${path}`, import.meta.url), 'utf8');
 const readRoot = (path) => readFileSync(new URL(`../${path}`, import.meta.url), 'utf8');
 
-const SHARED_VERSION = '1.201.0';
-const SHARED_COMMIT = 'd7eb0e3804f3eda69716c8eb97ee09f95fcefd84';
+const SHARED_VERSION = '1.203.2';
+const SHARED_COMMIT = 'a873402a51c86ef39bb72c390a2c2d3eb01f6680';
 const SHARED_SPEC = `github:mbuchi/aireon-shared#v${SHARED_VERSION}`;
 const STABLE_USER_MENU_LOADER = 'https://static.aireon.ch/shell/user-menu/v1/loader.js';
 
@@ -83,10 +83,20 @@ test('the account menu is pinned to the shared release that renders the local sh
     const html = plugin.transformIndexHtml.handler('<!doctype html><html><head><meta charset="UTF-8"></head><body><div id="root"></div></body></html>');
     assert.equal(html.split(STABLE_USER_MENU_LOADER).length - 1, 0);
     // The shared MapLibre engine still rides on the same static host, so the
-    // preconnect and the importmap are unchanged by dropping the loader.
+    // preconnect is unchanged by dropping the loader. From v1.203.1 on there is
+    // NO import map: it needed Safari 16.4+ / Firefox 108+, above the suite's
+    // own build target floor, so on Safari 16.0-16.3 the bare specifier failed
+    // to resolve and the map died while the rest of the app kept working. The
+    // plugin now resolves the exact bare id to the absolute URL at build time.
     assert.equal(html.split('<link rel="preconnect" href="https://static.aireon.ch" crossorigin>').length - 1, 1);
-    assert.equal(html.split('<script type="importmap">').length - 1, 1);
-    assert.match(html, /"maplibre-gl":"https:\/\/static\.aireon\.ch\/maplibre-gl@6\.3\.0\/maplibre-gl\.mjs"/);
+    assert.equal(html.split('<script type="importmap">').length - 1, 0);
+    assert.deepEqual(plugin.resolveId('maplibre-gl'), {
+        id: 'https://static.aireon.ch/maplibre-gl@6.3.0/maplibre-gl.mjs',
+        external: true,
+    });
+    // Matched by EXACT id: subpath imports stay bundled, which is what keeps
+    // the tile-worker asset and maplibre-gl.css local and per-app.
+    assert.equal(plugin.resolveId('maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url'), null);
 
     // The installed MapUserMenu emits the local shell markup that carries the
     // suite design CSS, rather than mounting the shadow-DOM custom element.

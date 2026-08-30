@@ -42,9 +42,10 @@ export default defineConfig({
   },
   build: {
     // The bundle is dominated by three (the ~1 MB maplibre-gl engine is now
-    // external, loaded from static.aireon.ch via the import map that
-    // @aireon/shared's HTML plugin injects); the previous vanilla build
-    // already exceeded the 500 kB default warning. Keep the build quiet.
+    // external, loaded from static.aireon.ch via the absolute URL that
+    // @aireon/shared's HTML plugin resolves at build time -- no import map,
+    // which needed a newer browser than the app itself); the previous vanilla
+    // build already exceeded the 500 kB default warning. Keep the build quiet.
     chunkSizeWarningLimit: 2000,
     rollupOptions: {
       output: {

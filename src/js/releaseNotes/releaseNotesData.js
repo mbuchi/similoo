@@ -41,6 +41,20 @@ export const KIND_META = {
 
 export const RELEASES = [
   {
+    version: '0.56.0',
+    date: 'August 30, 2026',
+    codename: 'A map on older browsers',
+    summary: 'The map engine now loads by direct URL from the shared Aireon asset host, so the comparison maps work on older Safari and Firefox versions that previously showed nothing.',
+    items: [
+      {
+        kind: 'fixed',
+        icon: 'bug',
+        text: 'similoo loads its map engine from the shared Aireon asset host so the file is fetched once and reused across every Aireon app. That was first done with an import map, a browser feature that needs Safari 16.4 or newer and Firefox 108 or newer, which is above the range the rest of the app supports. On Safari 16.0 through 16.3 the engine could not be found, so the comparison maps stayed empty while every other part of the page kept working. The engine address is now written directly into the app when it is built, which needs nothing newer than the app itself, so the maps appear again on those browsers. Nothing changes on current browsers, and no saved comparison or setting is affected.',
+        prs: [],
+      },
+    ],
+  },
+  {
     version: '0.55.0',
     date: 'August 29, 2026',
     codename: 'Painter ready',
