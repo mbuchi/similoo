@@ -21,11 +21,13 @@ test('package.json version and CURRENT_VERSION move in lockstep', () => {
     assert.equal(RELEASES[0].version, CURRENT_VERSION);
 });
 
-test('the Tailwind CSS 4 release is newest', () => {
-    assert.equal(pkg.version, '0.57.0');
-    assert.equal(RELEASES[0].version, '0.57.0');
-    assert.equal(RELEASES[0].codename, 'Same look, newer engine');
-    assert.match(RELEASES[0].summary, /Tailwind CSS 4/);
+test('the even-navbar-spacing release is newest', () => {
+    assert.equal(pkg.version, '0.57.1');
+    assert.equal(RELEASES[0].version, '0.57.1');
+    assert.equal(RELEASES[0].codename, 'Evenly spaced');
+    assert.match(RELEASES[0].summary, /spaced evenly/);
+    // The Tailwind CSS 4 release stays in the log, one below the head.
+    assert.equal(RELEASES[1].codename, 'Same look, newer engine');
 });
 
 // v0.47.0 shipped with package-lock.json still saying 0.46.1: npm writes both
