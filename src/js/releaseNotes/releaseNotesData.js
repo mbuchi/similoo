@@ -41,6 +41,20 @@ export const KIND_META = {
 
 export const RELEASES = [
   {
+    version: '0.57.1',
+    date: 'September 1, 2026',
+    codename: 'Evenly spaced',
+    summary: 'The icon buttons in the top bar are now spaced evenly, matching the rest of the suite.',
+    items: [
+      {
+        kind: 'fixed',
+        icon: 'wrench',
+        text: 'The icon buttons at the right of the top bar were not evenly spaced: the first two sat further apart than the ones beside them, because that pair was grouped in its own box that set its own spacing instead of using the suite-wide navbar spacing. Every button in the bar now sits the same distance from its neighbour, in similoo and in every other Aireon app that had drifted.',
+        prs: [],
+      },
+    ],
+  },
+  {
     version: '0.57.0',
     date: 'August 30, 2026',
     codename: 'Same look, newer engine',

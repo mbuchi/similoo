@@ -651,7 +651,11 @@ export default function App() {
           },
         }}
         actionsExtra={isCompact ? undefined :
-          <div className="flex items-center gap-2 sm:gap-3">
+          <>
+            {/* No wrapper div: these controls sit straight in AppNavbar's own
+                `.aireon-appnav-actions`, so they inherit the suite navbar spacing
+                (`--aireon-navbar-actions-gap`). A local gap here made the first two
+                icons sit wider apart than the toolbar icons right next to them. */}
             <NavIconButton
               icon={<HelpCircle size={18} aria-hidden="true" />}
               label={t('help.button_aria')}
@@ -664,7 +668,7 @@ export default function App() {
               onClick={() => setShowAbout(true)}
               dark={isDark}
             />
-          </div>
+          </>
         }
         userMenu={
           <div className={isCompact ? COMPACT_USER_MENU_CLASS_NAME : 'contents'}>
