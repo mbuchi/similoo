@@ -41,6 +41,20 @@ export const KIND_META = {
 
 export const RELEASES = [
   {
+    version: '0.57.2',
+    date: 'September 1, 2026',
+    codename: 'Light mode all the way through',
+    summary: 'Switching to light mode now changes the whole app at once, instead of leaving the floating panels, the legend and the side panel dark until a reload.',
+    items: [
+      {
+        kind: 'fixed',
+        icon: 'wrench',
+        text: 'Switching between light and dark mode used to only half work. The first time you changed the theme in the app, the page background, the floating dialogs, the legend and the side panel kept the color they had when the page opened, so you could end up with dark panels sitting under a light navbar, or the reverse. Reloading the page always sorted it out. The app now moves every part of the theme together, so one click switches the entire app in both directions and no reload is needed.',
+        prs: [],
+      },
+    ],
+  },
+  {
     version: '0.57.1',
     date: 'September 1, 2026',
     codename: 'Evenly spaced',

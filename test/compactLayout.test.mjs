@@ -11,8 +11,8 @@ import test from 'node:test';
 const read = (path) => readFileSync(new URL(`../src/${path}`, import.meta.url), 'utf8');
 const readRoot = (path) => readFileSync(new URL(`../${path}`, import.meta.url), 'utf8');
 
-const SHARED_VERSION = '1.205.0';
-const SHARED_COMMIT = '16e60171d4515ca594153c212adccc506895aa8c';
+const SHARED_VERSION = '1.205.1';
+const SHARED_COMMIT = '6ed0e99d7fedcd4a33168166fa7b47b43ab73ffa';
 const SHARED_SPEC = `github:mbuchi/aireon-shared#v${SHARED_VERSION}`;
 const STABLE_USER_MENU_LOADER = 'https://static.aireon.ch/shell/user-menu/v1/loader.js';
 
@@ -61,8 +61,17 @@ test('every removed navbar action has a compact account-menu row', () => {
 // surface, Manage / name / email mis-placed, wrong font. v1.196.0 puts the
 // bundled local shell back on MapUserMenu's render path and makes the central
 // runtime opt-in, so the loader must be absent from the production HTML.
-// The pin has since moved forward (v1.205.0); the runtime menu stays
+// The pin has since moved forward (v1.205.1); the runtime menu stays
 // opt-in, so the assertions below still describe the shipped behavior.
+//
+// v1.205.1 is the light-mode theme fix. The pre-paint bootstrap stamps FOUR
+// signals on <html> (the `dark` class, `data-theme`, style.colorScheme and
+// style.backgroundColor) but applyTheme() moved only the class, so the first
+// in-app theme change left the other three on the OLD theme. glass.css keys
+// its dark tokens on [data-theme='dark'] .glass-surface / .glass-control as
+// well as on .dark, so a stale attribute held every glass panel at the dark
+// fill while the rest of the app went light, until a reload. All four signals
+// now move together. Nothing about the account-menu render path changed.
 test('the account menu is pinned to the shared release that renders the local shell', async () => {
     const manifest = JSON.parse(readRoot('package.json'));
     const lock = JSON.parse(readRoot('package-lock.json'));
