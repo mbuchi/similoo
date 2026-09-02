@@ -7,6 +7,14 @@
   "rewrites": [
     { "source": "/api/three3d/:op", "destination": "/api/three3d?path=:op" }
   ],
+  "redirects": [
+    {
+      "source": "/:path*",
+      "has": [{ "type": "host", "value": ".*\\.vercel\\.app" }],
+      "destination": "https://similoo.aireon.ch/:path*",
+      "permanent": true
+    }
+  ],
   "headers": [
     {
       "source": "/assets/(.*)",

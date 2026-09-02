@@ -10,6 +10,7 @@
 
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { createResApiClient, type components } from '@aireon/shared/api';
+import { withTurnstile } from '@aireon/shared/turnstile-guard';
 
 export const config = { maxDuration: 15 };
 
@@ -38,7 +39,7 @@ function send(res: VercelResponse, status: number, body: unknown): void {
     res.status(status).json(body);
 }
 
-export default async function handler(
+async function handler(
     req: VercelRequest,
     res: VercelResponse,
 ): Promise<void> {
@@ -124,3 +125,5 @@ export default async function handler(
         send(res, 502, { error: 'parcel service unreachable', details: msg });
     }
 }
+
+export default withTurnstile(handler);

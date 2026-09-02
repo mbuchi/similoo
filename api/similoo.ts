@@ -6,6 +6,7 @@
 import { withSignalCarrier } from '@aireon/shared/signal-carrier';
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { RES_API_BASE_URL } from '@aireon/shared/api';
+import { withTurnstile } from '@aireon/shared/turnstile-guard';
 
 export const config = { maxDuration: 15 };
 
@@ -154,4 +155,4 @@ async function carrierTarget(
 // cached, and this is POST-only.
 //
 // See aireon-shared/docs/SIGNAL_STANDARD.md.
-export default withSignalCarrier(carrierTarget);
+export default withTurnstile(withSignalCarrier(carrierTarget));

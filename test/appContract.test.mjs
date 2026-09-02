@@ -21,15 +21,15 @@ test('package.json version and CURRENT_VERSION move in lockstep', () => {
     assert.equal(RELEASES[0].version, CURRENT_VERSION);
 });
 
-test('the light-mode theme-switch release is newest', () => {
-    assert.equal(pkg.version, '0.57.2');
-    assert.equal(RELEASES[0].version, '0.57.2');
-    assert.equal(RELEASES[0].codename, 'Light mode all the way through');
-    assert.match(RELEASES[0].summary, /whole app at once/);
-    // The even-navbar-spacing release stays in the log, one below the head.
-    assert.equal(RELEASES[1].codename, 'Evenly spaced');
-    // The Tailwind CSS 4 release stays in the log, two below the head.
-    assert.equal(RELEASES[2].codename, 'Same look, newer engine');
+test('the bot-gate wiring release is newest', () => {
+    assert.equal(pkg.version, '0.58.0');
+    assert.equal(RELEASES[0].version, '0.58.0');
+    assert.equal(RELEASES[0].codename, 'Bot gate wired in');
+    assert.match(RELEASES[0].summary, /Turnstile/);
+    // The light-mode theme-switch release stays in the log, one below the head.
+    assert.equal(RELEASES[1].codename, 'Light mode all the way through');
+    // The even-navbar-spacing release stays in the log, two below the head.
+    assert.equal(RELEASES[2].codename, 'Evenly spaced');
 });
 
 // v0.47.0 shipped with package-lock.json still saying 0.46.1: npm writes both
