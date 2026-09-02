@@ -41,6 +41,20 @@ export const KIND_META = {
 
 export const RELEASES = [
   {
+    version: '0.58.2',
+    date: 'September 2, 2026',
+    codename: 'Carrier stays on',
+    summary: 'Repinned to the shared library release that stops an explicitly named default endpoint from silently switching the signal carrier off.',
+    items: [
+      {
+        kind: 'fixed',
+        icon: 'radio',
+        text: 'Picked up the shared signal fix: only an endpoint that actually differs from the default now counts as an override, so naming the default path explicitly no longer disables batched carrier transport. A genuinely custom endpoint still posts directly and now warns once per app instead of failing silently.',
+        prs: [],
+      },
+    ],
+  },
+  {
     version: '0.58.1',
     date: 'September 2, 2026',
     codename: 'A tighter bot gate',

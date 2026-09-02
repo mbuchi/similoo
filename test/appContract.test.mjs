@@ -21,17 +21,19 @@ test('package.json version and CURRENT_VERSION move in lockstep', () => {
     assert.equal(RELEASES[0].version, CURRENT_VERSION);
 });
 
-test('the bot-gate wiring release is newest', () => {
-    assert.equal(pkg.version, '0.58.1');
-    assert.equal(RELEASES[0].version, '0.58.1');
-    assert.equal(RELEASES[0].codename, 'A tighter bot gate');
-    assert.match(RELEASES[0].summary, /Turnstile/);
-    // The initial bot-gate wiring release stays in the log, one below the head.
-    assert.equal(RELEASES[1].codename, 'Bot gate wired in');
-    // The light-mode theme-switch release stays in the log, two below the head.
-    assert.equal(RELEASES[2].codename, 'Light mode all the way through');
-    // The even-navbar-spacing release stays in the log, three below the head.
-    assert.equal(RELEASES[3].codename, 'Evenly spaced');
+test('the signal-carrier repin release is newest', () => {
+    assert.equal(pkg.version, '0.58.2');
+    assert.equal(RELEASES[0].version, '0.58.2');
+    assert.equal(RELEASES[0].codename, 'Carrier stays on');
+    assert.match(RELEASES[0].summary, /signal carrier/);
+    // The Turnstile-hardening repin stays in the log, one below the head.
+    assert.equal(RELEASES[1].codename, 'A tighter bot gate');
+    // The initial bot-gate wiring release stays in the log, two below the head.
+    assert.equal(RELEASES[2].codename, 'Bot gate wired in');
+    // The light-mode theme-switch release stays in the log, three below the head.
+    assert.equal(RELEASES[3].codename, 'Light mode all the way through');
+    // The even-navbar-spacing release stays in the log, four below the head.
+    assert.equal(RELEASES[4].codename, 'Evenly spaced');
 });
 
 // v0.47.0 shipped with package-lock.json still saying 0.46.1: npm writes both
