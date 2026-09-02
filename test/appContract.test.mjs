@@ -22,14 +22,16 @@ test('package.json version and CURRENT_VERSION move in lockstep', () => {
 });
 
 test('the bot-gate wiring release is newest', () => {
-    assert.equal(pkg.version, '0.58.0');
-    assert.equal(RELEASES[0].version, '0.58.0');
-    assert.equal(RELEASES[0].codename, 'Bot gate wired in');
+    assert.equal(pkg.version, '0.58.1');
+    assert.equal(RELEASES[0].version, '0.58.1');
+    assert.equal(RELEASES[0].codename, 'A tighter bot gate');
     assert.match(RELEASES[0].summary, /Turnstile/);
-    // The light-mode theme-switch release stays in the log, one below the head.
-    assert.equal(RELEASES[1].codename, 'Light mode all the way through');
-    // The even-navbar-spacing release stays in the log, two below the head.
-    assert.equal(RELEASES[2].codename, 'Evenly spaced');
+    // The initial bot-gate wiring release stays in the log, one below the head.
+    assert.equal(RELEASES[1].codename, 'Bot gate wired in');
+    // The light-mode theme-switch release stays in the log, two below the head.
+    assert.equal(RELEASES[2].codename, 'Light mode all the way through');
+    // The even-navbar-spacing release stays in the log, three below the head.
+    assert.equal(RELEASES[3].codename, 'Evenly spaced');
 });
 
 // v0.47.0 shipped with package-lock.json still saying 0.46.1: npm writes both

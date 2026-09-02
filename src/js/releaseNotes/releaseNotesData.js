@@ -41,6 +41,20 @@ export const KIND_META = {
 
 export const RELEASES = [
   {
+    version: '0.58.1',
+    date: 'September 2, 2026',
+    codename: 'A tighter bot gate',
+    summary: 'Repinned to the shared library release that carries security hardening of the Turnstile verify endpoint.',
+    items: [
+      {
+        kind: 'fixed',
+        icon: 'shield',
+        text: 'Picked up security hardening of the Turnstile verify endpoint, plus preview-host acceptance and client renewal-timer fixes, from the shared library. The gate itself stays off until the app is given keys.',
+        prs: [],
+      },
+    ],
+  },
+  {
     version: '0.58.0',
     date: 'September 2, 2026',
     codename: 'Bot gate wired in',
