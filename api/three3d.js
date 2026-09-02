@@ -12,6 +12,8 @@
 // One single handler routes all endpoints via the trailing path; this
 // keeps Vercel function count low (only one function file).
 
+import { withTurnstile } from '@aireon/shared/turnstile-guard';
+
 export const config = { maxDuration: 60 };
 
 const CONTOOR_BASE =
@@ -94,7 +96,7 @@ const WFS_BUILDING_LAYER =
     'project_res:bo_buildings_all_2025';
 const WFS_BBOX_PAGE_SIZE = Number(process.env.SWISS_WFS_PAGE_SIZE || 200);
 
-export default async function handler(req, res) {
+async function handler(req, res) {
     if (req.method === 'OPTIONS') {
         setCors(res);
         res.status(204).end();
@@ -228,6 +230,8 @@ export default async function handler(req, res) {
         clearTimeout(timer);
     }
 }
+
+export default withTurnstile(handler);
 
 // The upstream serialises heavy operations (one Roofer/CityJSON job at
 // a time) and answers 503 "Server is busy" when the semaphore is full.

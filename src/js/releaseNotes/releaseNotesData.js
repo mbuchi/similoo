@@ -41,6 +41,20 @@ export const KIND_META = {
 
 export const RELEASES = [
   {
+    version: '0.58.0',
+    date: 'September 2, 2026',
+    codename: 'Bot gate wired in',
+    summary: 'similoo now supports the suite-wide Cloudflare Turnstile bot check on its map data endpoints. It stays off until the app is given keys, so nothing changes for visitors yet.',
+    items: [
+      {
+        kind: 'new',
+        icon: 'shield',
+        text: 'The parcel lookup, comparable-parcel and 3D model endpoints can now be protected by a Cloudflare Turnstile check, the same one being rolled out across the Aireon suite. Until the app is switched on with a site key, this has no effect at all: no script loads and no challenge appears.',
+        prs: [],
+      },
+    ],
+  },
+  {
     version: '0.57.2',
     date: 'September 1, 2026',
     codename: 'Light mode all the way through',
