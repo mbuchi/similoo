@@ -46,7 +46,7 @@
     "html-to-image": "^1.11.13",
     "lucide": "^0.358.0",
     "lucide-react": "^0.577.0",
-    "maplibre-gl": "^6.3.0",
+    "maplibre-gl": "^6.6.0",
     "oidc-client-ts": "^3.5.0",
     "ol": "^10.10.0",
     "proj4": "^2.21.0",
