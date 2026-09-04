@@ -42,12 +42,12 @@ export function setCached(key, value, ttlMs) {
         // if we're over the soft cap. localStorage is sync so the worst
         // case is a small CPU spike on the cap-hit write.
         maybeEvict();
-    } catch (e) {
+    } catch {
         // Quota-exceeded or storage disabled. We don't surface this —
         // the network path is still authoritative.
         try {
             localStorage.removeItem(NAMESPACE + key);
-        } catch {}
+        } catch { /* best-effort cleanup */ }
     }
 }
 
@@ -85,7 +85,7 @@ function maybeEvict() {
     // Oldest-expiring first; drop the surplus.
     entries.sort((a, b) => a.e - b.e);
     for (let i = 0; i < overflow; i++) {
-        try { localStorage.removeItem(entries[i].k); } catch {}
+        try { localStorage.removeItem(entries[i].k); } catch { /* best-effort cleanup */ }
     }
 }
 

@@ -1,7 +1,7 @@
 {
   "name": "similoo",
   "private": true,
-  "version": "0.58.3",
+  "version": "0.58.4",
   "type": "module",
   "description": "similoo - comparable-buildings explorer: find buildings comparable to a Swiss address (same municipality and zone, recent construction) and inspect them as LOD 2.5 cubes plus a streamed swissSURFACE3D point-cloud detail view (Giro3D).",
   "repository": {
@@ -10,9 +10,11 @@
   },
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "npm run typecheck && vite build",
+    "lint": "oxlint --type-aware --tsconfig tsconfig.json",
+    "lint:syntax": "oxlint",
     "preview": "vite preview",
-    "typecheck": "node node_modules/typescript7/bin/tsc --noEmit",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
     "typecheck:api": "tsc -p api/tsconfig.json --noEmit",
     "test": "vitest run && npm run test:contract",
     "test:contract": "node --test 'test/**/*.test.mjs'",
@@ -29,10 +31,11 @@
     "@vitejs/plugin-react": "^6.0.5",
     "babel-plugin-react-compiler": "^1.0.0",
     "jsdom": "29.1.1",
+    "oxlint": "1.81.0",
+    "oxlint-tsgolint": "7.0.2001",
     "postcss": "^8.4.35",
     "tailwindcss": "^4.3.3",
-    "typescript": "^5.5.3",
-    "typescript7": "npm:typescript@^7.0.2",
+    "typescript": "7.0.2",
     "vite": "^8.2.1",
     "vitest": "^4.1.10"
   },
