@@ -41,6 +41,20 @@ export const KIND_META = {
 
 export const RELEASES = [
   {
+    version: '0.58.3',
+    date: 'September 4, 2026',
+    codename: 'Shared foundation v1.209.0',
+    summary: 'Updated the shared library to v1.209.0: the typed data-service client follows contract 1.19.0, and transient browser noise no longer lands in the bug tracker.',
+    items: [
+      {
+        kind: 'improved',
+        icon: 'package',
+        text: 'Updated the shared Aireon foundation from v1.207.4 to v1.209.0. The typed connection to the Aireon data service now follows contract 1.19.0, and transient browser noise (stale script chunks, page unloads, offline moments) is no longer reported as an application error, so the bug tracker shows real problems only. The comparison workflow, the map and your saved parcels are unchanged.',
+        prs: [],
+      },
+    ],
+  },
+  {
     version: '0.58.2',
     date: 'September 2, 2026',
     codename: 'Carrier stays on',

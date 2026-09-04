@@ -21,19 +21,21 @@ test('package.json version and CURRENT_VERSION move in lockstep', () => {
     assert.equal(RELEASES[0].version, CURRENT_VERSION);
 });
 
-test('the signal-carrier repin release is newest', () => {
-    assert.equal(pkg.version, '0.58.2');
-    assert.equal(RELEASES[0].version, '0.58.2');
-    assert.equal(RELEASES[0].codename, 'Carrier stays on');
-    assert.match(RELEASES[0].summary, /signal carrier/);
-    // The Turnstile-hardening repin stays in the log, one below the head.
-    assert.equal(RELEASES[1].codename, 'A tighter bot gate');
-    // The initial bot-gate wiring release stays in the log, two below the head.
-    assert.equal(RELEASES[2].codename, 'Bot gate wired in');
-    // The light-mode theme-switch release stays in the log, three below the head.
-    assert.equal(RELEASES[3].codename, 'Light mode all the way through');
-    // The even-navbar-spacing release stays in the log, four below the head.
-    assert.equal(RELEASES[4].codename, 'Evenly spaced');
+test('the shared v1.209.0 repin release is newest', () => {
+    assert.equal(pkg.version, '0.58.3');
+    assert.equal(RELEASES[0].version, '0.58.3');
+    assert.equal(RELEASES[0].codename, 'Shared foundation v1.209.0');
+    assert.match(RELEASES[0].summary, /v1\.209\.0/);
+    // The signal-carrier repin stays in the log, one below the head.
+    assert.equal(RELEASES[1].codename, 'Carrier stays on');
+    // The Turnstile-hardening repin stays in the log, two below the head.
+    assert.equal(RELEASES[2].codename, 'A tighter bot gate');
+    // The initial bot-gate wiring release stays in the log, three below the head.
+    assert.equal(RELEASES[3].codename, 'Bot gate wired in');
+    // The light-mode theme-switch release stays in the log, four below the head.
+    assert.equal(RELEASES[4].codename, 'Light mode all the way through');
+    // The even-navbar-spacing release stays in the log, five below the head.
+    assert.equal(RELEASES[5].codename, 'Evenly spaced');
 });
 
 // v0.47.0 shipped with package-lock.json still saying 0.46.1: npm writes both

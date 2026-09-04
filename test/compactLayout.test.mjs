@@ -11,8 +11,8 @@ import test from 'node:test';
 const read = (path) => readFileSync(new URL(`../src/${path}`, import.meta.url), 'utf8');
 const readRoot = (path) => readFileSync(new URL(`../${path}`, import.meta.url), 'utf8');
 
-const SHARED_VERSION = '1.207.4';
-const SHARED_COMMIT = '37c0089ce4ffd8fb322b6cf53e9e220695df6e4e';
+const SHARED_VERSION = '1.209.0';
+const SHARED_COMMIT = '2b280d7f57d9b4fffcf31227c01201a6c7d8e1f4';
 const SHARED_SPEC = `github:mbuchi/aireon-shared#v${SHARED_VERSION}`;
 const STABLE_USER_MENU_LOADER = 'https://static.aireon.ch/shell/user-menu/v1/loader.js';
 
