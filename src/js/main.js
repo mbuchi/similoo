@@ -21,7 +21,7 @@ import {
 // Overlay opacity (?opacity=0..100) — single owner of the factor, shared with
 // the React shell's URL sync provider. See viewer/overlayOpacity.js.
 import { initOverlayOpacity, registerOverlayLayers } from './viewer/overlayOpacity.js';
-import { applyTranslations, t } from './i18n.js';
+import { applyTranslations } from './i18n.js';
 import { createComparisonSidebar } from './comparison/sidebar.js';
 // The data card pinned to a comparable parcel after a list-card fly-to (the
 // sidebar deliberately stays on the subject parcel; this popup is the label
@@ -124,7 +124,6 @@ export function boot() {
     initOverlayOpacity(() => map);
     let sidebar = null;
     let detailModal = null;
-    let legend = null;
     // Comparable map popup — reads the live map through the getter because
     // initializeViewer() is async (same pattern as the opacity controller).
     const comparablePopup = createComparablePopup(() => map);
@@ -254,7 +253,7 @@ export function boot() {
                     }));
                 });
                 // Bottom-left legend explaining the red/green/pink highlights.
-                legend = createMapLegend(map.getContainer());
+                createMapLegend(map.getContainer());
                 return map;
             } catch (e) {
                 mapLoading = null;
@@ -1222,7 +1221,7 @@ export function boot() {
             // that already names a location must still run its comparison.
             void showEmptyMap();
         }
-    } catch (_) { /* no-op */ }
+    } catch { /* no-op */ }
 
     if (window.lucide?.createIcons) window.lucide.createIcons();
 }

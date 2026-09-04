@@ -45,6 +45,8 @@ updates:
       # a per-repo bump; rationale per package in the plan doc, section 4b.
       - dependency-name: "typescript"
         update-types: ["version-update:semver-major"]
+      - dependency-name: "oxlint-tsgolint"
+        update-types: ["version-update:semver-major"]
       - dependency-name: "tailwindcss"
         update-types: ["version-update:semver-major"]
       - dependency-name: "eslint"
@@ -102,6 +104,7 @@ updates:
           - "rolldown*"
           - "@rolldown/*"
           - "typescript*"
+          - "oxlint*"
           - "eslint*"
           - "@eslint/*"
           - "@typescript-eslint/*"

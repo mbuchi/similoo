@@ -33,9 +33,7 @@ import { t, onLocaleChange, getLocale } from '../i18n.js';
 import {
     dash,
     dataPillGroupHtml,
-    dataPillHtml,
     escapeHtml,
-    formatInt,
     formatM,
     formatM2,
     formatM3,
@@ -186,7 +184,6 @@ export function createComparisonSidebar({ map, onClose, onFlyTo, onSelectCompara
     let currentEgrid = null;
     let currentAddress = null;
     let currentData = null;
-    let currentTargetSeed = null;
     // The searched parcel's polygon + centroid, threaded in from main.js's pick
     // flow — the lite base + camera center the buildable-massing simulator uses.
     let currentGeometry = null;
@@ -626,7 +623,6 @@ export function createComparisonSidebar({ map, onClose, onFlyTo, onSelectCompara
             // A newer request may have raced ahead — drop the stale response.
             if (seq !== fetchSeq) return;
             currentData = data;
-            currentTargetSeed = `${data?.target?.egrid ?? egrid}`;
             renderTarget();
             renderList();
             renderMeta();
