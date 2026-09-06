@@ -41,6 +41,26 @@ export const KIND_META = {
 
 export const RELEASES = [
   {
+    version: '0.59.0',
+    date: 'September 6, 2026',
+    codename: 'Year by year',
+    summary: 'The years window is a 1 to 10 year slider again, replacing the fixed-step ladder, so the comparables can follow a recent zoning or building-law change one year at a time.',
+    items: [
+      {
+        kind: 'new',
+        icon: 'sliders-horizontal',
+        text: 'The years window filter in the sidebar is a slider again. Drag it from 1 to 10 years in one-year steps and the comparables refetch for that window: set it to the years since a zoning plan or building rule took effect and only buildings completed under that rule remain. The fixed 5 / 10 / 15 / 20 / 40 / 60 / All steps are gone; 10 years stays the default, so a parcel opened without touching the control shows the same comparables as before. The slider is a native control, so it works with the keyboard, on touch and with assistive tech, and reads out the chosen window as you move it. The methodology help explains the new range in all four languages.',
+        prs: [],
+      },
+      {
+        kind: 'improved',
+        icon: 'package',
+        text: 'Updated the shared Aireon foundation from v1.209.0 to v1.210.0: the error reporter now marks its own best-effort requests and lets an app veto a capture before it is sent, so fewer transient network blips reach the bug tracker. The comparison workflow and the map are unchanged.',
+        prs: [],
+      },
+    ],
+  },
+  {
     version: '0.58.4',
     date: 'September 4, 2026',
     codename: 'One compiler, one linter',

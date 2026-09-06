@@ -10,25 +10,31 @@
 // years well before 1926, so the unrestricted window is its own value, never
 // the top of the numeric range.
 //
-// The sidebar control is a discrete precision ladder, not a free slider, so a
-// value arriving from anywhere else (a stale persisted number, a hand-edited
-// attribute) is snapped onto a step instead of being accepted verbatim.
+// The sidebar control is a slider over a deliberately short range, 1..10
+// years in one-year steps, so the window can follow a recent zoning or
+// building-law change year by year: set it to the years since the rule took
+// effect and only buildings completed under it remain. The wire contract is
+// wider than the control on purpose - an explicit `years: 40` or `'all'` from
+// elsewhere still reaches RES intact - but a value arriving at the CONTROL
+// from anywhere else (a stale persisted number, a hand-edited attribute) is
+// clamped onto the slider instead of being accepted verbatim.
 
 export const ALL_YEARS = 'all';
 
-// The ladder the sidebar renders, tightest step first. Mirrors the utilization
-// vintage ladder used elsewhere in the suite: fine steps where recent-permit
-// data is dense, coarse steps beyond it, then the unrestricted window.
-export const YEARS_LADDER = [5, 10, 15, 20, 40, 60, ALL_YEARS];
-
-// 10 is a ladder step, so the default is unchanged from the slider era: a user
-// who never touches the control sends exactly what they sent before.
+// 10 is the top of the slider, so the default is unchanged from the ladder
+// era: a user who never touches the control sends exactly what they sent
+// before.
 export const DEFAULT_YEARS = 10;
 
 // The backend's bounded range for a NUMERIC window. Anything outside it is
 // garbage, not something to clamp silently into a different question.
 export const MIN_YEARS = 1;
 export const MAX_YEARS = 100;
+
+// The slider's own bounds, declared once and read by the sidebar for the
+// input's min/max, its tick marks and its scale.
+export const SLIDER_MIN_YEARS = 1;
+export const SLIDER_MAX_YEARS = 10;
 
 /**
  * True for the two accepted spellings of the unrestricted window: the string
@@ -73,30 +79,19 @@ export function coerceYearsWindow(raw, fallback = DEFAULT_YEARS) {
 }
 
 /**
- * Snap a value onto a ladder step. `'all'` stays `'all'`; a numeric window
- * lands on the nearest step, ties going to the WIDER one (a sparse result set
- * is this filter's failure mode, so 30 widens to 40 rather than narrowing to
- * 20). Garbage falls back the same way `coerceYearsWindow` does.
- *
- * A number above the top numeric step lands on 60, never on `'all'`: the
- * unrestricted window is only ever reachable by asking for it by name.
+ * Clamp a value onto the slider: an integer inside
+ * [SLIDER_MIN_YEARS, SLIDER_MAX_YEARS]. A wider numeric window (a stale 40
+ * from the retired ladder, a hand-typed 100) lands on the slider's top, and so
+ * does the unrestricted `'all'`: the widest window the control can say is the
+ * nearest thing to "no limit" it has. Garbage falls back the same way
+ * `coerceYearsWindow` does, and a fallback of `'all'` clamps like `'all'`.
  *
  * @param {unknown} raw
  * @param {number | typeof ALL_YEARS} [fallback]
- * @returns {number | typeof ALL_YEARS}
+ * @returns {number}
  */
-export function normalizeYearsWindow(raw, fallback = DEFAULT_YEARS) {
+export function clampSliderYears(raw, fallback = DEFAULT_YEARS) {
     const coerced = coerceYearsWindow(raw, fallback);
-    if (coerced === ALL_YEARS) return ALL_YEARS;
-    let best = DEFAULT_YEARS;
-    let bestDelta = Infinity;
-    for (const step of YEARS_LADDER) {
-        if (typeof step !== 'number') continue;
-        const delta = Math.abs(step - coerced);
-        if (delta < bestDelta || (delta === bestDelta && step > best)) {
-            best = step;
-            bestDelta = delta;
-        }
-    }
-    return best;
+    if (coerced === ALL_YEARS) return SLIDER_MAX_YEARS;
+    return Math.min(SLIDER_MAX_YEARS, Math.max(SLIDER_MIN_YEARS, coerced));
 }

@@ -92,12 +92,12 @@ expectDeclarations('.cmp-track::before', {
 expectDeclarations('.cmp-size-sub input', {
   'min-height': '44px',
 });
-// Years precision ladder: a segmented row where the segment IS the target, so
-// the phone media block grows the step itself to the 44px floor rather than
-// hanging a transparent ::before off a compact box — inside the ladder's own
-// horizontal scroll container an oversized ::before would overflow vertically.
-expectDeclarations('.cmp-years-step', {
+// Years window slider: the native range input IS the target, so the input
+// itself carries the 44px floor (the track still paints centred), the same
+// rule the massing simulator's sliders follow above.
+expectDeclarations('.cmp-years-range', {
   'min-height': '44px',
+  background: 'transparent',
 });
 expectDeclarations('.cmp-card-pc', {
   width: '44px',
