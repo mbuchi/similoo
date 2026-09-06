@@ -21,23 +21,25 @@ test('package.json version and CURRENT_VERSION move in lockstep', () => {
     assert.equal(RELEASES[0].version, CURRENT_VERSION);
 });
 
-test('the native TypeScript 7 + Oxlint release is newest', () => {
-    assert.equal(pkg.version, '0.58.4');
-    assert.equal(RELEASES[0].version, '0.58.4');
-    assert.equal(RELEASES[0].codename, 'One compiler, one linter');
-    assert.match(RELEASES[0].summary, /TypeScript 7/);
-    // The shared v1.209.0 repin stays in the log, one below the head.
-    assert.equal(RELEASES[1].codename, 'Shared foundation v1.209.0');
-    // The signal-carrier repin stays in the log, two below the head.
-    assert.equal(RELEASES[2].codename, 'Carrier stays on');
-    // The Turnstile-hardening repin stays in the log, three below the head.
-    assert.equal(RELEASES[3].codename, 'A tighter bot gate');
-    // The initial bot-gate wiring release stays in the log, four below the head.
-    assert.equal(RELEASES[4].codename, 'Bot gate wired in');
-    // The light-mode theme-switch release stays in the log, five below the head.
-    assert.equal(RELEASES[5].codename, 'Light mode all the way through');
-    // The even-navbar-spacing release stays in the log, six below the head.
-    assert.equal(RELEASES[6].codename, 'Evenly spaced');
+test('the years-slider release is newest', () => {
+    assert.equal(pkg.version, '0.59.0');
+    assert.equal(RELEASES[0].version, '0.59.0');
+    assert.equal(RELEASES[0].codename, 'Year by year');
+    assert.match(RELEASES[0].summary, /1 to 10 year slider/);
+    // The native TypeScript 7 + Oxlint release stays in the log, one below the head.
+    assert.equal(RELEASES[1].codename, 'One compiler, one linter');
+    // The shared v1.209.0 repin stays in the log, two below the head.
+    assert.equal(RELEASES[2].codename, 'Shared foundation v1.209.0');
+    // The signal-carrier repin stays in the log, three below the head.
+    assert.equal(RELEASES[3].codename, 'Carrier stays on');
+    // The Turnstile-hardening repin stays in the log, four below the head.
+    assert.equal(RELEASES[4].codename, 'A tighter bot gate');
+    // The initial bot-gate wiring release stays in the log, five below the head.
+    assert.equal(RELEASES[5].codename, 'Bot gate wired in');
+    // The light-mode theme-switch release stays in the log, six below the head.
+    assert.equal(RELEASES[6].codename, 'Light mode all the way through');
+    // The even-navbar-spacing release stays in the log, seven below the head.
+    assert.equal(RELEASES[7].codename, 'Evenly spaced');
 });
 
 // v0.47.0 shipped with package-lock.json still saying 0.46.1: npm writes both
