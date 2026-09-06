@@ -908,6 +908,77 @@
     white-space: nowrap;
 }
 
+/* Planning figures on a card — the achievable volume (buildability envelope)
+   and the current utilization — as two labeled data pills between the ratioV
+   bar and the footer row. Rendered only when the row carries them (the live
+   route emits them from RES v0.0.166 on; demo data always does), so a card
+   without them keeps exactly its old layout. */
+.cmp-card-pills {
+    margin: -2px 0 8px;
+}
+.cmp-card-pills:empty { display: none; }
+
+/* ---------- pager ---------- */
+/* Previous / Next around a "7–12 of 60" readout, under the list. Hidden
+   outright while the filtered set fits on one page, so a short list carries
+   no pager chrome at all. The buttons are the touch target themselves (44px
+   both ways, every width); the readout is a polite live region so a page
+   change is announced without moving focus. */
+.cmp-pager {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-top: 10px;
+}
+.cmp-pager[hidden] { display: none; }
+.cmp-pager-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    min-width: 44px;
+    min-height: 44px;
+    padding: 0 12px;
+    border: 1px solid var(--hood-panel-border);
+    border-radius: 9999px;
+    background: var(--hood-panel-row-bg);
+    color: var(--hood-panel-title);
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 150ms ease, border-color 150ms ease;
+}
+.cmp-pager-btn:hover:not(:disabled) {
+    background: var(--hood-panel-row-bg-hover);
+    border-color: var(--hood-red);
+}
+.cmp-pager-btn:focus-visible {
+    outline: 2px solid var(--hood-red);
+    outline-offset: 1px;
+}
+.cmp-pager-btn:disabled {
+    opacity: 0.4;
+    cursor: default;
+}
+.cmp-pager-btn svg {
+    width: 16px;
+    height: 16px;
+    flex: none;
+}
+.cmp-pager-status {
+    flex: 1;
+    min-width: 0;
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+    color: var(--hood-panel-text);
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
 /* ---------- meta footer ---------- */
 .cmp-meta {
     margin-top: 12px;
@@ -990,8 +1061,16 @@ body.cmp-shifted .basemap-selector {
     .cmp-footer,
     .cmp-topics,
     .cmp-build-empty,
+    .cmp-pager,
     .cmp-massing {
         display: none !important;
+    }
+
+    /* The printout is the report, not the page on screen: every card in the
+       filtered, sorted set is in the DOM (the pager only hides the ones off
+       the current page), so print reveals them all. */
+    .cmp-card[hidden] {
+        display: block !important;
     }
 
     /* Always print the whole comparison report, whichever topic tab (or the

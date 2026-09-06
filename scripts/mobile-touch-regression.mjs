@@ -103,5 +103,11 @@ expectDeclarations('.cmp-card-pc', {
   width: '44px',
   height: '44px',
 });
+// Pager (Previous / Next under the list): the button IS the target, 44px
+// both ways at every width.
+expectDeclarations('.cmp-pager-btn', {
+  'min-width': '44px',
+  'min-height': '44px',
+});
 
 console.log('mobile-touch regression: comparison controls keep 44px hit areas, identifier pills stay on one line');

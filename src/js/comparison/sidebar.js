@@ -33,13 +33,27 @@ import { t, onLocaleChange, getLocale } from '../i18n.js';
 import {
     dash,
     dataPillGroupHtml,
+    dataPillHtml,
     escapeHtml,
     formatM,
     formatM2,
     formatM3,
     formatPct,
     formatRatio,
+    planningPillItems,
 } from './format.js';
+// The list as a pure view over the fetched pool: size filter, sort order,
+// which sorts a payload can offer, and the page slice. No DOM in there, so
+// the rendering below and listView.test.ts share one definition of each.
+import {
+    DEFAULT_SORT,
+    POOL_LIMIT,
+    availableSortKeys,
+    filterComparables,
+    paginate,
+    resolveSortKey,
+    sortComparables,
+} from './listView.js';
 import { fetchSimilooComparables } from '../api/similoo.js';
 import {
     DEFAULT_YEARS,
@@ -66,9 +80,13 @@ import { createSaveParcelButton } from './saveParcelButton.js';
 //        laid over it.
 //     2. Filters — the "years window" slider (1..10 years in one-year steps,
 //        default 10) and parcel-size from/to inputs.
-//     3. Comparable buildings list — sortable cards (similarity / ratioV /
-//        size / year) with an in-card data bar visualising ratioV against
-//        the max in the current set.
+//     3. Comparable buildings list — a pool of up to POOL_LIMIT comparables
+//        (one fetch per parcel + years window), sortable (similarity /
+//        ratioV / size / year, plus achievable volume / utilization whenever
+//        the payload carries them) and paged PAGE_SIZE cards at a time behind
+//        a Previous / Next pager. An in-card data bar visualises ratioV
+//        against the max in the current set, and two labeled pills carry the
+//        planning figures. The map highlights follow the page.
 //
 //   Build (canonical shared subject) — the buildable-massing simulator for the
 //     subject parcel, on its own so it stops competing with the comparables
@@ -79,8 +97,6 @@ import { createSaveParcelButton } from './saveParcelButton.js';
 // out. The picker integration in main.js owns the lifecycle.
 
 const DEBOUNCE_MS = 250;
-
-const SORT_KEYS = ['similarity', 'ratioV', 'size', 'year'];
 
 // --- Panel topics (PANEL_TABS_STANDARD.md) ---------------------------------
 //
@@ -171,7 +187,7 @@ function skeletonPillGroup(widths) {
     `;
 }
 
-export function createComparisonSidebar({ map, onClose, onFlyTo, onSelectComparable, onHoverComparable, onUnhoverComparable, onDataLoaded } = {}) {
+export function createComparisonSidebar({ map, onClose, onFlyTo, onSelectComparable, onHoverComparable, onUnhoverComparable, onDataLoaded, onVisibleComparables } = {}) {
     let aside = buildShell();
     document.body.appendChild(aside);
 
@@ -210,7 +226,11 @@ export function createComparisonSidebar({ map, onClose, onFlyTo, onSelectCompara
     let years = DEFAULT_YEARS;
     let sizeFrom = null;
     let sizeTo = null;
-    let sortBy = 'similarity';
+    let sortBy = DEFAULT_SORT;
+    // The sort keys the CURRENT pool can offer (the two planning sorts need
+    // the payload to carry their field) and the 0-based page of the list.
+    let sortAvailable = availableSortKeys([]);
+    let page = 0;
     let fetchSeq = 0;
     // Developer "{}" raw-JSON view state — mirrors groove's InfoPanel showRaw.
     let showRaw = false;
@@ -237,6 +257,10 @@ export function createComparisonSidebar({ map, onClose, onFlyTo, onSelectCompara
         sizeFromInput: aside.querySelector('.cmp-size-from'),
         sizeToInput: aside.querySelector('.cmp-size-to'),
         sortSelect: aside.querySelector('.cmp-sort'),
+        pager: aside.querySelector('.cmp-pager'),
+        pagerPrev: aside.querySelector('.cmp-pager-prev'),
+        pagerNext: aside.querySelector('.cmp-pager-next'),
+        pagerStatus: aside.querySelector('.cmp-pager-status'),
         list: aside.querySelector('.cmp-list'),
         status: aside.querySelector('.cmp-status'),
         poolNote: aside.querySelector('.cmp-pool-note'),
@@ -341,18 +365,42 @@ export function createComparisonSidebar({ map, onClose, onFlyTo, onSelectCompara
         }, DEBOUNCE_MS);
     }
 
+    // A filter or sort change redefines the list, so it restarts on page 1:
+    // page 4 of the old order is not a place in the new one.
     els.sizeFromInput.addEventListener('input', () => {
         sizeFrom = parseSizeInput(els.sizeFromInput.value);
+        page = 0;
         renderList();
     });
     els.sizeToInput.addEventListener('input', () => {
         sizeTo = parseSizeInput(els.sizeToInput.value);
+        page = 0;
         renderList();
     });
     els.sortSelect.addEventListener('change', () => {
-        sortBy = SORT_KEYS.includes(els.sortSelect.value) ? els.sortSelect.value : 'similarity';
+        sortBy = resolveSortKey(els.sortSelect.value, sortAvailable);
+        els.sortSelect.value = sortBy;
+        page = 0;
         renderList();
     });
+
+    // --- pager -----------------------------------------------------------
+    //
+    // Previous / Next step the page; the readout is a polite live region, so
+    // the new range is announced without moving focus. When a step lands on
+    // an end and disables the button under the pointer, focus hops to its
+    // sibling so a keyboard user is not left on an inert control.
+    function stepPage(delta) {
+        // Read the focused button BEFORE the render: Chrome blurs a button
+        // the instant it is disabled, so activeElement afterwards is <body>.
+        const active = document.activeElement;
+        page = Math.max(0, page + delta);
+        renderList();
+        if (active === els.pagerNext && els.pagerNext.disabled) els.pagerPrev.focus();
+        else if (active === els.pagerPrev && els.pagerPrev.disabled) els.pagerNext.focus();
+    }
+    els.pagerPrev.addEventListener('click', () => stepPage(-1));
+    els.pagerNext.addEventListener('click', () => stepPage(1));
 
     // "{}" toggle — flip the panel into the raw-JSON developer view (and back).
     // Inert while there's no data to serialize.
@@ -432,6 +480,7 @@ export function createComparisonSidebar({ map, onClose, onFlyTo, onSelectCompara
         currentGeometry = null;
         currentLngLat = null;
         currentParcelProps = null;
+        page = 0;
         // Data is gone — disable the "{}" toggle and drop back to the normal body.
         syncRawAvailability();
         // Drop the Track button's parcel binding so a stale tracked-state can't
@@ -446,6 +495,9 @@ export function createComparisonSidebar({ map, onClose, onFlyTo, onSelectCompara
         renderFooter();
         // Same for the candidate-pool note: no data, nothing to explain.
         renderPoolNote();
+        // The list is gone too: no pager, and nothing lit up on the map.
+        renderPager(paginate(0, 0), 0);
+        onVisibleComparables?.([]);
         onUnhoverComparable?.();
     }
 
@@ -605,10 +657,14 @@ export function createComparisonSidebar({ map, onClose, onFlyTo, onSelectCompara
         // refetch the prior data stays put (no flicker), only the status updates.
         if (!currentData) renderLoadingSkeleton();
         try {
-            const data = await fetchSimilooComparables(egrid, { years, limit: 12 });
+            const data = await fetchSimilooComparables(egrid, { years, limit: POOL_LIMIT });
             // A newer request may have raced ahead — drop the stale response.
             if (seq !== fetchSeq) return;
             currentData = data;
+            // A new pool starts on its first page and offers only the sorts
+            // its rows can back.
+            page = 0;
+            syncSortOptions();
             renderTarget();
             renderList();
             renderMeta();
@@ -759,6 +815,9 @@ export function createComparisonSidebar({ map, onClose, onFlyTo, onSelectCompara
                         label: t('comparison.metric_zoning'),
                         value: resolveZoneLabel(zoneSource(target)),
                     },
+                    // The subject's own planning figures sit with the parcel:
+                    // what the plot may carry and how much of it is used.
+                    ...planningPillItems(target),
                 ])}
                 ${dataPillGroupHtml(t('comparison.section_building'), [
                     {
@@ -916,29 +975,83 @@ export function createComparisonSidebar({ map, onClose, onFlyTo, onSelectCompara
         });
     }
 
+    // Render the filtered, sorted pool. EVERY card goes into the DOM and the
+    // ones off the current page are `hidden`: the pager is a view, so print
+    // (which reveals hidden cards) emits the whole report, and the card
+    // handlers bind once per render rather than once per page. The map is
+    // told which comparables are on screen so its highlights follow the page.
     function renderList() {
         if (!currentData) {
             els.list.innerHTML = '';
+            renderPager(paginate(0, 0), 0);
+            onVisibleComparables?.([]);
             return;
         }
-        const filtered = filterComparables(currentData.comparables || []);
-        const sorted = sortComparables(filtered, sortBy);
+        const sorted = sortedView();
+        const slice = paginate(sorted.length, page);
+        page = slice.page;
         if (!sorted.length) {
             els.list.innerHTML = '';
             setStatus('empty');
+            renderPager(slice, 0);
+            onVisibleComparables?.([]);
             return;
         }
         setStatus('ready');
+        // The bar scale spans the whole set, not the page, so a card keeps its
+        // bar length when it moves between pages.
         const maxRatio = sorted.reduce((m, c) => Math.max(m, Number.isFinite(c.ratioV) ? c.ratioV : 0), 0) || 1;
-        els.list.innerHTML = sorted.map((c, i) => cardHtml(c, i, maxRatio)).join('');
+        els.list.innerHTML = sorted
+            .map((c, i) => cardHtml(c, i, maxRatio, i < slice.start || i >= slice.end))
+            .join('');
         bindCardHandlers();
+        renderPager(slice, sorted.length);
+        onVisibleComparables?.(sorted.slice(slice.start, slice.end));
     }
 
-    function cardHtml(c, idx, maxRatio) {
+    // The pager under the list: hidden outright while everything fits on one
+    // page, otherwise Previous / Next around the "7–12 of 60" readout.
+    function renderPager(slice, total) {
+        if (!els.pager) return;
+        const onePage = slice.pageCount <= 1;
+        els.pager.hidden = onePage;
+        els.pagerPrev.disabled = !slice.hasPrev;
+        els.pagerNext.disabled = !slice.hasNext;
+        els.pagerStatus.textContent = onePage
+            ? ''
+            : t('comparison.pager_range', { from: slice.from, to: slice.to, total });
+    }
+
+    // Offer only the sorts the pool can back: the two planning sorts read
+    // fields the live route emits from RES v0.0.166 on, and a payload without
+    // them must not show an option that would silently sort nothing. The
+    // options stay in the DOM (hidden AND disabled, because Safari ignores
+    // `hidden` on an <option>) so relabel() keeps addressing them; a selection
+    // that just lost its option drops back to similarity.
+    function syncSortOptions() {
+        sortAvailable = availableSortKeys(currentData?.comparables || []);
+        for (const opt of els.sortSelect.options) {
+            const offered = sortAvailable.includes(opt.value);
+            opt.hidden = !offered;
+            opt.disabled = !offered;
+        }
+        sortBy = resolveSortKey(sortBy, sortAvailable);
+        els.sortSelect.value = sortBy;
+    }
+
+    // The two planning figures as labeled pills between the ratioV bar and the
+    // footer row. Nothing at all when the row carries neither, so a legacy
+    // payload keeps exactly the old card.
+    function cardPlanningPillsHtml(c) {
+        const pills = planningPillItems(c).map(dataPillHtml).filter(Boolean);
+        return pills.length ? `<div class="aireon-datapill-row cmp-card-pills">${pills.join('')}</div>` : '';
+    }
+
+    function cardHtml(c, idx, maxRatio, offPage = false) {
         const ratioPct = Math.max(2, Math.min(100, Math.round((c.ratioV / maxRatio) * 100)));
         const pcLabel = escapeHtml(t('comparison.card_view_pointcloud'));
         return `
-            <article class="cmp-card" data-idx="${idx}" tabindex="0" role="button" aria-label="${escapeHtml(t('comparison.card_aria', { egrid: c.egrid || '' }))}" title="${escapeHtml(t('comparison.card_show_hint'))}">
+            <article class="cmp-card" data-idx="${idx}"${offPage ? ' hidden' : ''} tabindex="0" role="button" aria-label="${escapeHtml(t('comparison.card_aria', { egrid: c.egrid || '' }))}" title="${escapeHtml(t('comparison.card_show_hint'))}">
                 <header class="cmp-card-head">
                     <div class="cmp-card-egrid" title="${escapeHtml(c.egrid || '')}">${escapeHtml(c.egrid || dash())}</div>
                     <div class="cmp-card-head-right">
@@ -952,6 +1065,7 @@ export function createComparisonSidebar({ map, onClose, onFlyTo, onSelectCompara
                     <div class="cmp-card-ratiov-value">${formatRatio(c.ratioV)}</div>
                     <div class="cmp-card-ratiov-bar"><div class="cmp-card-ratiov-fill" style="width:${ratioPct}%"></div></div>
                 </div>
+                ${cardPlanningPillsHtml(c)}
                 <footer class="cmp-card-foot">
                     <span class="cmp-card-foot-cell">
                         <span class="cmp-card-foot-key">${escapeHtml(t('comparison.metric_parcel_size_short'))}</span>
@@ -1020,37 +1134,10 @@ export function createComparisonSidebar({ map, onClose, onFlyTo, onSelectCompara
         });
     }
 
+    // The whole filtered, sorted pool; `data-idx` on a card indexes into it.
     function sortedView() {
         if (!currentData) return [];
-        return sortComparables(filterComparables(currentData.comparables || []), sortBy);
-    }
-
-    function filterComparables(list) {
-        return list.filter((c) => {
-            if (Number.isFinite(sizeFrom) && c.parcel_area_m2 < sizeFrom) return false;
-            if (Number.isFinite(sizeTo) && c.parcel_area_m2 > sizeTo) return false;
-            return true;
-        });
-    }
-
-    function sortComparables(list, key) {
-        const sorted = list.slice();
-        switch (key) {
-            case 'ratioV':
-                sorted.sort((a, b) => (b.ratioV ?? 0) - (a.ratioV ?? 0));
-                break;
-            case 'size':
-                sorted.sort((a, b) => (b.parcel_area_m2 ?? 0) - (a.parcel_area_m2 ?? 0));
-                break;
-            case 'year':
-                sorted.sort((a, b) => (b.construction_year ?? 0) - (a.construction_year ?? 0));
-                break;
-            case 'similarity':
-            default:
-                sorted.sort((a, b) => (b.similarity_score ?? 0) - (a.similarity_score ?? 0));
-                break;
-        }
-        return sorted;
+        return sortComparables(filterComparables(currentData.comparables || [], { sizeFrom, sizeTo }), sortBy);
     }
 
     function flyToComparable(c) {
@@ -1150,6 +1237,11 @@ export function createComparisonSidebar({ map, onClose, onFlyTo, onSelectCompara
             const key = opt.value;
             opt.textContent = t(`comparison.sort_${key}`);
         });
+        els.pager.setAttribute('aria-label', t('comparison.pager_aria'));
+        for (const [button, key] of [[els.pagerPrev, 'comparison.pager_prev'], [els.pagerNext, 'comparison.pager_next']]) {
+            button.setAttribute('aria-label', t(key));
+            button.setAttribute('title', t(key));
+        }
         renderTarget();
         renderList();
         renderMeta();
@@ -1335,6 +1427,11 @@ function buildShell() {
                         <option value="ratioV"></option>
                         <option value="size"></option>
                         <option value="year"></option>
+                        <!-- The two planning sorts start withheld and are
+                             offered by syncSortOptions() once a payload
+                             carries the field (RES v0.0.166 on). -->
+                        <option value="achievable" hidden disabled></option>
+                        <option value="utilization" hidden disabled></option>
                     </select>
                 </label>
             </div>
@@ -1346,6 +1443,17 @@ function buildShell() {
                  narrow step reads as sparse data, not as a broken app. -->
             <p class="cmp-pool-note"></p>
             <div class="cmp-list"></div>
+            <!-- Previous / Next around the "7-12 of 60" readout; hidden while
+                 the filtered set fits on one page (see renderPager). -->
+            <nav class="cmp-pager" hidden>
+                <button class="cmp-pager-btn cmp-pager-prev" type="button" disabled>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
+                </button>
+                <span class="cmp-pager-status" role="status" aria-live="polite"></span>
+                <button class="cmp-pager-btn cmp-pager-next" type="button" disabled>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
+                </button>
+            </nav>
             <div class="cmp-meta"></div>
         </section>
         </div>

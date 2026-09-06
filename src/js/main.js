@@ -328,13 +328,18 @@ export function boot() {
                 // says which parcel the camera just landed on.
                 comparablePopup.show(c);
             },
+            // Paint the comparables on the CURRENT PAGE of the sidebar list
+            // pink (resolved lazily as tiles render — see
+            // refreshComparableBuildingHighlights). This is the sole on-map
+            // indicator of comparables (the floating mini-cube markers were
+            // removed as redundant; the sidebar list, with its per-card
+            // "open 3D" button, is the way to reach them), and it follows the
+            // page: what is lit up on the map is exactly what the cards show,
+            // so paging through the list walks the highlights across the map.
+            // Fires after every render of the list, with an empty list when
+            // the panel empties or closes.
+            onVisibleComparables: (list) => setComparablesForHighlight(list),
             onDataLoaded: (data) => {
-                // Paint each comparable's 3D footprint pink (resolved lazily as
-                // tiles render — see refreshComparableBuildingHighlights). This
-                // is now the sole on-map indicator of comparables; the floating
-                // mini-cube markers were removed as redundant — the sidebar list
-                // (with its per-card "open 3D" button) is the way to reach them.
-                setComparablesForHighlight(data?.comparables || []);
                 // Re-affirm the parcel paint once the sidebar data lands. The
                 // highlight was already applied instantly from the tile at
                 // pick time (see handlePick); the tile's own `cz_local` stays

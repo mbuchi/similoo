@@ -79,6 +79,17 @@ describe('comparablePopupHtml', () => {
         expect(html).not.toContain('aireon-datapill-row');
     });
 
+    it('prints the planning figures as labeled pills and drops them when absent', () => {
+        const html = comparablePopupHtml({ ...comparable, achievable_volume_m3: 6300, utilization: 0.71 });
+        expect(html).toContain('Achievable');
+        expect(html).toContain('6’300 m³');
+        expect(html).toContain('71%');
+        // A legacy payload (no planning fields) prints exactly the old card.
+        const legacy = comparablePopupHtml(comparable);
+        expect(legacy).not.toContain('Achievable');
+        expect(legacy).not.toContain('Util.');
+    });
+
     it('links to geopool in a new tab without an opener', () => {
         const html = comparablePopupHtml(comparable);
         expect(html).toContain('target="_blank"');

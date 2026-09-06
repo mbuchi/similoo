@@ -41,6 +41,32 @@ export const KIND_META = {
 
 export const RELEASES = [
   {
+    version: '0.60.0',
+    date: 'September 6, 2026',
+    codename: 'Page by page',
+    summary: 'The comparables list is paged six cards at a time over a deeper pool of up to 60, can be sorted by achievable volume and by utilization, and the map highlights follow the page you are on.',
+    items: [
+      {
+        kind: 'new',
+        icon: 'layout',
+        text: 'The comparables list is paged. similoo now fetches up to 60 comparables per parcel instead of 12 and shows them six cards at a time, with Previous / Next buttons and a "7–12 of 60" readout under the list. Changing the years window, the parcel-size range or the sort order returns you to the first page, and a list that fits on one page shows no pager at all. Printing still emits every card, not just the page on screen.',
+        prs: [],
+      },
+      {
+        kind: 'new',
+        icon: 'sparkles',
+        text: 'Two new sort orders: by achievable volume (the buildability envelope of each comparable parcel, allowed gross floor area × 3 m) and by utilization (current gross floor area ÷ parcel area). Both figures print as labeled pills on every card, on the subject parcel and in the map popup. The two options appear as soon as the data service reports the figures for a parcel (RES v0.0.166); the demo data shows them today. A parcel without a figure sorts last and shows no pill rather than a zero.',
+        prs: [],
+      },
+      {
+        kind: 'improved',
+        icon: 'map-pin',
+        text: 'The pink comparable highlights on the map now follow the page of the list you are looking at, so paging through the comparables walks the highlights across the map with you instead of lighting up every fetched parcel at once.',
+        prs: [],
+      },
+    ],
+  },
+  {
     version: '0.59.0',
     date: 'September 6, 2026',
     codename: 'Year by year',
