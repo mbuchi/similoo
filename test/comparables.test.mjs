@@ -82,7 +82,24 @@ test('a 404 backend falls back to the deterministic mock contract', async (t) =>
             c.construction_year >= thisYear - years && c.construction_year <= thisYear,
             `construction_year ${c.construction_year} outside the ${years}-year window`,
         );
+        // The planning figures ride every row (RES v0.0.166 contract): a
+        // positive envelope or null, a non-negative utilization or null,
+        // never a 0 standing in for "unknown".
+        assert.ok(c.achievable_volume_m3 === null || c.achievable_volume_m3 > 0);
+        assert.ok(c.utilization === null || c.utilization >= 0);
     }
+    assert.ok(Number.isFinite(result.target.achievable_volume_m3) && result.target.achievable_volume_m3 > 0);
+    assert.ok(Number.isFinite(result.target.utilization));
+});
+
+test('the mock honours a deep pool request, and some demo rows carry the planning figures', async (t) => {
+    mockFetch(t, () => new Response('', { status: 404 }));
+    const { comparables } = await fetchSimilooComparables('CH123456789012', { limit: 60 });
+    assert.equal(comparables.length, 60);
+    assert.ok(comparables.some((c) => Number.isFinite(c.achievable_volume_m3)));
+    assert.ok(comparables.some((c) => Number.isFinite(c.utilization)));
+    // ...and some do not, so the "missing sorts last" path is exercised.
+    assert.ok(comparables.some((c) => c.achievable_volume_m3 === null));
 });
 
 test('mock comparables arrive sorted by similarity, best first', async (t) => {

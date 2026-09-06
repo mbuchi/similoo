@@ -82,6 +82,29 @@ export function dataPillGroupHtml(heading, items) {
     `;
 }
 
+// The two planning figures a row carries from RES v0.0.166 on - the
+// achievable volume (`vol_max`, the buildability envelope: allowed GFA x 3 m)
+// and the current utilization (`cz_util_now`, GFA / parcel area) - as
+// data-pill items, shared by the list cards, the subject parcel and the map
+// popup so all three print them the same way. Each pill drops out on its own
+// when the figure is missing (never a zero), and both carry a label because
+// the volume is a twin of the built volume printed beside it
+// (DATA_PILLS_STANDARD.md R4).
+export function planningPillItems(row) {
+    return [
+        {
+            label: t('comparison.metric_achievable_short'),
+            value: Number.isFinite(row?.achievable_volume_m3) ? formatM3(row.achievable_volume_m3) : null,
+            title: t('comparison.metric_achievable'),
+        },
+        {
+            label: t('comparison.metric_utilization_short'),
+            value: Number.isFinite(row?.utilization) ? formatPct(row.utilization) : null,
+            title: t('comparison.metric_utilization'),
+        },
+    ];
+}
+
 export function escapeHtml(str) {
     return String(str)
         .replace(/&/g, '&amp;')

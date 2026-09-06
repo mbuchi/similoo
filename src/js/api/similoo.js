@@ -22,7 +22,13 @@ import { coerceYearsWindow, isAllYears } from '../yearsWindow.js';
 //                  lat, lng }
 //   comparable — { egrid, municipality, cz_local, parcel_area_m2,
 //                  building_volume_m3, footprint_m2, height_m, floors,
-//                  construction_year, ratioV, similarity_score, lat, lng }
+//                  construction_year, ratioV, similarity_score,
+//                  achievable_volume_m3, utilization, lat, lng }
+//
+// `achievable_volume_m3` (the buildability envelope, RES `vol_max`) and
+// `utilization` (current GFA / parcel area, RES `cz_util_now`) ride every row
+// from RES v0.0.166 on; either is null where the table has no figure. The
+// sidebar only offers the two matching sorts when a payload carries them.
 //
 // `cz_local` is the cohort key (comparables = same municipality + same
 // municipal zone type). The zone label the UI prints goes through
@@ -141,6 +147,14 @@ function mockSimilooResponse(egrid, { years, limit }) {
         construction_year: 1950 + Math.floor(rand() * 75),
     };
     target.ratioV = round2(target.building_volume_m3 / target.parcel_area_m2);
+    // The two planning figures the live route reads off the serving table
+    // (RES v0.0.166): the buildability envelope (allowed GFA x 3 m) and the
+    // current utilization (GFA / parcel area, GFA = volume / 3 per the RES
+    // convention). Same fields, same units, so the sidebar sorts and prints
+    // demo rows exactly like live ones.
+    const targetAllowedUtil = round2(0.3 + rand() * 0.9);
+    target.achievable_volume_m3 = Math.round(target.parcel_area_m2 * targetAllowedUtil * 3);
+    target.utilization = round2(target.building_volume_m3 / 3 / target.parcel_area_m2);
 
     // 'all' has no construction-year floor, so the mock spreads its cohort
     // across the whole plausible Swiss building stock instead of a window
@@ -150,7 +164,9 @@ function mockSimilooResponse(egrid, { years, limit }) {
     const minYear = thisYear - span;
 
     const comparables = [];
-    const count = Math.min(limit, 12);
+    // The live route caps `limit` at 200; mirror it so a deep pool request
+    // (the sidebar asks for 60 and pages them) is honored in demo mode too.
+    const count = Math.min(limit, 200);
     for (let i = 0; i < count; i++) {
         const parcelArea = Math.round(300 + rand() * 2400);
         const footprint = Math.round(parcelArea * (0.18 + rand() * 0.34));
@@ -159,6 +175,12 @@ function mockSimilooResponse(egrid, { years, limit }) {
         const volume = Math.round(footprint * height);
         const year = minYear + Math.floor(rand() * (span + 1));
         const ratioV = round2(volume / parcelArea);
+        // Planning figures, with one row in seven carrying none so the
+        // "missing sorts last, no pill" path is exercised by demo data too.
+        const allowedUtil = round2(0.3 + rand() * 0.9);
+        const hasPlanning = i % 7 !== 6;
+        const achievable = hasPlanning ? Math.round(parcelArea * allowedUtil * 3) : null;
+        const utilization = hasPlanning ? round2(volume / 3 / parcelArea) : null;
         // similarity_score: 1.0 - distance from target across a few axes.
         // The closer the parcel area + ratioV + year, the higher the score.
         const areaDelta = Math.abs(parcelArea - target.parcel_area_m2) / Math.max(target.parcel_area_m2, 1);
@@ -185,6 +207,8 @@ function mockSimilooResponse(egrid, { years, limit }) {
             construction_year: year,
             ratioV,
             similarity_score: round2(similarity),
+            achievable_volume_m3: achievable,
+            utilization,
             lat,
             lng,
         });

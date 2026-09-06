@@ -29,6 +29,7 @@ import {
     formatM3,
     formatPct,
     formatRatio,
+    planningPillItems,
 } from './format.js';
 
 // Deep link that opens the comparable in geopool with the parcel SELECTED
@@ -78,6 +79,8 @@ export function comparablePopupHtml(c) {
             value: Number.isFinite(c.ratioV) ? formatRatio(c.ratioV) : null,
             mono: true,
         },
+        // The planning figures, when the row carries them (RES v0.0.166 on).
+        ...planningPillItems(c),
         {
             value: Number.isFinite(c.parcel_area_m2) ? formatM2(c.parcel_area_m2) : null,
             title: t('comparison.metric_parcel_size'),
