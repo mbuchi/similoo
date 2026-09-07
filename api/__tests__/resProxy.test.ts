@@ -7,7 +7,18 @@
 // `X-RES-API-Version: 2` where the typed client is used) plus each handler's
 // outward status mapping.
 
-import { describe, expect, it, vi, beforeEach } from 'vitest';
+import { describe, expect, it, vi, beforeEach, beforeAll } from 'vitest';
+
+// The proxies are wrapped in withTurnstile(). Vercel runs this suite with the
+// production env, where TURNSTILE_SECRET_KEY is set, so the guard would answer
+// 403 before any handler runs and every assertion below would fail. These
+// tests exercise the proxies, not the gate (the gate has its own suite in
+// @aireon/shared), so the gate is switched off for the whole file.
+beforeAll(() => {
+  vi.stubEnv('TURNSTILE_SECRET_KEY', '');
+  vi.stubEnv('TURNSTILE_CLEARANCE_KEY', '');
+  vi.stubEnv('TURNSTILE_AUTOMATION_SECRET', '');
+});
 import { RES_API_BASE_URL } from '@aireon/shared/api';
 import parcelHandler from '../parcel';
 import similooHandler from '../similoo';
