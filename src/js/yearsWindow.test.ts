@@ -3,8 +3,11 @@ import {
   ALL_YEARS,
   DEFAULT_YEARS,
   SLIDER_ALL_POS,
+  SLIDER_COARSE_YEARS,
+  SLIDER_FINE_MAX_YEARS,
   SLIDER_MAX_YEARS,
   SLIDER_MIN_YEARS,
+  SLIDER_STOPS,
   clampSliderYears,
   coerceYearsWindow,
   isAllYears,
@@ -12,33 +15,50 @@ import {
   yearsToSliderPos,
 } from './yearsWindow.js';
 
-// The sidebar's age filter is a 1..10 slider plus one stop for the
-// unrestricted window, and the value it holds is what goes on the wire to
-// /score/similoo. Two things have to hold at once: the wire contract stays
-// wider than the control (an explicit 40 from elsewhere must survive the
-// coercion the old `Number.isFinite(x) ? x : 10` silently broke), and anything
-// that reaches the CONTROL must land on a stop the input can actually show.
+// The sidebar's age filter is a slider over a table of stops - 1..10 years one
+// year at a time, then 15, 20 and the unrestricted window - and the value it
+// holds is what goes on the wire to /score/similoo. Two things have to hold at
+// once: the wire contract stays wider than the control (an explicit 40 from
+// elsewhere must survive the coercion the old `Number.isFinite(x) ? x : 10`
+// silently broke), and anything that reaches the CONTROL must land on a stop
+// the input can actually show.
 //
-// The input's `value` is a POSITION, never a window: position 11 is 'all', not
-// eleven years. sliderPosToYears / yearsToSliderPos are the only legal way
-// across that boundary.
+// The input's `value` is a POSITION, never a window: the steps are evenly
+// spaced on the track but the windows behind them are not, so position 11 is
+// 15 years and position 13 is 'all'. sliderPosToYears / yearsToSliderPos are
+// the only legal way across that boundary.
 
 describe('the slider', () => {
-  it('runs 1..10, one year per step, so the window can follow a recent rule change', () => {
+  it('runs 1..10 one year at a time, so the window can follow a recent rule change', () => {
     expect(SLIDER_MIN_YEARS).toBe(1);
-    expect(SLIDER_MAX_YEARS).toBe(10);
+    expect(SLIDER_FINE_MAX_YEARS).toBe(10);
+    expect(SLIDER_STOPS.slice(0, 10)).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
   });
 
-  it('carries one stop past the numeric range for the unrestricted window', () => {
-    expect(SLIDER_ALL_POS).toBe(SLIDER_MAX_YEARS + 1);
+  it('widens past the fine range with 15 and 20 before dropping the limit', () => {
+    expect(SLIDER_COARSE_YEARS).toEqual([15, 20]);
+    expect(SLIDER_STOPS).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 15, 20, ALL_YEARS]);
+    // The widest NUMERIC stop, not the widest window - 'all' is its own thing.
+    expect(SLIDER_MAX_YEARS).toBe(20);
+  });
+
+  it('puts the unrestricted window on the last position', () => {
+    expect(SLIDER_ALL_POS).toBe(SLIDER_STOPS.length);
     expect(sliderPosToYears(SLIDER_ALL_POS)).toBe(ALL_YEARS);
     expect(yearsToSliderPos(ALL_YEARS)).toBe(SLIDER_ALL_POS);
   });
 
+  it('never lets a position be read as a year count past the fine range', () => {
+    // The bug this whole POSITION/window split exists to prevent.
+    expect(sliderPosToYears(11)).toBe(15);
+    expect(sliderPosToYears(12)).toBe(20);
+    expect(sliderPosToYears(13)).toBe(ALL_YEARS);
+  });
+
   it('keeps 10 as the default, so a user who never touches it sends what they always sent', () => {
     expect(DEFAULT_YEARS).toBe(10);
-    expect(DEFAULT_YEARS).toBeGreaterThanOrEqual(SLIDER_MIN_YEARS);
-    expect(DEFAULT_YEARS).toBeLessThanOrEqual(SLIDER_MAX_YEARS);
+    expect(SLIDER_STOPS).toContain(DEFAULT_YEARS);
+    expect(yearsToSliderPos(DEFAULT_YEARS)).toBe(10);
   });
 });
 
@@ -100,9 +120,9 @@ describe('coerceYearsWindow (the wire contract)', () => {
 });
 
 describe('clampSliderYears (the control contract)', () => {
-  it('leaves every slider position alone', () => {
-    for (let y = SLIDER_MIN_YEARS; y <= SLIDER_MAX_YEARS; y += 1) {
-      expect(clampSliderYears(y)).toBe(y);
+  it('leaves every stop alone', () => {
+    for (const stop of SLIDER_STOPS) {
+      expect(clampSliderYears(stop)).toBe(stop);
     }
   });
 
@@ -116,11 +136,18 @@ describe('clampSliderYears (the control contract)', () => {
     expect(clampSliderYears(2.6)).toBe(3);
   });
 
-  it('sends a window wider than the fine range to the unrestricted stop', () => {
+  it('rounds a window between two stops UP to the wider one', () => {
+    // Never down: 12 -> 10 would drop two years of comparables the value
+    // explicitly asked for.
+    expect(clampSliderYears(11)).toBe(15);
+    expect(clampSliderYears(12)).toBe(15);
+    expect(clampSliderYears(16)).toBe(20);
+    expect(clampSliderYears(19)).toBe(20);
+  });
+
+  it('sends a window past the widest numeric stop to the unrestricted one', () => {
     // The retired ladder's coarse steps, and the wire contract's own ceiling.
-    // Dropping these to 10 would silently hide decades of comparables, so the
-    // stop that still includes everything they asked for is the honest one.
-    for (const stale of [15, 20, 40, 60, 100]) {
+    for (const stale of [21, 40, 60, 100]) {
       expect(clampSliderYears(stale)).toBe(ALL_YEARS);
       expect(yearsToSliderPos(stale)).toBe(SLIDER_ALL_POS);
     }
@@ -148,15 +175,17 @@ describe('clampSliderYears (the control contract)', () => {
 });
 
 describe('sliderPosToYears / yearsToSliderPos (the position boundary)', () => {
-  it('round-trips every numeric stop', () => {
-    for (let y = SLIDER_MIN_YEARS; y <= SLIDER_MAX_YEARS; y += 1) {
-      expect(sliderPosToYears(y)).toBe(y);
-      expect(yearsToSliderPos(y)).toBe(y);
-    }
+  it('round-trips every stop through its position', () => {
+    SLIDER_STOPS.forEach((stop, i) => {
+      const pos = i + 1;
+      expect(sliderPosToYears(pos)).toBe(stop);
+      expect(yearsToSliderPos(stop)).toBe(pos);
+    });
   });
 
   it('reads the string a range input hands back', () => {
     expect(sliderPosToYears('7')).toBe(7);
+    expect(sliderPosToYears('11')).toBe(15);
     expect(sliderPosToYears(String(SLIDER_ALL_POS))).toBe(ALL_YEARS);
   });
 

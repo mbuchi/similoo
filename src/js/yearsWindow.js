@@ -10,20 +10,20 @@
 // years well before 1926, so the unrestricted window is its own value, never
 // the top of the numeric range.
 //
-// The sidebar control is a slider over a deliberately short range, 1..10
-// years in one-year steps, so the window can follow a recent zoning or
-// building-law change year by year: set it to the years since the rule took
-// effect and only buildings completed under it remain. One stop past the
-// numeric range is the UNRESTRICTED window: the fine steps answer "what was
-// built under the current rule", and the last stop answers "show me the whole
-// cohort" - which is the only way to get a usable list in a zone where almost
-// nothing has been built recently (a 7-year window on a Kreuzlingen mixed zone
-// returns 2 comparables; the unrestricted one returns 112 candidates).
+// The sidebar control is a slider over a table of STOPS, not a plain numeric
+// range: 1..10 years one year at a time, then 15, then 20, then the
+// unrestricted window. The fine head answers "what was built under the current
+// rule" - set it to the years since a zoning or building-law change took
+// effect and only buildings completed under it remain - and the coarse tail
+// answers "widen until there is actually a cohort to compare against", which
+// is what a zone with little recent building needs (on a Kreuzlingen mixed
+// zone /score/similoo returns 2 comparables at 7 years, 5 at 10, 11 at 15,
+// 17 at 20 and 112 candidates unrestricted).
 //
 // The wire contract is wider still on purpose - an explicit `years: 40` from
 // elsewhere reaches RES intact - but a value arriving at the CONTROL from
-// anywhere else (a stale persisted number, a hand-edited attribute) is clamped
-// onto the slider instead of being accepted verbatim.
+// anywhere else (a stale persisted number, a hand-edited attribute) is snapped
+// onto a stop instead of being accepted verbatim.
 
 export const ALL_YEARS = 'all';
 
@@ -37,17 +37,34 @@ export const DEFAULT_YEARS = 10;
 export const MIN_YEARS = 1;
 export const MAX_YEARS = 100;
 
-// The slider's own bounds, declared once and read by the sidebar for the
-// input's min/max, its tick marks and its scale.
+// The slider's stops, declared once and read by the sidebar for the input's
+// min/max, its tick marks and its scale.
 //
-// SLIDER_MIN_YEARS..SLIDER_MAX_YEARS are the numeric stops; the input runs one
-// position further, to SLIDER_ALL_POS, which carries `'all'` rather than a
-// year count. The input's `value` is therefore a POSITION, not a window -
-// convert with sliderPosToYears / yearsToSliderPos, never by reading it as a
-// number.
+// SLIDER_MIN_YEARS..SLIDER_FINE_MAX_YEARS are the one-year steps;
+// SLIDER_COARSE_YEARS are the wider numeric stops past them; the last stop
+// carries `'all'` rather than a year count. Because the steps are NOT uniform,
+// the input's `value` is a POSITION (a 1-based index into SLIDER_STOPS), never
+// a window - position 11 is 15 years and position 13 is `'all'`. Convert with
+// sliderPosToYears / yearsToSliderPos, never by reading `.value` as a number.
 export const SLIDER_MIN_YEARS = 1;
-export const SLIDER_MAX_YEARS = 10;
-export const SLIDER_ALL_POS = SLIDER_MAX_YEARS + 1;
+export const SLIDER_FINE_MAX_YEARS = 10;
+export const SLIDER_COARSE_YEARS = [15, 20];
+
+/** @type {Array<number | typeof ALL_YEARS>} */
+export const SLIDER_STOPS = [
+    ...Array.from(
+        { length: SLIDER_FINE_MAX_YEARS - SLIDER_MIN_YEARS + 1 },
+        (_, i) => SLIDER_MIN_YEARS + i,
+    ),
+    ...SLIDER_COARSE_YEARS,
+    ALL_YEARS,
+];
+
+// 1-based, because the input's min is 1 and not 0.
+export const SLIDER_ALL_POS = SLIDER_STOPS.length;
+
+// The widest NUMERIC stop, i.e. the last one before the unrestricted window.
+export const SLIDER_MAX_YEARS = SLIDER_COARSE_YEARS[SLIDER_COARSE_YEARS.length - 1];
 
 /**
  * True for the two accepted spellings of the unrestricted window: the string
@@ -92,14 +109,14 @@ export function coerceYearsWindow(raw, fallback = DEFAULT_YEARS) {
 }
 
 /**
- * Clamp a value onto the slider: an integer inside
- * [SLIDER_MIN_YEARS, SLIDER_MAX_YEARS], or `'all'`. The unrestricted window is
- * a real stop on the control now, so `'all'` survives instead of collapsing
- * onto 10. A numeric window wider than the fine range (a stale 40 from the
- * retired ladder, a hand-typed 100) also lands on `'all'`: the control cannot
- * say "40 years", and the stop that still includes every building it asked for
- * is the honest one - dropping it to 10 would silently hide 30 years of
- * comparables. Garbage falls back the same way `coerceYearsWindow` does.
+ * Snap a value onto a stop the control can actually show: one of SLIDER_STOPS.
+ * `'all'` survives as itself. A number BETWEEN two stops rounds UP to the
+ * narrower-excluding one (12 -> 15, 17 -> 20) and anything past the widest
+ * numeric stop lands on `'all'` (a stale 40 or 60 from the retired ladder,
+ * a hand-typed 100): the honest stop is the one that still includes every
+ * building the value asked for, since rounding 40 down to 20 would silently
+ * hide two decades of comparables. Garbage falls back the same way
+ * `coerceYearsWindow` does.
  *
  * @param {unknown} raw
  * @param {number | typeof ALL_YEARS} [fallback]
@@ -108,15 +125,18 @@ export function coerceYearsWindow(raw, fallback = DEFAULT_YEARS) {
 export function clampSliderYears(raw, fallback = DEFAULT_YEARS) {
     const coerced = coerceYearsWindow(raw, fallback);
     if (coerced === ALL_YEARS) return ALL_YEARS;
-    if (coerced > SLIDER_MAX_YEARS) return ALL_YEARS;
-    return Math.max(SLIDER_MIN_YEARS, coerced);
+    const stop = SLIDER_STOPS.find(
+        (s) => s !== ALL_YEARS && /** @type {number} */ (s) >= coerced,
+    );
+    return stop === undefined ? ALL_YEARS : stop;
 }
 
 /**
- * The window a slider POSITION means: the last stop is the unrestricted
- * window, every other stop is its own year count. A position outside the track
- * is clamped onto it, so a hand-edited `value` cannot smuggle a window the
- * control cannot display.
+ * The window a slider POSITION means. Positions are 1-based indices into
+ * SLIDER_STOPS, so they are NOT year counts past the fine range: position 11
+ * is 15 years, 12 is 20 and 13 is the unrestricted window. A position outside
+ * the track is clamped onto it, so a hand-edited `value` cannot smuggle a
+ * window the control cannot display.
  *
  * @param {unknown} pos
  * @returns {number | typeof ALL_YEARS}
@@ -124,19 +144,19 @@ export function clampSliderYears(raw, fallback = DEFAULT_YEARS) {
 export function sliderPosToYears(pos) {
     const n = Math.round(Number(pos));
     if (!Number.isFinite(n)) return DEFAULT_YEARS;
-    if (n >= SLIDER_ALL_POS) return ALL_YEARS;
-    return Math.max(SLIDER_MIN_YEARS, n);
+    const index = Math.min(SLIDER_ALL_POS, Math.max(1, n)) - 1;
+    return SLIDER_STOPS[index];
 }
 
 /**
- * The inverse: which position holds a window. Anything the slider cannot say
- * as a year count - `'all'`, a stale 40 - sits on the last stop, matching
- * `clampSliderYears`.
+ * The inverse: which position holds a window. Anything not already on a stop
+ * goes through `clampSliderYears` first, so the two agree by construction.
  *
  * @param {unknown} value
  * @returns {number}
  */
 export function yearsToSliderPos(value) {
-    const clamped = clampSliderYears(value);
-    return clamped === ALL_YEARS ? SLIDER_ALL_POS : clamped;
+    const stop = clampSliderYears(value);
+    const index = SLIDER_STOPS.indexOf(stop);
+    return index === -1 ? SLIDER_ALL_POS : index + 1;
 }

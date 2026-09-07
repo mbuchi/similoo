@@ -81,8 +81,9 @@ import { createSaveParcelButton } from './saveParcelButton.js';
 //        designation ("Wohnzone, Bauklasse 4"), resolved off the
 //        /score/similoo target row with the picked parcel tile's zone columns
 //        laid over it.
-//     2. Filters — the "max building age" slider (1..10 years in one-year steps,
-//        default 10) and parcel-size from/to inputs.
+//     2. Filters — the "max building age" slider (1..10 years one year at a
+//        time, then 15, 20 and "any age"; default 10) and parcel-size
+//        from/to inputs.
 //     3. Comparable buildings list — a pool of up to POOL_LIMIT comparables
 //        (one fetch per parcel + years window), sortable (similarity /
 //        ratioV / size / year, plus achievable volume / utilization whenever
@@ -320,20 +321,20 @@ export function createComparisonSidebar({ map, onClose, onFlyTo, onSelectCompara
 
     // --- max building age slider -------------------------------------------
     //
-    // The age filter is a slider, 1..10 years in one-year steps plus one last
-    // stop for "any age" (default 10). The fine steps let the window follow a
-    // recent zoning or building-law change — set it to the years since the rule
-    // took effect and only buildings completed under it remain — while the last
-    // stop drops the construction-year floor entirely, which is the only way to
-    // get a usable list in a zone where almost nothing has been built lately.
+    // The age filter is a slider over SLIDER_STOPS: 1..10 years one year at a
+    // time, then 15, then 20, then "any age" (default 10). The fine head lets
+    // the window follow a recent zoning or building-law change — set it to the
+    // years since the rule took effect and only buildings completed under it
+    // remain — while the coarse tail widens until there is a cohort worth
+    // comparing against, which a zone with little recent building needs.
     //
     // A native <input type="range"> carries the keyboard, touch and
     // assistive-tech semantics; the sidebar only keeps the readout and the
     // spoken value (aria-valuetext) in step with it. The input's value is a
     // POSITION, so it goes through sliderPosToYears / yearsToSliderPos in both
-    // directions — reading it as a plain number would turn "any age" into 11
-    // years. Anything arriving from elsewhere is clamped by clampSliderYears
-    // (src/js/yearsWindow.js).
+    // directions — reading it as a plain number would turn 15 years into 11 and
+    // "any age" into 13. Anything arriving from elsewhere is snapped onto a
+    // stop by clampSliderYears (src/js/yearsWindow.js).
     function yearsValueLabel(value) {
         if (isAllYears(value)) return t('comparison.years_value_all');
         return value === 1
@@ -1310,22 +1311,26 @@ export function createComparisonSidebar({ map, onClose, onFlyTo, onSelectCompara
 
 // The max-building-age slider: label and live readout on one line, a native
 // range input with one tick per stop under them, then a min / max scale. The
-// bounds and ticks come from the slider constants so they are declared exactly
-// once (src/js/yearsWindow.js); the label, readout, spoken value and the "any
-// age" end of the scale are filled in by relabel(), and the default window
-// starts selected. The track runs one stop past SLIDER_MAX_YEARS: that last
-// position is the unrestricted window, not 11 years.
+// stops come from SLIDER_STOPS so the track is declared exactly once
+// (src/js/yearsWindow.js); the label, readout, spoken value and the "any age"
+// end of the scale are filled in by relabel(), and the default window starts
+// selected.
+//
+// The input runs over POSITIONS, 1..SLIDER_ALL_POS, not year counts: the steps
+// are evenly spaced on the track but the windows behind them are not (…9, 10,
+// 15, 20, any age), so `value` only means something through
+// sliderPosToYears / yearsToSliderPos.
 function yearsSliderMarkup() {
     const ticks = [];
-    for (let y = SLIDER_MIN_YEARS; y <= SLIDER_ALL_POS; y += 1) {
-        ticks.push(`<option value="${y}"></option>`);
+    for (let pos = 1; pos <= SLIDER_ALL_POS; pos += 1) {
+        ticks.push(`<option value="${pos}"></option>`);
     }
     return `<div class="cmp-years-head">`
         + `<label class="cmp-years-label" for="cmp-years-range"></label>`
         + `<output class="cmp-years-value" for="cmp-years-range"></output>`
         + `</div>`
-        + `<input type="range" min="${SLIDER_MIN_YEARS}" max="${SLIDER_ALL_POS}" step="1"`
-        + ` value="${DEFAULT_YEARS}" id="cmp-years-range" class="cmp-years-range"`
+        + `<input type="range" min="1" max="${SLIDER_ALL_POS}" step="1"`
+        + ` value="${yearsToSliderPos(DEFAULT_YEARS)}" id="cmp-years-range" class="cmp-years-range"`
         + ` list="cmp-years-ticks" />`
         + `<datalist id="cmp-years-ticks">${ticks.join('')}</datalist>`
         + `<div class="cmp-years-scale" aria-hidden="true">`
