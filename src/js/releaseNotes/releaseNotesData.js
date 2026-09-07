@@ -41,6 +41,20 @@ export const KIND_META = {
 
 export const RELEASES = [
   {
+    version: '0.62.0',
+    date: 'September 7, 2026',
+    codename: 'Fifteen and twenty',
+    summary: 'The max building age slider gains 15-year and 20-year stops between the one-year steps and "Any age", so the comparables can be widened a step at a time instead of jumping straight from 10 years to no limit at all.',
+    items: [
+      {
+        kind: 'new',
+        icon: 'sliders-horizontal',
+        text: 'Two new stops on the age slider: 15 years and 20 years, sitting between the 1-to-10 one-year steps and "Any age". The jump from 10 years straight to no limit was too big to be useful for judging a neighbourhood - on a mixed zone in Kreuzlingen the comparables go 5 at 10 years, 11 at 15, 17 at 20 and 112 unrestricted, so the two middle stops are where most parcels find a cohort that is both large enough to rank and recent enough to mean something. The default is still 10 years and the methodology help lists the full ladder in all four languages.',
+        prs: [],
+      },
+    ],
+  },
+  {
     version: '0.61.0',
     date: 'September 7, 2026',
     codename: 'Any age',
