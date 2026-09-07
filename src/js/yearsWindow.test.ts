@@ -2,24 +2,37 @@ import { describe, expect, it } from 'vitest';
 import {
   ALL_YEARS,
   DEFAULT_YEARS,
+  SLIDER_ALL_POS,
   SLIDER_MAX_YEARS,
   SLIDER_MIN_YEARS,
   clampSliderYears,
   coerceYearsWindow,
   isAllYears,
+  sliderPosToYears,
+  yearsToSliderPos,
 } from './yearsWindow.js';
 
-// The sidebar's years filter is a 1..10 slider, and the value it holds is what
-// goes on the wire to /score/similoo. Two things have to hold at once: the
-// wire contract stays wider than the control (an explicit 40 or 'all' from
-// elsewhere must survive the coercion the old `Number.isFinite(x) ? x : 10`
-// silently broke), and anything that reaches the CONTROL must land inside the
-// slider, never on a value the input cannot show.
+// The sidebar's age filter is a 1..10 slider plus one stop for the
+// unrestricted window, and the value it holds is what goes on the wire to
+// /score/similoo. Two things have to hold at once: the wire contract stays
+// wider than the control (an explicit 40 from elsewhere must survive the
+// coercion the old `Number.isFinite(x) ? x : 10` silently broke), and anything
+// that reaches the CONTROL must land on a stop the input can actually show.
+//
+// The input's `value` is a POSITION, never a window: position 11 is 'all', not
+// eleven years. sliderPosToYears / yearsToSliderPos are the only legal way
+// across that boundary.
 
 describe('the slider', () => {
   it('runs 1..10, one year per step, so the window can follow a recent rule change', () => {
     expect(SLIDER_MIN_YEARS).toBe(1);
     expect(SLIDER_MAX_YEARS).toBe(10);
+  });
+
+  it('carries one stop past the numeric range for the unrestricted window', () => {
+    expect(SLIDER_ALL_POS).toBe(SLIDER_MAX_YEARS + 1);
+    expect(sliderPosToYears(SLIDER_ALL_POS)).toBe(ALL_YEARS);
+    expect(yearsToSliderPos(ALL_YEARS)).toBe(SLIDER_ALL_POS);
   });
 
   it('keeps 10 as the default, so a user who never touches it sends what they always sent', () => {
@@ -103,17 +116,20 @@ describe('clampSliderYears (the control contract)', () => {
     expect(clampSliderYears(2.6)).toBe(3);
   });
 
-  it('clamps a wider window onto the top of the slider, never past it', () => {
+  it('sends a window wider than the fine range to the unrestricted stop', () => {
     // The retired ladder's coarse steps, and the wire contract's own ceiling.
+    // Dropping these to 10 would silently hide decades of comparables, so the
+    // stop that still includes everything they asked for is the honest one.
     for (const stale of [15, 20, 40, 60, 100]) {
-      expect(clampSliderYears(stale)).toBe(SLIDER_MAX_YEARS);
+      expect(clampSliderYears(stale)).toBe(ALL_YEARS);
+      expect(yearsToSliderPos(stale)).toBe(SLIDER_ALL_POS);
     }
   });
 
-  it("turns the unrestricted 'all' into the widest window the slider can say", () => {
-    expect(clampSliderYears('all')).toBe(SLIDER_MAX_YEARS);
-    expect(clampSliderYears(0)).toBe(SLIDER_MAX_YEARS);
-    expect(clampSliderYears(undefined, ALL_YEARS)).toBe(SLIDER_MAX_YEARS);
+  it("keeps the unrestricted 'all' instead of collapsing it onto 10 years", () => {
+    expect(clampSliderYears('all')).toBe(ALL_YEARS);
+    expect(clampSliderYears(0)).toBe(ALL_YEARS);
+    expect(clampSliderYears(undefined, ALL_YEARS)).toBe(ALL_YEARS);
   });
 
   it('never reaches below the first year', () => {
@@ -128,5 +144,32 @@ describe('clampSliderYears (the control contract)', () => {
     expect(clampSliderYears('banana')).toBe(DEFAULT_YEARS);
     expect(clampSliderYears(null)).toBe(DEFAULT_YEARS);
     expect(clampSliderYears('')).toBe(DEFAULT_YEARS);
+  });
+});
+
+describe('sliderPosToYears / yearsToSliderPos (the position boundary)', () => {
+  it('round-trips every numeric stop', () => {
+    for (let y = SLIDER_MIN_YEARS; y <= SLIDER_MAX_YEARS; y += 1) {
+      expect(sliderPosToYears(y)).toBe(y);
+      expect(yearsToSliderPos(y)).toBe(y);
+    }
+  });
+
+  it('reads the string a range input hands back', () => {
+    expect(sliderPosToYears('7')).toBe(7);
+    expect(sliderPosToYears(String(SLIDER_ALL_POS))).toBe(ALL_YEARS);
+  });
+
+  it('clamps a hand-edited position onto the track', () => {
+    // A value past the last stop is still the unrestricted window, never
+    // 99 years, and one below the first is still the first.
+    expect(sliderPosToYears(99)).toBe(ALL_YEARS);
+    expect(sliderPosToYears(0)).toBe(SLIDER_MIN_YEARS);
+    expect(sliderPosToYears(-4)).toBe(SLIDER_MIN_YEARS);
+  });
+
+  it('falls back to the default position for garbage', () => {
+    expect(sliderPosToYears('banana')).toBe(DEFAULT_YEARS);
+    expect(sliderPosToYears(undefined)).toBe(DEFAULT_YEARS);
   });
 });

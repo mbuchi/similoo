@@ -41,6 +41,32 @@ export const KIND_META = {
 
 export const RELEASES = [
   {
+    version: '0.61.0',
+    date: 'September 7, 2026',
+    codename: 'Any age',
+    summary: 'The years filter is now "Max building age" and carries one stop past 10 years - "Any age" - which drops the construction-year limit entirely, so a zone with little recent building still produces a full list of comparables.',
+    items: [
+      {
+        kind: 'new',
+        icon: 'sliders-horizontal',
+        text: 'The age slider has a new last stop: "Any age". Every stop before it still filters to buildings completed in the last 1 to 10 years, but the last one removes the construction-year limit and compares the parcel against its whole municipal zone. This matters where almost nothing has been built lately: a mixed zone in Kreuzlingen returns 2 comparables over a 7-year window and 112 candidates with no year limit at all. The list already pages six cards at a time over a pool of up to 60, so a wide window fills every page instead of a single short list.',
+        prs: [],
+      },
+      {
+        kind: 'improved',
+        icon: 'type',
+        text: 'The filter is labeled "Max building age" instead of "Years window", in all four languages, because the old label named the mechanism rather than what it does. The readout still reads "10 years", the empty-list message now points at the control that fixes it, and the methodology help explains both the fine steps and the new "Any age" stop.',
+        prs: [],
+      },
+      {
+        kind: 'improved',
+        icon: 'eraser',
+        text: 'Removed the "Few recent building permits in this window" note above the comparables list. It described which candidate pool answered, which is an implementation detail that fired on almost every window, so it read as a warning about a list that was perfectly good. The field is still in the raw "{}" view for anyone who needs it.',
+        prs: [],
+      },
+    ],
+  },
+  {
     version: '0.60.0',
     date: 'September 6, 2026',
     codename: 'Page by page',
