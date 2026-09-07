@@ -41,6 +41,20 @@ export const KIND_META = {
 
 export const RELEASES = [
   {
+    version: '0.62.1',
+    date: 'September 7, 2026',
+    codename: 'Gate-proof tests',
+    summary: 'The RES proxy test suite no longer fails a production build once the Turnstile bot gate is configured with a live secret key.',
+    items: [
+      {
+        kind: 'fixed',
+        icon: 'flask-conical',
+        text: 'The RES proxy handler tests now switch the Turnstile bot gate off for themselves, the same fix already shipped in groove after a live secret key made those tests fail a production build. The gate keeps its own separate test coverage; nothing changes in how similoo looks or behaves.',
+        prs: [],
+      },
+    ],
+  },
+  {
     version: '0.62.0',
     date: 'September 7, 2026',
     codename: 'Fifteen and twenty',
