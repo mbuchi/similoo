@@ -57,9 +57,12 @@ import {
 import { fetchSimilooComparables } from '../api/similoo.js';
 import {
     DEFAULT_YEARS,
-    SLIDER_MAX_YEARS,
+    SLIDER_ALL_POS,
     SLIDER_MIN_YEARS,
     clampSliderYears,
+    isAllYears,
+    sliderPosToYears,
+    yearsToSliderPos,
 } from '../yearsWindow.js';
 import { createSaveParcelButton } from './saveParcelButton.js';
 
@@ -78,7 +81,7 @@ import { createSaveParcelButton } from './saveParcelButton.js';
 //        designation ("Wohnzone, Bauklasse 4"), resolved off the
 //        /score/similoo target row with the picked parcel tile's zone columns
 //        laid over it.
-//     2. Filters — the "years window" slider (1..10 years in one-year steps,
+//     2. Filters — the "max building age" slider (1..10 years in one-year steps,
 //        default 10) and parcel-size from/to inputs.
 //     3. Comparable buildings list — a pool of up to POOL_LIMIT comparables
 //        (one fetch per parcel + years window), sortable (similarity /
@@ -263,7 +266,6 @@ export function createComparisonSidebar({ map, onClose, onFlyTo, onSelectCompara
         pagerStatus: aside.querySelector('.cmp-pager-status'),
         list: aside.querySelector('.cmp-list'),
         status: aside.querySelector('.cmp-status'),
-        poolNote: aside.querySelector('.cmp-pool-note'),
         meta: aside.querySelector('.cmp-meta'),
         footer: aside.querySelector('.cmp-footer'),
     };
@@ -316,30 +318,38 @@ export function createComparisonSidebar({ map, onClose, onFlyTo, onSelectCompara
         clearDragStyles();
     });
 
-    // --- years window slider ----------------------------------------------
+    // --- max building age slider -------------------------------------------
     //
-    // The window filter is a slider, 1..10 years in one-year steps (default
-    // 10), so the window can follow a recent zoning or building-law change:
-    // set it to the years since the rule took effect and only buildings
-    // completed under it remain. A native <input type="range"> carries the
-    // keyboard, touch and assistive-tech semantics; the sidebar only keeps the
-    // readout and the spoken value (aria-valuetext) in step with it. Anything
-    // arriving from outside the slider's range, including the retired ladder's
-    // 'all', is clamped onto it by clampSliderYears (src/js/yearsWindow.js).
+    // The age filter is a slider, 1..10 years in one-year steps plus one last
+    // stop for "any age" (default 10). The fine steps let the window follow a
+    // recent zoning or building-law change — set it to the years since the rule
+    // took effect and only buildings completed under it remain — while the last
+    // stop drops the construction-year floor entirely, which is the only way to
+    // get a usable list in a zone where almost nothing has been built lately.
+    //
+    // A native <input type="range"> carries the keyboard, touch and
+    // assistive-tech semantics; the sidebar only keeps the readout and the
+    // spoken value (aria-valuetext) in step with it. The input's value is a
+    // POSITION, so it goes through sliderPosToYears / yearsToSliderPos in both
+    // directions — reading it as a plain number would turn "any age" into 11
+    // years. Anything arriving from elsewhere is clamped by clampSliderYears
+    // (src/js/yearsWindow.js).
     function yearsValueLabel(value) {
+        if (isAllYears(value)) return t('comparison.years_value_all');
         return value === 1
             ? t('comparison.years_value_one')
             : t('comparison.years_value_other', { years: value });
     }
 
     function yearsValueText(value) {
+        if (isAllYears(value)) return t('comparison.years_valuetext_all');
         return value === 1
             ? t('comparison.years_valuetext_one')
             : t('comparison.years_valuetext_other', { years: value });
     }
 
     function syncYearsControl() {
-        els.yearsRange.value = String(years);
+        els.yearsRange.value = String(yearsToSliderPos(years));
         els.yearsValue.textContent = yearsValueLabel(years);
         els.yearsRange.setAttribute('aria-valuetext', yearsValueText(years));
     }
@@ -354,7 +364,8 @@ export function createComparisonSidebar({ map, onClose, onFlyTo, onSelectCompara
         if (changed) scheduleRefetch();
     }
 
-    els.yearsRange.addEventListener('input', () => selectYears(els.yearsRange.value));
+    els.yearsRange.addEventListener('input', () =>
+        selectYears(sliderPosToYears(els.yearsRange.value)));
 
     let refetchTimer = null;
     function scheduleRefetch() {
@@ -493,8 +504,6 @@ export function createComparisonSidebar({ map, onClose, onFlyTo, onSelectCompara
         // Coordinates are gone → the footer "Open in" empties out (CSS collapses
         // the empty slot entirely).
         renderFooter();
-        // Same for the candidate-pool note: no data, nothing to explain.
-        renderPoolNote();
         // The list is gone too: no pager, and nothing lit up on the map.
         renderPager(paginate(0, 0), 0);
         onVisibleComparables?.([]);
@@ -715,7 +724,6 @@ export function createComparisonSidebar({ map, onClose, onFlyTo, onSelectCompara
     // spinner). Reuses the shared `.skeleton` blink and the real layout classes
     // so the swap to real content does not shift.
     function renderLoadingSkeleton() {
-        renderPoolNote();
         els.targetEmpty.hidden = true;
         els.identity.hidden = false;
         els.targetSection.hidden = false;
@@ -1159,19 +1167,12 @@ export function createComparisonSidebar({ map, onClose, onFlyTo, onSelectCompara
         }
     }
 
-    // Which candidate pool produced the list. /score/similoo starts from recent
-    // GWR permits and falls back to the parcel table whenever that pool yields
-    // fewer than five candidates — the normal outcome on a 5-year window. Say so
-    // in one quiet line, otherwise a tight step just looks like a broken query.
-    function renderPoolNote() {
-        if (!els.poolNote) return;
-        const fallback = currentData?.meta?.fallback_used;
-        els.poolNote.textContent =
-            fallback === 'parcel_table' ? t('comparison.pool_fallback') : '';
-    }
-
+    // Which candidate pool produced the list (meta.fallback_used) is deliberately
+    // NOT surfaced in the panel: /score/similoo falls back from recent GWR
+    // permits to the parcel table for almost every window, so the note fired
+    // constantly and read as a warning about a list that was perfectly fine. The
+    // raw "{}" view still carries the field for anyone who needs it.
     function renderMeta() {
-        renderPoolNote();
         const meta = currentData?.meta;
         if (!meta) {
             els.meta.textContent = '';
@@ -1222,8 +1223,11 @@ export function createComparisonSidebar({ map, onClose, onFlyTo, onSelectCompara
             els.rawCopyLabel.textContent = t('comparison.copy');
         }
         aside.querySelector('.cmp-filters-title').textContent = t('comparison.filters_title');
-        els.yearsLabel.textContent = t('comparison.years_window');
-        // The readout and the slider's spoken value are locale strings too.
+        els.yearsLabel.textContent = t('comparison.max_building_age');
+        // The readout, the slider's spoken value and the "any age" end of the
+        // scale are locale strings too.
+        const scaleMax = aside.querySelector('.cmp-years-scale-max');
+        if (scaleMax) scaleMax.textContent = t('comparison.years_scale_all');
         syncYearsControl();
         aside.querySelector('.cmp-size-label').textContent = t('comparison.parcel_size_range');
         aside.querySelector('.cmp-size-from-label').textContent = t('comparison.parcel_size_from');
@@ -1304,26 +1308,28 @@ export function createComparisonSidebar({ map, onClose, onFlyTo, onSelectCompara
 
 // ---------- DOM shell -----------------------------------------------------
 
-// The years slider: label and live readout on one line, a native range input
-// with one tick per year under them, then a min / max scale. The bounds and
-// ticks come from the slider constants so they are declared exactly once
-// (src/js/yearsWindow.js); the label, readout and spoken value are filled in
-// by relabel(), and the default window starts selected.
+// The max-building-age slider: label and live readout on one line, a native
+// range input with one tick per stop under them, then a min / max scale. The
+// bounds and ticks come from the slider constants so they are declared exactly
+// once (src/js/yearsWindow.js); the label, readout, spoken value and the "any
+// age" end of the scale are filled in by relabel(), and the default window
+// starts selected. The track runs one stop past SLIDER_MAX_YEARS: that last
+// position is the unrestricted window, not 11 years.
 function yearsSliderMarkup() {
     const ticks = [];
-    for (let y = SLIDER_MIN_YEARS; y <= SLIDER_MAX_YEARS; y += 1) {
+    for (let y = SLIDER_MIN_YEARS; y <= SLIDER_ALL_POS; y += 1) {
         ticks.push(`<option value="${y}"></option>`);
     }
     return `<div class="cmp-years-head">`
         + `<label class="cmp-years-label" for="cmp-years-range"></label>`
         + `<output class="cmp-years-value" for="cmp-years-range"></output>`
         + `</div>`
-        + `<input type="range" min="${SLIDER_MIN_YEARS}" max="${SLIDER_MAX_YEARS}" step="1"`
+        + `<input type="range" min="${SLIDER_MIN_YEARS}" max="${SLIDER_ALL_POS}" step="1"`
         + ` value="${DEFAULT_YEARS}" id="cmp-years-range" class="cmp-years-range"`
         + ` list="cmp-years-ticks" />`
         + `<datalist id="cmp-years-ticks">${ticks.join('')}</datalist>`
         + `<div class="cmp-years-scale" aria-hidden="true">`
-        + `<span>${SLIDER_MIN_YEARS}</span><span>${SLIDER_MAX_YEARS}</span>`
+        + `<span>${SLIDER_MIN_YEARS}</span><span class="cmp-years-scale-max"></span>`
         + `</div>`;
 }
 
@@ -1436,12 +1442,6 @@ function buildShell() {
                 </label>
             </div>
             <div class="cmp-status" data-state="idle"></div>
-            <!-- Which candidate pool answered. /score/similoo prefers recent GWR
-                 permits and silently falls back to the parcel table when that
-                 pool is too thin (meta.fallback_used === "parcel_table"), which
-                 a 5-year window hits almost every time — one quiet line so a
-                 narrow step reads as sparse data, not as a broken app. -->
-            <p class="cmp-pool-note"></p>
             <div class="cmp-list"></div>
             <!-- Previous / Next around the "7-12 of 60" readout; hidden while
                  the filtered set fits on one page (see renderPager). -->

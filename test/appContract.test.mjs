@@ -21,27 +21,27 @@ test('package.json version and CURRENT_VERSION move in lockstep', () => {
     assert.equal(RELEASES[0].version, CURRENT_VERSION);
 });
 
-test('the paged-and-sorted list release is newest', () => {
-    assert.equal(pkg.version, '0.60.0');
-    assert.equal(RELEASES[0].version, '0.60.0');
-    assert.equal(RELEASES[0].codename, 'Page by page');
-    assert.match(RELEASES[0].summary, /achievable volume/);
-    // The years-slider release stays in the log, one below the head.
-    assert.equal(RELEASES[1].codename, 'Year by year');
-    // The native TypeScript 7 + Oxlint release stays in the log, two below the head.
-    assert.equal(RELEASES[2].codename, 'One compiler, one linter');
-    // The shared v1.209.0 repin stays in the log, three below the head.
-    assert.equal(RELEASES[3].codename, 'Shared foundation v1.209.0');
-    // The signal-carrier repin stays in the log, four below the head.
-    assert.equal(RELEASES[4].codename, 'Carrier stays on');
-    // The Turnstile-hardening repin stays in the log, five below the head.
-    assert.equal(RELEASES[5].codename, 'A tighter bot gate');
-    // The initial bot-gate wiring release stays in the log, six below the head.
-    assert.equal(RELEASES[6].codename, 'Bot gate wired in');
-    // The light-mode theme-switch release stays in the log, seven below the head.
-    assert.equal(RELEASES[7].codename, 'Light mode all the way through');
-    // The even-navbar-spacing release stays in the log, eight below the head.
-    assert.equal(RELEASES[8].codename, 'Evenly spaced');
+test('the any-age release is newest', () => {
+    assert.equal(pkg.version, '0.61.0');
+    assert.equal(RELEASES[0].version, '0.61.0');
+    assert.equal(RELEASES[0].codename, 'Any age');
+    assert.match(RELEASES[0].summary, /Max building age/);
+    // The paged-and-sorted list release stays in the log, one below the head.
+    assert.equal(RELEASES[1].codename, 'Page by page');
+    // The years-slider release stays in the log, two below the head.
+    assert.equal(RELEASES[2].codename, 'Year by year');
+    // The native TypeScript 7 + Oxlint release stays in the log, three below the head.
+    assert.equal(RELEASES[3].codename, 'One compiler, one linter');
+    // The shared v1.209.0 repin stays in the log, four below the head.
+    assert.equal(RELEASES[4].codename, 'Shared foundation v1.209.0');
+    // The signal-carrier repin stays in the log, five below the head.
+    assert.equal(RELEASES[5].codename, 'Carrier stays on');
+    // The Turnstile-hardening repin stays in the log, six below the head.
+    assert.equal(RELEASES[6].codename, 'A tighter bot gate');
+    // The initial bot-gate wiring release stays in the log, seven below the head.
+    assert.equal(RELEASES[7].codename, 'Bot gate wired in');
+    // The light-mode theme-switch release stays in the log, eight below the head.
+    assert.equal(RELEASES[8].codename, 'Light mode all the way through');
 });
 
 // v0.47.0 shipped with package-lock.json still saying 0.46.1: npm writes both
