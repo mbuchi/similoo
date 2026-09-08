@@ -21,29 +21,34 @@ test('package.json version and CURRENT_VERSION move in lockstep', () => {
     assert.equal(RELEASES[0].version, CURRENT_VERSION);
 });
 
-test('the gate-proof-tests release is newest', () => {
-    assert.equal(pkg.version, '0.62.1');
-    assert.equal(RELEASES[0].version, '0.62.1');
-    assert.equal(RELEASES[0].codename, 'Gate-proof tests');
-    assert.match(RELEASES[0].summary, /Turnstile/);
-    // The 15/20-year-stops release stays in the log, one below the head.
-    assert.equal(RELEASES[1].codename, 'Fifteen and twenty');
-    // The any-age release stays in the log, two below the head.
-    assert.equal(RELEASES[2].codename, 'Any age');
-    // The paged-and-sorted list release stays in the log, three below the head.
-    assert.equal(RELEASES[3].codename, 'Page by page');
-    // The years-slider release stays in the log, four below the head.
-    assert.equal(RELEASES[4].codename, 'Year by year');
-    // The native TypeScript 7 + Oxlint release stays in the log, five below the head.
-    assert.equal(RELEASES[5].codename, 'One compiler, one linter');
-    // The shared v1.209.0 repin stays in the log, six below the head.
-    assert.equal(RELEASES[6].codename, 'Shared foundation v1.209.0');
-    // The signal-carrier repin stays in the log, seven below the head.
-    assert.equal(RELEASES[7].codename, 'Carrier stays on');
-    // The Turnstile-hardening repin stays in the log, eight below the head.
-    assert.equal(RELEASES[8].codename, 'A tighter bot gate');
-    // The initial bot-gate wiring release stays in the log, nine below the head.
-    assert.equal(RELEASES[9].codename, 'Bot gate wired in');
+test('the map-unavailable release is newest', () => {
+    assert.equal(pkg.version, '0.62.2');
+    assert.equal(RELEASES[0].version, '0.62.2');
+    assert.equal(RELEASES[0].codename, 'No map, no mystery');
+    // The user-visible outcome this release is about: a machine that cannot
+    // draw a map gets an explanation instead of a blank panel.
+    assert.match(RELEASES[0].summary, /cannot draw maps/);
+    // The gate-proof-tests release stays in the log, one below the head.
+    assert.equal(RELEASES[1].codename, 'Gate-proof tests');
+    assert.match(RELEASES[1].summary, /Turnstile/);
+    // The 15/20-year-stops release stays in the log, two below the head.
+    assert.equal(RELEASES[2].codename, 'Fifteen and twenty');
+    // The any-age release stays in the log, three below the head.
+    assert.equal(RELEASES[3].codename, 'Any age');
+    // The paged-and-sorted list release stays in the log, four below the head.
+    assert.equal(RELEASES[4].codename, 'Page by page');
+    // The years-slider release stays in the log, five below the head.
+    assert.equal(RELEASES[5].codename, 'Year by year');
+    // The native TypeScript 7 + Oxlint release stays in the log, six below the head.
+    assert.equal(RELEASES[6].codename, 'One compiler, one linter');
+    // The shared v1.209.0 repin stays in the log, seven below the head.
+    assert.equal(RELEASES[7].codename, 'Shared foundation v1.209.0');
+    // The signal-carrier repin stays in the log, eight below the head.
+    assert.equal(RELEASES[8].codename, 'Carrier stays on');
+    // The Turnstile-hardening repin stays in the log, nine below the head.
+    assert.equal(RELEASES[9].codename, 'A tighter bot gate');
+    // The initial bot-gate wiring release stays in the log, ten below the head.
+    assert.equal(RELEASES[10].codename, 'Bot gate wired in');
 });
 
 // v0.47.0 shipped with package-lock.json still saying 0.46.1: npm writes both

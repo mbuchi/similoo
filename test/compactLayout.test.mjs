@@ -11,10 +11,23 @@ import test from 'node:test';
 const read = (path) => readFileSync(new URL(`../src/${path}`, import.meta.url), 'utf8');
 const readRoot = (path) => readFileSync(new URL(`../${path}`, import.meta.url), 'utf8');
 
-const SHARED_VERSION = '1.210.0';
-const SHARED_COMMIT = '0d7d7166ea8c7d0454cbc718eca544a96fe0f8ae';
+const SHARED_VERSION = '1.211.0';
+const SHARED_COMMIT = 'c657a2df0158f63b6553ed06a69062c95302aed2';
 const SHARED_SPEC = `github:mbuchi/aireon-shared#v${SHARED_VERSION}`;
 const STABLE_USER_MENU_LOADER = 'https://static.aireon.ch/shell/user-menu/v1/loader.js';
+
+// ⚠ DERIVED, never a literal. `aireonHtmlPlugin` builds the engine URL from the
+// INSTALLED maplibre-gl version, which it reads off disk (`resolveMaplibreVersion`
+// in dist/vite/htmlPlugin.js) — so the hardcoded `maplibre-gl@6.3.0` this used to
+// pin had to be hand-edited on every engine bump, and `npm test` is not wired
+// into `npm run build`, so forgetting it fails nothing until someone runs the
+// suite by hand. What the assertion is actually protecting is the SHAPE of that
+// URL (the static host, the `/baseline/` lowered build, and the exact version
+// this repo installs). Deriving pins that contract permanently; the engine floor
+// below pins the version itself.
+const MAPLIBRE_VERSION = JSON.parse(
+    readFileSync(new URL('../node_modules/maplibre-gl/package.json', import.meta.url), 'utf8'),
+).version;
 
 test('useCompactLayout switches at the suite-standard 1024px breakpoint', () => {
     const hook = read('hooks/useCompactLayout.ts');
@@ -72,6 +85,13 @@ test('every removed navbar action has a compact account-menu row', () => {
 // well as on .dark, so a stale attribute held every glass panel at the dark
 // fill while the rest of the app went light, until a reload. All four signals
 // now move together. Nothing about the account-menu render path changed.
+//
+// v1.211.0 is the maplibre 6.7.0 GPU-init guard, and it is purely ADDITIVE: a new
+// `constructMapSafely` / `isGpuInitializationError` pair in `src/map/webgl`,
+// routed through shared's own six construction sites (`src/map`, `src/basemap`,
+// `src/claire`, `src/massing`), plus shared's maplibre-gl devDependency and the
+// MAP_BOOTSTRAP_STANDARD doc. Nothing else is touched, and nothing on the
+// account-menu render path is affected.
 test('the account menu is pinned to the shared release that renders the local shell', async () => {
     const manifest = JSON.parse(readRoot('package.json'));
     const lock = JSON.parse(readRoot('package-lock.json'));
@@ -106,7 +126,7 @@ test('the account menu is pinned to the shared release that renders the local sh
     assert.equal(html.split('<link rel="preconnect" href="https://static.aireon.ch" crossorigin>').length - 1, 1);
     assert.equal(html.split('<script type="importmap">').length - 1, 0);
     assert.deepEqual(plugin.resolveId('maplibre-gl'), {
-        id: 'https://static.aireon.ch/maplibre-gl@6.3.0/baseline/maplibre-gl.mjs',
+        id: `https://static.aireon.ch/maplibre-gl@${MAPLIBRE_VERSION}/baseline/maplibre-gl.mjs`,
         external: true,
     });
     // Matched by EXACT id: subpath imports stay bundled, which is what keeps
@@ -121,6 +141,30 @@ test('the account menu is pinned to the shared release that renders the local sh
     );
     assert.match(sharedEntry, /map-shell-user-dropdown/);
     assert.match(sharedEntry, /map-shell-user-menu-item/);
+});
+
+// maplibre-gl 6.7.0 changed how the engine reports a refused WebGL2 context, and
+// the two behaviors are mutually exclusive:
+//
+//   <= 6.6.0  `_setupPainter()` FIRES a GPUInitializationError event and the
+//             constructor ends `if (!this.painter) return;` — `new Map()`
+//             RESOLVES and hands back a painter-less map that detonates later,
+//             far from its cause.
+//   >= 6.7.0  `_setupPainter()` THROWS and the constructor rethrows after
+//             `_cleanupContainer()` — `new Map()` THROWS.
+//
+// similoo's construction gate (src/js/viewer/viewerConfig.js) handles BOTH via
+// the shared `constructMapSafely`, so this is not a compatibility pin. It is a
+// FLOOR: dropping back below 6.7.0 would put the app back on the engine whose
+// silently half-built map is what made this failure so hard to recognise. A
+// minimum on purpose, so a forward bump stays green without touching this file.
+test('the map engine is new enough to throw on a refused WebGL2 context', () => {
+    assert.match(MAPLIBRE_VERSION, /^\d+\.\d+\.\d+/);
+    const [major, minor] = MAPLIBRE_VERSION.split('.').map(Number);
+    assert.ok(
+        major > 6 || (major === 6 && minor >= 7),
+        `maplibre-gl ${MAPLIBRE_VERSION} predates the 6.7.0 GPU-init throw`,
+    );
 });
 
 test('similoo keeps the local account shell without an account summary', () => {

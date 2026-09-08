@@ -41,6 +41,32 @@ export const KIND_META = {
 
 export const RELEASES = [
   {
+    version: '0.62.2',
+    date: 'September 8, 2026',
+    codename: 'No map, no mystery',
+    summary: 'On a computer or browser that cannot draw maps at all, the comparison view now says so in plain words instead of leaving an empty panel, and the rest of the page keeps working.',
+    items: [
+      {
+        kind: 'fixed',
+        icon: 'map-pin-off',
+        text: 'Some machines cannot draw maps: an old graphics driver, hardware acceleration switched off, or a browser that has run out of room for another map. Until now similoo switched to the comparison view anyway and left a blank panel where the map should be, with nothing to explain it. It now shows a short message in that space instead, and the address search and the comparables list carry on as normal.',
+        prs: [201],
+      },
+      {
+        kind: 'improved',
+        icon: 'map',
+        text: 'Updated the map engine to MapLibre 6.7.0. The new version reports a machine that cannot draw maps straight away rather than handing back a half-built map that failed later in a confusing place, which is what made the blank panel above so hard to recognise.',
+        prs: [201],
+      },
+      {
+        kind: 'improved',
+        icon: 'package-check',
+        text: 'Updated the shared Aireon foundation from v1.210.0 to v1.211.0, which is where the new map startup check lives so every Aireon app handles this the same way. The comparison workflow, the highlights and the sidebar are unchanged.',
+        prs: [201],
+      },
+    ],
+  },
+  {
     version: '0.62.1',
     date: 'September 7, 2026',
     codename: 'Gate-proof tests',

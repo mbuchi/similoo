@@ -4,6 +4,10 @@ import { DEFAULT_MAP_ZOOM } from '@aireon/shared/map-defaults';
 // undefined and `new maplibregl.Map(...)` below throws at runtime.
 import * as maplibregl from 'maplibre-gl';
 import { applyMapWorkerUrl } from '@aireon/shared/map-worker';
+// The one safe way to build a MapLibre map in this suite. See the construction
+// gate in initializeViewer() below for why a bare `new maplibregl.Map(...)` is
+// not allowed any more.
+import { constructMapSafely, MapStartupUnsupportedError } from '@aireon/shared/webgl';
 
 // ⚠ WORKER SEAM — must stay at module scope, before the first `new
 // maplibregl.Map(...)`. v6 derives its tile-worker URL from its own
@@ -143,7 +147,26 @@ export async function initializeViewer(containerId, initialCamera = {}) {
         pitch = DEFAULT_PITCH,
         bearing = DEFAULT_BEARING,
     } = initialCamera;
-    const map = new maplibregl.Map({
+    // ⚠ CONSTRUCTION GATE — never `new maplibregl.Map(...)` bare. The engine
+    // reports a refused WebGL2 context in two MUTUALLY EXCLUSIVE ways, so a
+    // guard written for either one alone is dead code under the other:
+    //
+    //   maplibre-gl <= 6.6.0  `_setupPainter()` FIRES a GPUInitializationError
+    //                         event and the constructor ends `if (!this.painter)
+    //                         return;` — so `new Map()` RESOLVES and hands back
+    //                         a painter-less map. It looks constructed, then
+    //                         detonates far from its cause (jumpTo/easeTo and
+    //                         `new Marker().addTo(map)` both die on "reading
+    //                         '0'", remove() on "reading 'destroy'").
+    //   maplibre-gl >= 6.7.0  `_setupPainter()` THROWS GPUInitializationError
+    //                         and the constructor rethrows it after
+    //                         `_cleanupContainer()` — so a post-construction
+    //                         painter gate is never reached at all.
+    //
+    // constructMapSafely folds both into a `null` return and RETHROWS anything
+    // that is not a GPU-init failure, so a bad style, a missing container or a
+    // real bug stays loud and still reaches ensureMap()'s error path.
+    const map = constructMapSafely(() => new maplibregl.Map({
         container: containerId,
         style: buildStyle(),
         center,
@@ -155,7 +178,16 @@ export async function initializeViewer(containerId, initialCamera = {}) {
         // clean. The required basemap credit (swisstopo SWISSIMAGE) is surfaced
         // in the About panel instead (see App.tsx <AboutModal> credits).
         attributionControl: false,
-    });
+    }));
+
+    if (!map) {
+        // `null` means THIS DEVICE CANNOT PAINT A MAP — a browser setting, not
+        // a defect. Name the cause so ensureMap() in main.js can tell it apart
+        // from a genuine boot failure (style fetch, map 'error' event) and show
+        // the fallback panel instead of logging it and re-arming a retry that
+        // can only fail the same way.
+        throw new MapStartupUnsupportedError();
+    }
 
     // Zoom / bearing is the shared suite glass <ZoomControl> (React, mounted
     // bottom-right over the map in ComparisonView), so no maplibre

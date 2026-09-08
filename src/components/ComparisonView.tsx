@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { MapLegendChip } from '@aireon/shared';
+import { MapUnavailable } from '@aireon/shared/webgl';
 import ZoomControl from './ZoomControl';
 import { t } from '../js/i18n.js';
 
@@ -27,13 +28,32 @@ interface ComparisonViewProps {
 // the bespoke maplibre NavigationControl the engine used to mount top-right.
 export default function ComparisonView({ dark, locale }: ComparisonViewProps) {
   const [legendOpen, setLegendOpen] = useState(false);
+  // This browser cannot give MapLibre a WebGL2 context, so there will never be
+  // a map here. ensureMap() in the engine (src/js/main.js) latches that and
+  // announces it once; we swap the empty container for the shared explanation
+  // panel and drop the controls that would drive a map that does not exist.
+  const [mapUnavailable, setMapUnavailable] = useState(false);
+  useEffect(() => {
+    const onUnavailable = () => setMapUnavailable(true);
+    window.addEventListener('similoo:map-unavailable', onUnavailable);
+    return () => window.removeEventListener('similoo:map-unavailable', onUnavailable);
+  }, []);
 
   return (
     <section id="comparisonView" className="comparison-view" hidden>
-      <div id="mapContainer" className="comparison-map" />
+      {/* `.comparison-map` is `position: relative`, so <MapUnavailable/>'s
+          `absolute inset-0` fills exactly the area the canvas would have. It is
+          safe for React to own a child of the container the engine mounts
+          MapLibre into precisely because the two are mutually exclusive: the
+          panel only ever renders when construction failed, i.e. when MapLibre
+          put nothing in this node at all. */}
+      <div id="mapContainer" className="comparison-map">
+        {mapUnavailable ? <MapUnavailable dark={dark} /> : null}
+      </div>
       <div
         data-screenshot-ignore="true"
         className="absolute bottom-6 left-3 z-10 md:hidden"
+        hidden={mapUnavailable}
       >
         <MapLegendChip
           open={legendOpen}
@@ -66,7 +86,9 @@ export default function ComparisonView({ dark, locale }: ComparisonViewProps) {
           </div>
         </MapLegendChip>
       </div>
-      <ZoomControl dark={dark} locale={locale} className="bottom-8 right-4" />
+      {mapUnavailable ? null : (
+        <ZoomControl dark={dark} locale={locale} className="bottom-8 right-4" />
+      )}
     </section>
   );
 }

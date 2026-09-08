@@ -62,6 +62,10 @@ import { CH_OVERVIEW } from '@aireon/shared/map-defaults';
 // label; the shared resolver owns the fallback chain and the legal-reference
 // guard.
 import { resolveZoneLabel } from '@aireon/shared/parcel-zone';
+// "This device cannot paint a map" — the one map-startup failure that belongs
+// to the VISITOR'S BROWSER rather than to us. viewerConfig.js raises it from the
+// construction gate; ensureMap() below turns it into the fallback panel.
+import { isGpuInitializationError } from '@aireon/shared/webgl';
 
 // similoo's imperative engine entry point.
 //
@@ -119,6 +123,10 @@ export function boot() {
     // map rather than constructing a competing instance that can finish later
     // and restore the stale camera.
     let mapLoading = null;
+    // Latched once construction has told us this browser cannot paint a map at
+    // all (no WebGL2). One-way: it only ever goes true, and it is what keeps the
+    // warning and the fallback-panel event to a single emission.
+    let mapUnavailable = false;
     // Overlay-opacity controller. Created before the map exists — it reads the
     // live instance through this getter, because initializeViewer() is async.
     initOverlayOpacity(() => map);
@@ -179,6 +187,15 @@ export function boot() {
         if (Math.abs(Number(confirmedPick.lat) - center.lat) > URL_COORD_EPSILON) return null;
         if (Math.abs(Number(confirmedPick.lng) - center.lng) > URL_COORD_EPSILON) return null;
         return confirmedPick;
+    }
+
+    // Is this failure the visitor's device refusing WebGL2, rather than a defect?
+    // Matched by NAME, never `instanceof`: the suite loads the engine from
+    // static.aireon.ch, so the GPUInitializationError class we would catch is not
+    // necessarily the one any bundled copy exposes. MapStartupUnsupportedError is
+    // what viewerConfig.js's construction gate raises for the same cause.
+    function isDeviceCannotPaint(error) {
+        return error?.name === 'MapStartupUnsupportedError' || isGpuInitializationError(error);
     }
 
     async function ensureMap(initialCamera) {
@@ -256,6 +273,38 @@ export function boot() {
                 createMapLegend(map.getContainer());
                 return map;
             } catch (e) {
+                if (isDeviceCannotPaint(e)) {
+                    // A WebGL2-less visitor. THREE deliberate departures from
+                    // the genuine-failure path below:
+                    //   • console.WARN, not console.error. App.tsx installs the
+                    //     shared error logger with `captureConsoleErrors: true`,
+                    //     which files a hub bug row per console.error — one row
+                    //     per WebGL2-less visit, for a device setting.
+                    //   • no rethrow. Most callers here launch this promise
+                    //     unawaited (`handlePick(r)` from the `similoo:search`
+                    //     listener, the deep-link bootstrap, `void
+                    //     showEmptyMap(...)`), and the bootstrap's SYNCHRONOUS
+                    //     `try/catch` cannot catch an async rejection — so a
+                    //     rethrow lands as an unhandled rejection, which the
+                    //     shared logger also hooks. Resolving `null` is the
+                    //     contract: "no map on this device", handled below.
+                    //   • `mapLoading` is NOT reset. A device that cannot paint
+                    //     never will, so re-arming construction would rebuild
+                    //     (and re-report) on every later search or recenter.
+                    //     Leaving the resolved-null promise in place makes every
+                    //     subsequent ensureMap() a no-op short-circuit.
+                    console.warn('MapLibre startup unsupported:', e.message);
+                    if (!mapUnavailable) {
+                        mapUnavailable = true;
+                        // Engine → React bridge, the same window-event pattern
+                        // `similoo:search` / `similoo:login` use. ComparisonView
+                        // swaps the empty map container for the shared
+                        // <MapUnavailable/> panel, so the visitor gets an
+                        // explanation instead of a blank comparison view.
+                        window.dispatchEvent(new CustomEvent('similoo:map-unavailable'));
+                    }
+                    return null;
+                }
                 mapLoading = null;
                 console.error('Error initializing viewer:', e);
                 throw e;
@@ -404,6 +453,10 @@ export function boot() {
         // fights it. With a camera we also hand it to the constructor so the
         // first painted frame is already the right place.
         const m = await ensureMap(camera || undefined);
+        // null = this device cannot paint a map. ComparisonView is already
+        // showing the fallback panel over the container; there is no camera to
+        // move, and jumpTo on nothing would throw into an unawaited caller.
+        if (!m) return;
         m.jumpTo(view);
         if (window.lucide?.createIcons) window.lucide.createIcons();
     }
@@ -416,15 +469,28 @@ export function boot() {
     // trip back through the landing view — leaves nothing stale behind.
     window.addEventListener('similoo:search', (e) => {
         const r = e?.detail;
-        if (r && Number.isFinite(r.lat) && Number.isFinite(r.lng)) handlePick(r);
+        // Terminal `.catch`: handlePick is launched unawaited from an event
+        // listener, so a rejected boot would land as an unhandled rejection on
+        // top of the console.error ensureMap already filed.
+        if (r && Number.isFinite(r.lat) && Number.isFinite(r.lng)) {
+            void handlePick(r).catch(() => { /* already reported by ensureMap */ });
+        }
     });
 
     window.addEventListener('similoo:center', (e) => {
         const r = e?.detail;
         if (!r || !Number.isFinite(r.lat) || !Number.isFinite(r.lng)) return;
-        void ensureMap().then((activeMap) => {
-            activeMap.easeTo({ center: [r.lng, r.lat], duration: 500, essential: true });
-        });
+        // `.catch` is not optional here: this promise is launched unawaited, so
+        // a genuine boot failure would otherwise surface as an unhandled
+        // rejection — which the shared error logger hooks, filing a SECOND hub
+        // row for the console.error ensureMap has already reported. The null
+        // check covers the WebGL2-less device, where there is no map to ease.
+        void ensureMap()
+            .then((activeMap) => {
+                if (!activeMap) return;
+                activeMap.easeTo({ center: [r.lng, r.lat], duration: 500, essential: true });
+            })
+            .catch(() => { /* already reported by ensureMap */ });
     });
 
     // Probe the building vector tile under (lng, lat) and return the rendered
@@ -1199,7 +1265,10 @@ export function boot() {
             // shared spelling-agnostic read of both. Coordinates still lead —
             // the gate only fires on ?lat/?lng, so an EGRID-only link would
             // restore nothing.
-            handlePick({
+            // ⚠ The `try { ... } catch { }` wrapping this whole bootstrap is
+            // SYNCHRONOUS and provably cannot catch an async rejection, so each
+            // of these three launches needs its own terminal `.catch`.
+            void handlePick({
                 lat: autoSelect.lat,
                 lng: autoSelect.lng,
                 label,
@@ -1207,7 +1276,7 @@ export function boot() {
                 egrid: autoSelect.preferId,
                 labelIsHint: true,
                 requireIdMatch: autoSelect.requireIdMatch,
-            });
+            }).catch(() => { /* already reported by ensureMap */ });
         } else if (urlState.lat !== null && urlState.lng !== null) {
             // Coordinates the app must honour, with no selection owed. Open the
             // map on them with nothing picked and no panel: same view, minus the
@@ -1218,13 +1287,13 @@ export function boot() {
                 zoom: Number.isFinite(zoom) ? zoom : DEEP_LINK_MIN_ZOOM,
                 pitch: 50,
                 bearing: -25,
-            });
+            }).catch(() => { /* already reported by ensureMap */ });
         } else if (isAddressGateBypassed()) {
             // ?search_modal=off / ?welcome=off with no coordinates: skip the
             // landing view and open the map at a country overview instead of
             // the address gate. Coordinates keep winning above — a deep link
             // that already names a location must still run its comparison.
-            void showEmptyMap();
+            void showEmptyMap().catch(() => { /* already reported by ensureMap */ });
         }
     } catch { /* no-op */ }
 
