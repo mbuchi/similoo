@@ -11,8 +11,8 @@ import test from 'node:test';
 const read = (path) => readFileSync(new URL(`../src/${path}`, import.meta.url), 'utf8');
 const readRoot = (path) => readFileSync(new URL(`../${path}`, import.meta.url), 'utf8');
 
-const SHARED_VERSION = '1.219.0';
-const SHARED_COMMIT = 'f201ad6012b3122d906e860663d6e024f79baf06';
+const SHARED_VERSION = '1.220.0';
+const SHARED_COMMIT = '9865f5d64f68caab57d3c653966ae88fdc351a5b';
 const SHARED_SPEC = `github:mbuchi/aireon-shared#v${SHARED_VERSION}`;
 const STABLE_USER_MENU_LOADER = 'https://static.aireon.ch/shell/user-menu/v1/loader.js';
 
@@ -108,6 +108,17 @@ test('every removed navbar action has a compact account-menu row', () => {
 // essentially unchanged by the re-chunking (838,143 -> 840,793 bytes against
 // v1.211.0, no Claire UI module in either). No vite plugin, user-menu runtime or
 // CSS file moves, so nothing on the account-menu render path is affected.
+// (v1.219.0 resolved commit f201ad6012b3122d906e860663d6e024f79baf06.)
+//
+// v1.220.0. Per `git diff --stat v1.219.0 v1.220.0 -- src`, the release touches
+// only `src/claire` (ClaireAssistant moves to the relay's streaming route, the
+// chat client retries at most once, and a Gemini | OpenAI picker appears once
+// the relay reports both providers) and the barrel (additive provider
+// exports). similoo still renders no Claire chat panel; `claireContext.ts`,
+// which fetchClaireContext comes from, is not in the diff, and neither is the
+// signal client. No vite plugin, user-menu runtime, CSS file, dependency or
+// peerDependency moves, so nothing on the account-menu render path is
+// affected. Resolved commit 9865f5d64f68caab57d3c653966ae88fdc351a5b.
 test('the account menu is pinned to the shared release that renders the local shell', async () => {
     const manifest = JSON.parse(readRoot('package.json'));
     const lock = JSON.parse(readRoot('package-lock.json'));
