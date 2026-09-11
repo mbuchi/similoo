@@ -41,6 +41,32 @@ export const KIND_META = {
 
 export const RELEASES = [
   {
+    version: '0.62.3',
+    date: 'September 11, 2026',
+    codename: 'Shared foundation v1.219.0',
+    summary: 'zeroo joins the Open with menu, and two kinds of harmless error stop reaching the bug tracker; the shared Aireon foundation moves to v1.219.0.',
+    items: [
+      {
+        kind: 'improved',
+        icon: 'external-link',
+        text: 'The Open with menu now lists zeroo, the zero-commission marketplace, next to the other apps that can open at the address you are looking at. realioo stays out of the menu until its live site can open a shared address on the right property instead of its home page.',
+        prs: [],
+      },
+      {
+        kind: 'fixed',
+        icon: 'bug',
+        text: 'Two kinds of report no longer reach the suite bug tracker: a privacy tool or a network failure stopping the Cloudflare bot check, which already falls back to its own retry card, and errors raised on a local development copy of similoo, which are now parked as test traffic. Real faults are reported as before.',
+        prs: [],
+      },
+      {
+        kind: 'improved',
+        icon: 'package',
+        text: 'Updated the shared Aireon foundation from v1.211.0 to v1.219.0. The other changes in between, a new thinking indicator for Claire and a new way of packaging her code, concern a chat panel similoo does not show. The comparison workflow, the highlights and the sidebar are unchanged.',
+        prs: [],
+      },
+    ],
+  },
+  {
     version: '0.62.2',
     date: 'September 8, 2026',
     codename: 'No map, no mystery',
