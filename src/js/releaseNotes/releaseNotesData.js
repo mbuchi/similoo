@@ -41,6 +41,20 @@ export const KIND_META = {
 
 export const RELEASES = [
   {
+    version: '0.62.4',
+    date: 'September 11, 2026',
+    codename: 'Shared foundation v1.220.0',
+    summary: 'The shared Aireon foundation moves to v1.220.0 to stay current with the rest of the suite; nothing changes in similoo.',
+    items: [
+      {
+        kind: 'improved',
+        icon: 'package',
+        text: 'Shared library update (v1.220.0); no visible change in this app. The release only changes Claire\'s chat panel, which similoo does not show. The comparison workflow, the highlights and the sidebar are unchanged.',
+        prs: [],
+      },
+    ],
+  },
+  {
     version: '0.62.3',
     date: 'September 11, 2026',
     codename: 'Shared foundation v1.219.0',
