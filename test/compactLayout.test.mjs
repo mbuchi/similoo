@@ -11,8 +11,8 @@ import test from 'node:test';
 const read = (path) => readFileSync(new URL(`../src/${path}`, import.meta.url), 'utf8');
 const readRoot = (path) => readFileSync(new URL(`../${path}`, import.meta.url), 'utf8');
 
-const SHARED_VERSION = '1.211.0';
-const SHARED_COMMIT = 'c657a2df0158f63b6553ed06a69062c95302aed2';
+const SHARED_VERSION = '1.219.0';
+const SHARED_COMMIT = 'f201ad6012b3122d906e860663d6e024f79baf06';
 const SHARED_SPEC = `github:mbuchi/aireon-shared#v${SHARED_VERSION}`;
 const STABLE_USER_MENU_LOADER = 'https://static.aireon.ch/shell/user-menu/v1/loader.js';
 
@@ -92,6 +92,22 @@ test('every removed navbar action has a compact account-menu row', () => {
 // `src/claire`, `src/massing`), plus shared's maplibre-gl devDependency and the
 // MAP_BOOTSTRAP_STANDARD doc. Nothing else is touched, and nothing on the
 // account-menu render path is affected.
+//
+// v1.219.0 (v1.212.0 through v1.219.0). Per `git diff --name-only v1.211.0
+// v1.219.0 -- src`, the span touches only `src/claire` (the ClaireThinking
+// indicator in v1.212.0/v1.213.0, then v1.219.0's ClaireAssistantLazy, the
+// lazy import() wrapper the root barrel now exports), `src/errorlog` (a blocked
+// challenges.cloudflare.com loader stops filing a resource error; reports from
+// a local dev origin are parked as synthetic), `src/turnstile/TurnstileGate`
+// (best-effort probe and mint fetches), `src/searchHistory/anonCookie` (the
+// signed-out cookie also scopes to brokereum.xyz), `src/nav/launchApps` (an
+// entry can carry its own origin; the list gains zeroo, and realioo is held
+// out again), `src/signal` (the signal client's own entry) and the barrel.
+// similoo renders no Claire chat panel; it takes fetchClaireContext and
+// createSignalClient from the barrel, and a vite build shows its first-load JS
+// essentially unchanged by the re-chunking (838,143 -> 840,793 bytes against
+// v1.211.0, no Claire UI module in either). No vite plugin, user-menu runtime or
+// CSS file moves, so nothing on the account-menu render path is affected.
 test('the account menu is pinned to the shared release that renders the local shell', async () => {
     const manifest = JSON.parse(readRoot('package.json'));
     const lock = JSON.parse(readRoot('package-lock.json'));
